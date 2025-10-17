@@ -402,9 +402,11 @@
 <p>This manual process gives us the right answer for "banana". But notice how tedious and error-prone it was. Did I miss any? I had to double-check. Imagine doing this for a whole paragraph, or a book, or a gigabyte of log data. It's simply not feasible.</p>
 <p>This is our core problem: <strong>How can we automate the process of finding and counting all repeated substrings in a body of text, and do it efficiently?</strong></p>
 <h2 id="the-naive-approach-why-we-need-algorithms">The Naive Approach: Why We Need Algorithms</h2>
-<p>Let's try to translate our manual "check everything" logic into code. A simple, brute-force approach might be:
-1.  Generate every possible substring.
-2.  For each substring, scan the entire original text to count its occurrences.</p>
+<p>Let's try to translate our manual "check everything" logic into code. A simple, brute-force approach might be:</p>
+<ol>
+<li>Generate every possible substring.</li>
+<li>For each substring, scan the entire original text to count its occurrences.</li>
+</ol>
 <p>This seems straightforward enough. Let's implement it.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
@@ -509,11 +511,13 @@
 <p><strong>Why the confusion happens</strong>: For tiny inputs like "banana", the brute-force method is nearly instantaneous, giving a false sense of security. The "performance cliff" is steep and comes sooner than most people expect.</p>
 <p><strong>How to remember</strong>: Hardware improvements might make an algorithm 10x or 100x faster. A better algorithm can make it a billion times faster. For a 1 million character text (a small book), the difference is between a few seconds (efficient algorithm) and longer than the age of the universe (naive algorithm). Software efficiency, not hardware speed, is the key to solving large problems.</p>
 <h3 id="production-perspective">Production Perspective</h3>
-<p><strong>When this problem matters</strong>: The task of finding repeated substrings is not just an academic exercise. It's a cornerstone of:
-- <strong>Data Compression</strong>: Algorithms like Lempel-Ziv (used in ZIP and PNG files) work by finding repeated sequences and replacing them with short references.
-- <strong>Bioinformatics</strong>: Finding repeated gene sequences in DNA is critical for understanding genetic diseases and evolutionary patterns. A single human genome is 3 billion characters long—efficiency is non-negotiable.
-- <strong>Plagiarism Detection</strong>: Software like Turnitin checks for copied text by finding long, repeated substrings between a submitted paper and a massive database of existing works.
-- <strong>Data Deduplication</strong>: Cloud storage systems save immense amounts of space by finding identical blocks of data (which are just long substrings) across all users' files and only storing one copy.</p>
+<p><strong>When this problem matters</strong>: The task of finding repeated substrings is not just an academic exercise. It's a cornerstone of:</p>
+<ul>
+<li><strong>Data Compression</strong>: Algorithms like Lempel-Ziv (used in ZIP and PNG files) work by finding repeated sequences and replacing them with short references.</li>
+<li><strong>Bioinformatics</strong>: Finding repeated gene sequences in DNA is critical for understanding genetic diseases and evolutionary patterns. A single human genome is 3 billion characters long—efficiency is non-negotiable.</li>
+<li><strong>Plagiarism Detection</strong>: Software like Turnitin checks for copied text by finding long, repeated substrings between a submitted paper and a massive database of existing works.</li>
+<li><strong>Data Deduplication</strong>: Cloud storage systems save immense amounts of space by finding identical blocks of data (which are just long substrings) across all users' files and only storing one copy.</li>
+</ul>
 <p><strong>The Trade-off</strong>: The naive approach is easy to write and understand. That's its only advantage. In any production system, its abysmal performance makes it unusable. This course is about learning the clever, efficient algorithms that professionals use to solve this problem at scale. We have now established <em>why</em> we need them.</p>
 <h2 id="core-terminology">Core Terminology</h2>
 <h2 id="learning-objective_1">Learning Objective</h2>
@@ -523,10 +527,12 @@
 <h2 id="discovery-phase-what-is-a-substring">Discovery Phase: What is a "Substring"?</h2>
 <p>In the last section, we informally used the term "substring" to mean "a piece of the text." Let's define this formally.</p>
 <p>Consider the simple string <code>text = "abc"</code>.</p>
-<p>What are all the possible contiguous blocks of characters inside it?
-- Chunks of length 1: <code>'a'</code>, <code>'b'</code>, <code>'c'</code>
-- Chunks of length 2: <code>'ab'</code>, <code>'bc'</code>
-- Chunks of length 3: <code>'abc'</code></p>
+<p>What are all the possible contiguous blocks of characters inside it?</p>
+<ul>
+<li>Chunks of length 1: <code>'a'</code>, <code>'b'</code>, <code>'c'</code></li>
+<li>Chunks of length 2: <code>'ab'</code>, <code>'bc'</code></li>
+<li>Chunks of length 3: <code>'abc'</code></li>
+</ul>
 <p>Let's write a small program to generate these systematically to make sure we haven't missed any.</p>
 <div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_all_substrings</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generates all substrings of a given text.&quot;&quot;&quot;</span>
@@ -607,12 +613,14 @@ An n-gram is a contiguous sequence of <code>n</code> items from a given sample o
 <p><strong>You might think</strong>: A "subsequence" and a "substring" are the same thing.</p>
 <p><strong>Actually</strong>: They are very different. A <strong>substring</strong> must be <em>contiguous</em> (unbroken). A <strong>subsequence</strong> can have gaps.</p>
 <p><strong>Why the confusion happens</strong>: The words sound similar, and in casual conversation, they might be used interchangeably. In computer science, the distinction is critical.</p>
-<p><strong>How to remember</strong>:
-- <code>sub**string**</code>: think of a piece of <em>string</em> you cut out with scissors. It's one solid piece.
-- For the text <code>banana</code>:
-  - <code>bna</code> is a <strong>subsequence</strong> (you can get it by deleting 'a' and 'a' and 'a').
-  - <code>bna</code> is <strong>NOT a substring</strong>, because the characters 'b', 'n', 'a' are not next to each other in the original word.
-  - <code>nan</code> <strong>IS a substring</strong>.</p>
+<p><strong>How to remember</strong>:</p>
+<ul>
+<li><code>sub**string**</code>: think of a piece of <em>string</em> you cut out with scissors. It's one solid piece.</li>
+<li>For the text <code>banana</code>:</li>
+<li><code>bna</code> is a <strong>subsequence</strong> (you can get it by deleting 'a' and 'a' and 'a').</li>
+<li><code>bna</code> is <strong>NOT a substring</strong>, because the characters 'b', 'n', 'a' are not next to each other in the original word.</li>
+<li><code>nan</code> <strong>IS a substring</strong>.</li>
+</ul>
 <h2 id="conceptual-expansion-character-level-vs-word-level-n-grams">Conceptual Expansion: Character-level vs. Word-level N-grams</h2>
 <p>So far, our "items" have been characters. But the concept of an n-gram can be applied to any sequence, including words in a sentence. This is extremely powerful in Natural Language Processing (NLP).</p>
 <p>Let's take a sentence:
@@ -664,16 +672,20 @@ Word-level Trigrams (n=3):
 
 <p>This demonstrates that the <em>pattern</em> of "n-grams" is an abstract concept that we can apply to different types of data. The underlying logic is the same: take a sequence and slide a window of size <code>n</code> over it.</p>
 <h3 id="production-perspective_1">Production Perspective</h3>
-<p><strong>Communicating with your team</strong>: Using this vocabulary makes you a more effective developer.
-- "Let's find all duplicate <strong>substrings</strong>" is a general request.
-- "Let's find all duplicate <strong>trigrams</strong>" is a very specific request. It implies you only care about repeated sequences of length 3.
-- "We should build a <strong>word-level bigram</strong> model" is a standard phrase in machine learning, instantly telling another engineer what you are planning.</p>
-<p><strong>Real-world applications</strong>:
-- <strong>Character-level n-grams</strong> are crucial in bioinformatics for analyzing DNA (sequences of A, C, G, T) and in cryptography for breaking simple ciphers.
-- <strong>Word-level n-grams</strong> are the bedrock of modern NLP. They are used in:
-    - <strong>Language Models</strong>: Predicting the next word in a sentence (like your phone's autocomplete) is often based on the preceding n-grams. The probability of "cream" is much higher after the bigram "ice".
-    - <strong>Machine Translation</strong>: Services like Google Translate use n-gram frequencies to produce more natural-sounding translations.
-    - <strong>Sentiment Analysis</strong>: The presence of certain bigrams like "very good" vs. "not good" is a strong indicator of the text's sentiment.</p>
+<p><strong>Communicating with your team</strong>: Using this vocabulary makes you a more effective developer.</p>
+<ul>
+<li>"Let's find all duplicate <strong>substrings</strong>" is a general request.</li>
+<li>"Let's find all duplicate <strong>trigrams</strong>" is a very specific request. It implies you only care about repeated sequences of length 3.</li>
+<li>"We should build a <strong>word-level bigram</strong> model" is a standard phrase in machine learning, instantly telling another engineer what you are planning.</li>
+</ul>
+<p><strong>Real-world applications</strong>:</p>
+<ul>
+<li><strong>Character-level n-grams</strong> are crucial in bioinformatics for analyzing DNA (sequences of A, C, G, T) and in cryptography for breaking simple ciphers.</li>
+<li><strong>Word-level n-grams</strong> are the bedrock of modern NLP. They are used in:</li>
+<li><strong>Language Models</strong>: Predicting the next word in a sentence (like your phone's autocomplete) is often based on the preceding n-grams. The probability of "cream" is much higher after the bigram "ice".</li>
+<li><strong>Machine Translation</strong>: Services like Google Translate use n-gram frequencies to produce more natural-sounding translations.</li>
+<li><strong>Sentiment Analysis</strong>: The presence of certain bigrams like "very good" vs. "not good" is a strong indicator of the text's sentiment.</li>
+</ul>
 <p>By mastering these simple, fundamental terms, you're not just learning jargon; you're learning to see and describe the foundational patterns used across many fields of computer science.</p>
 <h2 id="module-synthesis">Module Synthesis</h2>
 <h2 id="module-synthesis-from-problem-to-precision">Module Synthesis: From Problem to Precision</h2>
@@ -685,7 +697,7 @@ Word-level Trigrams (n=3):
 <p>We now have a well-defined problem and the correct terminology to describe it. We are perfectly positioned to tackle our first <em>efficient</em> solution. In <strong>Module 1: The Sliding Window Approach</strong>, we will build an algorithm that is vastly more performant than our naive attempt, starting once again with a hardcoded example and gradually building it into a flexible and powerful tool.</p>
         </div>
         <div class="footer">
-            Generated on 2025-10-17 18:54:32 | Made with ❤️ by GitHub Pages Generator
+            Generated on 2025-10-17 20:18:54 | Made with ❤️ by GitHub Pages Generator
         </div>
     </div>
     <script>

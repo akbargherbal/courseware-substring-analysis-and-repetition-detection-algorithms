@@ -334,13 +334,17 @@
 <p>So far, we've focused on finding repetitions <em>within</em> a single text. But a huge class of real-world problems involves finding similarities <em>between</em> texts. This is the foundation of plagiarism detection in academia, copyright infringement detection in publishing, and even how search engines find duplicate content on the web. Mastering this application moves your skills from theoretical algorithms to practical solutions.</p>
 <h2 id="discovery-phase">Discovery Phase</h2>
 <p>Let's start with a concrete, intuitive example. Imagine you are a teaching assistant and you receive two short essays that seem suspiciously similar.</p>
-<p>Here are the two documents:
-- <strong>Document A (Original Source):</strong> "The solar system is a gravitationally bound system of the Sun and the objects that orbit it. The formation and evolution of the solar system began 4.6 billion years ago with the gravitational collapse of a small part of a giant molecular cloud. Most of this collapsing mass collected in the center, forming the Sun, while the rest flattened into a protoplanetary disk out of which the planets, moons, and other bodies formed."
-- <strong>Document B (Submitted Essay):</strong> "Our solar system is a gravitationally bound system of the Sun and the objects that orbit it. Though its history is long, its evolution began 4.6 billion years ago with the gravitational collapse of a giant molecular cloud. The majority of this collapsing mass collected in the center, creating the Sun, while the remainder flattened into a disk from which the planets, moons, and asteroids were born."</p>
+<p>Here are the two documents:</p>
+<ul>
+<li><strong>Document A (Original Source):</strong> "The solar system is a gravitationally bound system of the Sun and the objects that orbit it. The formation and evolution of the solar system began 4.6 billion years ago with the gravitational collapse of a small part of a giant molecular cloud. Most of this collapsing mass collected in the center, forming the Sun, while the rest flattened into a protoplanetary disk out of which the planets, moons, and other bodies formed."</li>
+<li><strong>Document B (Submitted Essay):</strong> "Our solar system is a gravitationally bound system of the Sun and the objects that orbit it. Though its history is long, its evolution began 4.6 billion years ago with the gravitational collapse of a giant molecular cloud. The majority of this collapsing mass collected in the center, creating the Sun, while the remainder flattened into a disk from which the planets, moons, and asteroids were born."</li>
+</ul>
 <p>Even with a quick glance, you can spot an identical phrase: <code>"a gravitationally bound system of the Sun and the objects that orbit it"</code>. The second sentence is slightly rephrased, but the first is a direct copy. How can we automate this detection process?</p>
-<p>The core task is to:
-1.  Break down each document into smaller, manageable chunks of text (n-grams).
-2.  Efficiently find which of these chunks appear in both documents.</p>
+<p>The core task is to:</p>
+<ol>
+<li>Break down each document into smaller, manageable chunks of text (n-grams).</li>
+<li>Efficiently find which of these chunks appear in both documents.</li>
+</ol>
 <p>This is a perfect application for our substring-finding algorithms. Now, which one should we choose?</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Let&#39;s define our two documents for this case study.</span>
 <span class="n">doc_a</span> <span class="o">=</span> <span class="s2">&quot;The solar system is a gravitationally bound system of the Sun and the objects that orbit it. The formation and evolution of the solar system began 4.6 billion years ago with the gravitational collapse of a small part of a giant molecular cloud. Most of this collapsing mass collected in the center, forming the Sun, while the rest flattened into a protoplanetary disk out of which the planets, moons, and other bodies formed.&quot;</span>
@@ -358,15 +362,19 @@ Document B length: 357
 
 <h2 id="deep-dive-selecting-the-right-algorithm">Deep Dive: Selecting the Right Algorithm</h2>
 <p>Let's use the decision-making process we developed in Module 5 to select the best tool for the job.</p>
-<p><strong>Problem Constraints:</strong>
--   <strong>Input Size:</strong> We are comparing two documents, typically from a few hundred words to several thousand. This is "medium" sized data, not gigabytes.
--   <strong>Task:</strong> Find common substrings of a certain length (e.g., phrases of 10+ words) between two distinct texts.
--   <strong>Frequency:</strong> This might be a one-time comparison, or we might build a system to compare one new document against a large database of existing ones. For now, let's focus on the one-to-one comparison.</p>
-<p><strong>Algorithm Evaluation:</strong>
-1.  <strong>Sliding Window (Module 1):</strong> A naive approach would be to get every n-gram from <code>doc_a</code> and, for each one, scan all of <code>doc_b</code> to see if it exists. This would be very slow, roughly <code>O(len(doc_a) * len(doc_b))</code>. We could optimize by storing n-grams from <code>doc_a</code> in a set, which leads us directly to the next approach.
-2.  <strong>Suffix Array (Module 2):</strong> We could concatenate <code>doc_a</code> and <code>doc_b</code> (with a special separator character), then build a Suffix and LCP array. This is extremely powerful but also complex to implement and has a high preprocessing cost (<code>O(N log N)</code> where N is the combined length). It's overkill for a simple pairwise comparison but would be a great choice if we were building a large, searchable database.
-3.  <strong>Hash-Based Method (Module 3):</strong> This seems like a perfect fit. We can generate all n-grams from <code>doc_a</code>, store their hashes in a hash set (providing <code>O(1)</code> average lookup time), and then iterate through <code>doc_b</code>'s n-grams, calculate their hashes, and check for matches. The total time complexity would be <code>O(len(doc_a) + len(doc_b))</code>, which is highly efficient.
-4.  <strong>Streaming (Module 4):</strong> This is unnecessary. The documents are small enough to easily fit into memory.</p>
+<p><strong>Problem Constraints:</strong></p>
+<ul>
+<li><strong>Input Size:</strong> We are comparing two documents, typically from a few hundred words to several thousand. This is "medium" sized data, not gigabytes.</li>
+<li><strong>Task:</strong> Find common substrings of a certain length (e.g., phrases of 10+ words) between two distinct texts.</li>
+<li><strong>Frequency:</strong> This might be a one-time comparison, or we might build a system to compare one new document against a large database of existing ones. For now, let's focus on the one-to-one comparison.</li>
+</ul>
+<p><strong>Algorithm Evaluation:</strong></p>
+<ol>
+<li><strong>Sliding Window (Module 1):</strong> A naive approach would be to get every n-gram from <code>doc_a</code> and, for each one, scan all of <code>doc_b</code> to see if it exists. This would be very slow, roughly <code>O(len(doc_a) * len(doc_b))</code>. We could optimize by storing n-grams from <code>doc_a</code> in a set, which leads us directly to the next approach.</li>
+<li><strong>Suffix Array (Module 2):</strong> We could concatenate <code>doc_a</code> and <code>doc_b</code> (with a special separator character), then build a Suffix and LCP array. This is extremely powerful but also complex to implement and has a high preprocessing cost (<code>O(N log N)</code> where N is the combined length). It's overkill for a simple pairwise comparison but would be a great choice if we were building a large, searchable database.</li>
+<li><strong>Hash-Based Method (Module 3):</strong> This seems like a perfect fit. We can generate all n-grams from <code>doc_a</code>, store their hashes in a hash set (providing <code>O(1)</code> average lookup time), and then iterate through <code>doc_b</code>'s n-grams, calculate their hashes, and check for matches. The total time complexity would be <code>O(len(doc_a) + len(doc_b))</code>, which is highly efficient.</li>
+<li><strong>Streaming (Module 4):</strong> This is unnecessary. The documents are small enough to easily fit into memory.</li>
+</ol>
 <p><strong>Conclusion:</strong> The <strong>Hash-Based Method</strong> offers the best balance of performance and implementation simplicity for this problem.</p>
 <h3 id="step-1-handling-edge-cases-with-text-normalization">Step 1: Handling Edge Cases with Text Normalization</h3>
 <p>Real-world text is messy. A human would recognize that <code>"The Sun"</code> and <code>"the sun"</code> refer to the same thing, but a computer sees them as different strings. The same goes for punctuation. To make our comparison robust, we must first <em>normalize</em> the text. This typically involves converting to lowercase and removing punctuation.</p>
@@ -399,12 +407,14 @@ Normalized:  &#39;the solar system is a gravitationally bound system&#39;
 <p>As you can see, normalization makes the text uniform and removes noisy characters, allowing for more accurate comparisons.</p>
 <h3 id="step-2-implementing-the-plagiarism-detector">Step 2: Implementing the Plagiarism Detector</h3>
 <p>Now we'll build the core logic using the hash-based approach. Because our n-grams will be based on words, not characters, we'll first split the normalized text into a list of words.</p>
-<p>Our strategy:
-1.  Normalize both documents.
-2.  Split both into lists of words.
-3.  Create word-level n-grams (we'll call them "shingles") of a fixed size <code>n</code>. For example, a 10-gram would be 10 consecutive words.
-4.  Store all unique shingles from Document A in a set for fast lookup.
-5.  Iterate through the shingles of Document B and collect any that are found in Document A's set.</p>
+<p>Our strategy:</p>
+<ol>
+<li>Normalize both documents.</li>
+<li>Split both into lists of words.</li>
+<li>Create word-level n-grams (we'll call them "shingles") of a fixed size <code>n</code>. For example, a 10-gram would be 10 consecutive words.</li>
+<li>Store all unique shingles from Document A in a set for fast lookup.</li>
+<li>Iterate through the shingles of Document B and collect any that are found in Document A's set.</li>
+</ol>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">get_word_shingles</span><span class="p">(</span><span class="n">words</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -487,9 +497,11 @@ Found 3 plagiarized phrase(s) of 5 words.
 </li>
 <li><strong>Optimization with MinHashing</strong>: To save space and speed up comparisons, systems often don't store all shingles. Instead, they use a technique called <strong>MinHash</strong> to create a small, fixed-size "fingerprint" of the document's shingle set. Comparing these small fingerprints is vastly faster than comparing entire sets of shingles, while still giving a very accurate estimate of similarity.</li>
 </ol>
-<p><strong>Trade-offs</strong>:
--   ✅ <strong>Advantage</strong>: Extremely fast for finding exact phrase matches (<code>O(N+M)</code>). Scalable to huge databases with an inverted index.
--   ⚠️ <strong>Cost</strong>: Insensitive to rephrasing or reordering. If a student rewrites a copied sentence in their own words, this method will not detect it. Advanced systems layer on semantic analysis and other AI techniques to catch this.</p>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li>✅ <strong>Advantage</strong>: Extremely fast for finding exact phrase matches (<code>O(N+M)</code>). Scalable to huge databases with an inverted index.</li>
+<li>⚠️ <strong>Cost</strong>: Insensitive to rephrasing or reordering. If a student rewrites a copied sentence in their own words, this method will not detect it. Advanced systems layer on semantic analysis and other AI techniques to catch this.</li>
+</ul>
 <h2 id="case-study-dna-sequence-analysis">Case Study: DNA Sequence Analysis</h2>
 <h2 id="learning-objective_1">Learning Objective</h2>
 <p>Adapt our general-purpose algorithms to a highly specialized domain: bioinformatics. You will learn how the specific constraints of DNA data—a small, fixed alphabet and enormous scale—drive algorithm selection and enable powerful optimizations.</p>
@@ -499,9 +511,11 @@ Found 3 plagiarized phrase(s) of 5 words.
 <p>A DNA sequence is a long string composed of just four characters, called bases: <code>A</code> (Adenine), <code>C</code> (Cytosine), <code>G</code> (Guanine), and <code>T</code> (Thymine).</p>
 <p>Here is a tiny fragment of a DNA sequence:
 <code>ACGTACGTATATATGCGC</code></p>
-<p>Even in this short example, we can spot patterns:
--   <code>ACGT</code> is repeated twice.
--   <code>ATATAT</code> is a repetition of the <code>AT</code> unit three times. This is called a <em>tandem repeat</em>.</p>
+<p>Even in this short example, we can spot patterns:</p>
+<ul>
+<li><code>ACGT</code> is repeated twice.</li>
+<li><code>ATATAT</code> is a repetition of the <code>AT</code> unit three times. This is called a <em>tandem repeat</em>.</li>
+</ul>
 <p>In a real genome, these repeated sequences can be thousands of characters long. Their presence, absence, or change in length can be linked to diseases like Huntington's disease. Our task is to find all significant repeated substrings in a genome.</p>
 <p>Let's consider the scale. The file for a single human genome is several gigabytes. We need an algorithm that is not only correct but also extremely efficient in both time and memory.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># A sample DNA sequence for our exploration.</span>
@@ -519,17 +533,23 @@ Length: 21
 
 <h2 id="deep-dive-selecting-the-right-algorithm-for-genomics">Deep Dive: Selecting the Right Algorithm for Genomics</h2>
 <p>The sheer scale of genomic data immediately changes our analysis.</p>
-<p><strong>Problem Constraints:</strong>
--   <strong>Input Size:</strong> Very large (gigabytes to terabytes). Cannot fit in a standard computer's RAM. File streaming is a necessity.
--   <strong>Task:</strong> Find all repeated substrings, often with a focus on finding the <em>longest</em> common repeats. This is a one-time, intensive analysis on a reference genome.
--   <strong>Alphabet Size:</strong> The most important constraint—the alphabet is tiny, only 4 (or 5, including 'N' for unknown) characters.</p>
-<p><strong>Algorithm Evaluation:</strong>
-1.  <strong>Sliding Window / Hash-Based:</strong> While <code>O(N)</code> in time, these methods require storing all unique n-grams (or their hashes) in a hash table. For a 3-billion-character genome, the number of unique n-grams of even moderate length would be enormous, likely exceeding available RAM. A standard <code>dict</code> or <code>set</code> in Python would be too memory-intensive.
-2.  <strong>Streaming:</strong> We must read the data from the file in a streaming fashion, but the core algorithm still needs to find repeats across the <em>entire</em> text. A simple streaming counter (Module 4) that only keeps track of recent n-grams won't find repeats that are millions of characters apart.
-3.  <strong>Suffix Array (and Suffix Tree):</strong> This is the <strong>gold standard</strong> in bioinformatics for this exact problem. Why?
-    *   <strong>Comprehensive:</strong> It finds <em>all</em> repeated substrings in one go.
-    *   <strong>Efficient (Relatively):</strong> Construction is <code>O(N log N)</code> or even <code>O(N)</code> with advanced algorithms. This preprocessing is computationally expensive but manageable for a one-time analysis.
-    *   <strong>Powerful Queries:</strong> Once built, the Suffix Array and its companion, the LCP Array, can answer complex questions very quickly (e.g., "What is the longest substring that appears at least 5 times?").</p>
+<p><strong>Problem Constraints:</strong></p>
+<ul>
+<li><strong>Input Size:</strong> Very large (gigabytes to terabytes). Cannot fit in a standard computer's RAM. File streaming is a necessity.</li>
+<li><strong>Task:</strong> Find all repeated substrings, often with a focus on finding the <em>longest</em> common repeats. This is a one-time, intensive analysis on a reference genome.</li>
+<li><strong>Alphabet Size:</strong> The most important constraint—the alphabet is tiny, only 4 (or 5, including 'N' for unknown) characters.</li>
+</ul>
+<p><strong>Algorithm Evaluation:</strong></p>
+<ol>
+<li><strong>Sliding Window / Hash-Based:</strong> While <code>O(N)</code> in time, these methods require storing all unique n-grams (or their hashes) in a hash table. For a 3-billion-character genome, the number of unique n-grams of even moderate length would be enormous, likely exceeding available RAM. A standard <code>dict</code> or <code>set</code> in Python would be too memory-intensive.</li>
+<li><strong>Streaming:</strong> We must read the data from the file in a streaming fashion, but the core algorithm still needs to find repeats across the <em>entire</em> text. A simple streaming counter (Module 4) that only keeps track of recent n-grams won't find repeats that are millions of characters apart.</li>
+<li><strong>Suffix Array (and Suffix Tree):</strong> This is the <strong>gold standard</strong> in bioinformatics for this exact problem. Why?<ul>
+<li><strong>Comprehensive:</strong> It finds <em>all</em> repeated substrings in one go.</li>
+<li><strong>Efficient (Relatively):</strong> Construction is <code>O(N log N)</code> or even <code>O(N)</code> with advanced algorithms. This preprocessing is computationally expensive but manageable for a one-time analysis.</li>
+<li><strong>Powerful Queries:</strong> Once built, the Suffix Array and its companion, the LCP Array, can answer complex questions very quickly (e.g., "What is the longest substring that appears at least 5 times?").</li>
+</ul>
+</li>
+</ol>
 <p><strong>Conclusion:</strong> The <strong>Suffix Array + LCP Array</strong> method from Module 2 is the professional choice for this task. The upfront cost of building the arrays is paid back by the detailed and comprehensive analysis it enables.</p>
 <h3 id="domain-specific-optimization-1-integer-encoding">Domain-Specific Optimization 1: Integer Encoding</h3>
 <p>Computers are much faster at comparing integers than comparing strings. Since we only have 4 characters, we can map them to integers. This simple change has a massive impact on performance.</p>
@@ -646,13 +666,17 @@ Longest repeated substring is &#39;ATATA&#39; with length 5.
 <p>The LCP array correctly identifies that the longest shared prefix between any two adjacent suffixes in the sorted list is 5 characters long (<code>ATATA</code>). This is a powerful and systematic way to find all repeats. A biologist could then investigate the significance of this <code>ATATA</code> repeat.</p>
 <h3 id="production-perspective_1">Production Perspective</h3>
 <p><strong>When professionals choose this</strong>: The Suffix Array (and its more memory-efficient cousin, the FM-index, derived from the Burrows-Wheeler Transform) is the undisputed champion for indexing and searching large static genomes.</p>
-<p><strong>Real-world tools</strong>:
--   <strong>BLAST (Basic Local Alignment Search Tool)</strong>: While it uses a hash-based method for initial seeding, its core ideas are related to finding common substrings quickly.
--   <strong>Bowtie and BWA (Burrows-Wheeler Aligner)</strong>: Standard tools for aligning DNA sequencing reads to a reference genome. They use the FM-index to perform these searches with incredible speed and a surprisingly small memory footprint.</p>
-<p><strong>Trade-offs</strong>:
--   ✅ <strong>Advantage</strong>: Provides a complete index of the text, enabling rapid search for any substring. The LCP array adds even more power for repeat analysis.
--   ⚠️ <strong>Cost</strong>: High memory usage. The suffix array itself takes 4 or 8 bytes per character of the original text (e.g., a 3B-char genome needs a 12-24 GB array). This is why optimizations like bit-packing the input sequence are so vital.
--   ⚠️ <strong>Cost</strong>: Static. If the reference genome is updated, the entire structure must be rebuilt from scratch, which can take hours. This is acceptable because reference genomes are updated infrequently.</p>
+<p><strong>Real-world tools</strong>:</p>
+<ul>
+<li><strong>BLAST (Basic Local Alignment Search Tool)</strong>: While it uses a hash-based method for initial seeding, its core ideas are related to finding common substrings quickly.</li>
+<li><strong>Bowtie and BWA (Burrows-Wheeler Aligner)</strong>: Standard tools for aligning DNA sequencing reads to a reference genome. They use the FM-index to perform these searches with incredible speed and a surprisingly small memory footprint.</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li>✅ <strong>Advantage</strong>: Provides a complete index of the text, enabling rapid search for any substring. The LCP array adds even more power for repeat analysis.</li>
+<li>⚠️ <strong>Cost</strong>: High memory usage. The suffix array itself takes 4 or 8 bytes per character of the original text (e.g., a 3B-char genome needs a 12-24 GB array). This is why optimizations like bit-packing the input sequence are so vital.</li>
+<li>⚠️ <strong>Cost</strong>: Static. If the reference genome is updated, the entire structure must be rebuilt from scratch, which can take hours. This is acceptable because reference genomes are updated infrequently.</li>
+</ul>
 <h2 id="case-study-log-analysis">Case Study: Log Analysis</h2>
 <h2 id="learning-objective_2">Learning Objective</h2>
 <p>Apply your algorithmic knowledge to a dynamic, real-time problem: monitoring a continuous stream of server logs to detect recurring errors. This case study will solidify your understanding of streaming algorithms and their importance in modern infrastructure.</p>
@@ -670,16 +694,20 @@ Longest repeated substring is &#39;ATATA&#39; with length 5.
 <span class="mf">2023</span><span class="o">-</span><span class="mf">10</span><span class="o">-</span><span class="mf">27</span><span class="w"> </span><span class="mf">10</span><span class="p">:</span><span class="mf">00</span><span class="p">:</span><span class="mf">06</span><span class="w"> </span><span class="n">ERROR</span><span class="p">:</span><span class="w"> </span><span class="n">Failed</span><span class="w"> </span><span class="kr">to</span><span class="w"> </span><span class="n">connect</span><span class="w"> </span><span class="kr">to</span><span class="w"> </span><span class="kd">data</span><span class="n">base</span><span class="p">:</span><span class="w"> </span><span class="n">Connection</span><span class="w"> </span><span class="n">refused</span>
 </code></pre></div>
 
-<p>The key challenges are:
-1.  <strong>The data is infinite:</strong> The log file grows forever (or until rotated). We can't load the whole file into memory.
-2.  <strong>Timeliness is critical:</strong> We need to detect the surge of <code>"Failed to connect to database"</code> errors <em>as it happens</em>, not hours later.
-3.  <strong>Data is noisy:</strong> We only care about the error message itself, not the unique timestamp that prefixes each line.</p>
+<p>The key challenges are:</p>
+<ol>
+<li><strong>The data is infinite:</strong> The log file grows forever (or until rotated). We can't load the whole file into memory.</li>
+<li><strong>Timeliness is critical:</strong> We need to detect the surge of <code>"Failed to connect to database"</code> errors <em>as it happens</em>, not hours later.</li>
+<li><strong>Data is noisy:</strong> We only care about the error message itself, not the unique timestamp that prefixes each line.</li>
+</ol>
 <p>This problem has all the classic hallmarks of a situation demanding a streaming solution.</p>
 <h2 id="deep-dive-selecting-the-right-algorithm-for-streaming-data">Deep Dive: Selecting the Right Algorithm for Streaming Data</h2>
 <p>The "infinite input" constraint makes our algorithm choice very simple.</p>
-<p><strong>Algorithm Evaluation:</strong>
-1.  <strong>Sliding Window / Suffix Array / Hash-Based (Batch versions):</strong> All are immediately disqualified. They require having the entire dataset available in memory before processing can begin.
-2.  <strong>Streaming (Module 4):</strong> This is the only possible choice. We must process the data line-by-line (or in small chunks) as it arrives, updating our state incrementally and using a fixed amount of memory.</p>
+<p><strong>Algorithm Evaluation:</strong></p>
+<ol>
+<li><strong>Sliding Window / Suffix Array / Hash-Based (Batch versions):</strong> All are immediately disqualified. They require having the entire dataset available in memory before processing can begin.</li>
+<li><strong>Streaming (Module 4):</strong> This is the only possible choice. We must process the data line-by-line (or in small chunks) as it arrives, updating our state incrementally and using a fixed amount of memory.</li>
+</ol>
 <p><strong>Conclusion:</strong> We must use a <strong>Streaming Algorithm</strong> from Module 4, specifically one that involves a generator to read the data source and a bounded-memory counter to keep track of event frequencies.</p>
 <h3 id="step-1-simulating-a-log-stream-with-a-generator">Step 1: Simulating a Log Stream with a Generator</h3>
 <p>In a real system, we'd read from a network socket or use a command like <code>tail -f</code>. For this example, we'll write a generator that reads from a file line by line, simulating a stream. The <code>yield</code> keyword is perfect for this, as it produces one line at a time without loading the whole file.</p>
@@ -712,7 +740,7 @@ Longest repeated substring is &#39;ATATA&#39; with length 5.
             <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>
                 <span class="c1"># In a real scenario, you&#39;d wait here. For simulation, we stop.</span>
                 <span class="c1"># In this example, we will just read what is already there.</span>
-                <span class="k">break</span> 
+                <span class="k">break</span>
             <span class="k">yield</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
 <span class="c1"># We will use this simpler generator for our demonstration to read the whole file</span>
@@ -814,15 +842,19 @@ Final Error Counts:
 <p><strong>How to remember</strong>: <code>grep</code> is for <em>searching</em> a file that exists. Streaming algorithms are for <em>monitoring</em> a data source that is continuously created.</p>
 <h3 id="production-perspective_2">Production Perspective</h3>
 <p><strong>When professionals choose this</strong>: This streaming pattern is the foundation of modern observability and monitoring platforms. It's used for logs, application metrics (like request counts), and infrastructure events.</p>
-<p><strong>Real-world architecture</strong>: Production log analysis is a sophisticated, distributed system:
-1.  <strong>Log Agent/Shipper</strong>: A lightweight agent (like Fluentd, Vector, or Logstash) runs on every server. It reads log files locally and streams new lines over the network. This is our <code>stream_log_file</code> generator, but robust and distributed.
-2.  <strong>Message Queue / Broker</strong>: The logs are sent to a central, high-throughput message queue like Apache Kafka or AWS Kinesis. This acts as a buffer, ensuring logs aren't lost if the analysis system is temporarily slow or down.
-3.  <strong>Stream Processing Engine</strong>: A cluster of servers running a framework like Apache Flink, Spark Streaming, or custom applications (like our Python script, but scaled up) consumes messages from the queue. This is where the parsing, counting, and alerting logic lives.
-4.  <strong>Time-Series Database &amp; Alerting</strong>: The aggregated counts are stored in a time-series database (like Prometheus or InfluxDB). A separate alerting engine (like Grafana) constantly queries this database to check for rule violations (e.g., <code>error_rate &gt; 5%</code>) and sends notifications.</p>
-<p><strong>Trade-offs</strong>:
--   ✅ <strong>Advantage</strong>: Horizontally scalable and resilient. Can process billions of log lines per day with constant, low memory usage per node. Provides near-real-time insights.
--   ⚠️ <strong>Cost</strong>: Involves significant infrastructure complexity compared to running <code>grep</code> on a single file.
--   ⚠️ <strong>Accuracy Trade-off</strong>: To prevent running out of memory, production systems often use approximate counting algorithms (like Count-Min Sketch) or heavily sample data, which means the counts may not be 100% accurate, but are good enough for alerting.</p>
+<p><strong>Real-world architecture</strong>: Production log analysis is a sophisticated, distributed system:</p>
+<ol>
+<li><strong>Log Agent/Shipper</strong>: A lightweight agent (like Fluentd, Vector, or Logstash) runs on every server. It reads log files locally and streams new lines over the network. This is our <code>stream_log_file</code> generator, but robust and distributed.</li>
+<li><strong>Message Queue / Broker</strong>: The logs are sent to a central, high-throughput message queue like Apache Kafka or AWS Kinesis. This acts as a buffer, ensuring logs aren't lost if the analysis system is temporarily slow or down.</li>
+<li><strong>Stream Processing Engine</strong>: A cluster of servers running a framework like Apache Flink, Spark Streaming, or custom applications (like our Python script, but scaled up) consumes messages from the queue. This is where the parsing, counting, and alerting logic lives.</li>
+<li><strong>Time-Series Database &amp; Alerting</strong>: The aggregated counts are stored in a time-series database (like Prometheus or InfluxDB). A separate alerting engine (like Grafana) constantly queries this database to check for rule violations (e.g., <code>error_rate &gt; 5%</code>) and sends notifications.</li>
+</ol>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li>✅ <strong>Advantage</strong>: Horizontally scalable and resilient. Can process billions of log lines per day with constant, low memory usage per node. Provides near-real-time insights.</li>
+<li>⚠️ <strong>Cost</strong>: Involves significant infrastructure complexity compared to running <code>grep</code> on a single file.</li>
+<li>⚠️ <strong>Accuracy Trade-off</strong>: To prevent running out of memory, production systems often use approximate counting algorithms (like Count-Min Sketch) or heavily sample data, which means the counts may not be 100% accurate, but are good enough for alerting.</li>
+</ul>
 <h2 id="module-synthesis">Module Synthesis</h2>
 <h2 id="module-synthesis_1">Module Synthesis</h2>
 <p>In this module, we bridged the gap between theoretical algorithms and real-world engineering. By tackling three distinct case studies, you've learned the most critical lesson in algorithm design: <strong>context is everything</strong>.</p>
@@ -838,15 +870,17 @@ Final Error Counts:
 </li>
 </ol>
 <h3 id="the-big-picture-from-code-to-system">The Big Picture: From Code to System</h3>
-<p>Across all three case studies, we saw a recurring pattern: the core algorithm you've learned is just one piece of a larger system. A production solution also requires:
--   <strong>Preprocessing pipelines</strong> (like text normalization).
--   <strong>Specialized data structures</strong> (like inverted indexes or time-series databases).
--   <strong>Robust infrastructure</strong> (like message queues and distributed processing).</p>
+<p>Across all three case studies, we saw a recurring pattern: the core algorithm you've learned is just one piece of a larger system. A production solution also requires:</p>
+<ul>
+<li><strong>Preprocessing pipelines</strong> (like text normalization).</li>
+<li><strong>Specialized data structures</strong> (like inverted indexes or time-series databases).</li>
+<li><strong>Robust infrastructure</strong> (like message queues and distributed processing).</li>
+</ul>
 <p>You now have a complete framework for analyzing a sequence-based problem. You can identify the constraints of the problem (data size, velocity, alphabet), select the appropriate algorithmic family from your toolkit, and understand how that algorithm would fit into a production-grade system.</p>
 <p>The appendices that follow will provide a gallery of complete implementations for all algorithms covered, allowing you to review and solidify your understanding of these powerful tools.</p>
         </div>
         <div class="footer">
-            Generated on 2025-10-17 18:54:35 | Made with ❤️ by GitHub Pages Generator
+            Generated on 2025-10-17 20:18:57 | Made with ❤️ by GitHub Pages Generator
         </div>
     </div>
     <script>

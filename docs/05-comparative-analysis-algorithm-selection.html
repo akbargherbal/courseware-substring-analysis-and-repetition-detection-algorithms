@@ -333,10 +333,12 @@
 <h2 id="why-this-matters">Why This Matters</h2>
 <p>So far, we've treated our four algorithms—Sliding Window, Suffix Array, Rolling Hash, and Streaming—as separate solutions. But in a real-world scenario, you have to choose <em>one</em>. Making the right choice depends on understanding their trade-offs, and that requires a fair, systematic way to measure their performance. This is called benchmarking. Getting this right is the foundation for making informed engineering decisions.</p>
 <h2 id="discovery-phase">Discovery Phase</h2>
-<p>Before we can compare our algorithms, we need three things:
-1.  <strong>The Algorithms</strong>: Working implementations of the four approaches we've learned.
-2.  <strong>The Data</strong>: A consistent set of text data to run them on, representing different scales.
-3.  <strong>The Harness</strong>: A measurement tool to consistently track execution time and memory usage.</p>
+<p>Before we can compare our algorithms, we need three things:</p>
+<ol>
+<li><strong>The Algorithms</strong>: Working implementations of the four approaches we've learned.</li>
+<li><strong>The Data</strong>: A consistent set of text data to run them on, representing different scales.</li>
+<li><strong>The Harness</strong>: A measurement tool to consistently track execution time and memory usage.</li>
+</ol>
 <p>Let's build these components.</p>
 <h3 id="step-1-representative-algorithm-implementations">Step 1: Representative Algorithm Implementations</h3>
 <p>For this module, we'll use simplified but functionally representative versions of the algorithms from the previous modules. This keeps the focus on comparison rather than implementation details. Notice that each function is designed to find the most frequent 5-gram to give them a consistent task.</p>
@@ -467,10 +469,12 @@
 
 <p>These functions provide the basis for our comparison. We'll treat them as black boxes and focus on their external behavior: speed and memory.</p>
 <h3 id="step-2-creating-a-test-corpus">Step 2: Creating a Test Corpus</h3>
-<p>A good benchmark requires varied data. We will generate three files:
--   <code>small.txt</code>: ~500 bytes. Represents a short string, like a tweet or a log message.
--   <code>medium.txt</code>: ~500 KB. Represents a medium-sized document, like a blog post or a chapter of a book.
--   <code>large.txt</code>: ~5 MB. Represents a larger file where performance really starts to matter.</p>
+<p>A good benchmark requires varied data. We will generate three files:</p>
+<ul>
+<li><code>small.txt</code>: ~500 bytes. Represents a short string, like a tweet or a log message.</li>
+<li><code>medium.txt</code>: ~500 KB. Represents a medium-sized document, like a blog post or a chapter of a book.</li>
+<li><code>large.txt</code>: ~5 MB. Represents a larger file where performance really starts to matter.</li>
+</ul>
 <p>We'll write a Python script to create these files so our experiment is fully reproducible.</p>
 <div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">generate_text_file</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">size_in_bytes</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generates a text file with pseudo-random content of a target size.&quot;&quot;&quot;</span>
@@ -513,9 +517,11 @@ Generated &#39;large.txt&#39; with size 5000.01 KB
 
 <p>Now we have our test subjects: four algorithms and three datasets of increasing size.</p>
 <h3 id="step-3-the-benchmarking-harness">Step 3: The Benchmarking Harness</h3>
-<p>This is the most critical piece. We need a function that can take any of our algorithms, run it on a specific file, and reliably measure its performance. We will measure:
--   <strong>Execution Time</strong>: How long does it take to run? We'll use <code>time.monotonic()</code> for a steady clock.
--   <strong>Peak Memory Usage</strong>: What's the maximum amount of extra memory the algorithm needed? We'll use the <code>tracemalloc</code> module, which is the standard Python tool for this.</p>
+<p>This is the most critical piece. We need a function that can take any of our algorithms, run it on a specific file, and reliably measure its performance. We will measure:</p>
+<ul>
+<li><strong>Execution Time</strong>: How long does it take to run? We'll use <code>time.monotonic()</code> for a steady clock.</li>
+<li><strong>Peak Memory Usage</strong>: What's the maximum amount of extra memory the algorithm needed? We'll use the <code>tracemalloc</code> module, which is the standard Python tool for this.</li>
+</ul>
 <div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">benchmark_algorithm</span><span class="p">(</span><span class="n">algorithm_func</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Runs a given algorithm on a text file and measures its performance.</span>
@@ -568,16 +574,20 @@ Generated &#39;large.txt&#39; with size 5000.01 KB
 
 <h2 id="deep-dive">Deep Dive</h2>
 <p>The harness works perfectly. It provides the execution time in milliseconds, the peak memory overhead in kilobytes, and a sample of the output to confirm the algorithm ran correctly.</p>
-<p>The name <code>tracemalloc.get_traced_memory()</code> returns a tuple <code>(current, peak)</code>.
--   <code>current</code> is the memory being used by traced blocks right now.
--   <code>peak</code> is the maximum memory usage recorded since <code>tracemalloc.start()</code> was called. This peak value is crucial because it tells us the algorithm's worst-case memory footprint during its run.</p>
+<p>The name <code>tracemalloc.get_traced_memory()</code> returns a tuple <code>(current, peak)</code>.</p>
+<ul>
+<li><code>current</code> is the memory being used by traced blocks right now.</li>
+<li><code>peak</code> is the maximum memory usage recorded since <code>tracemalloc.start()</code> was called. This peak value is crucial because it tells us the algorithm's worst-case memory footprint during its run.</li>
+</ul>
 <p>We now have all the pieces to conduct a fair comparison. We have our algorithms, our datasets, and a reliable measurement tool. In the next sections, we will use this setup to systematically analyze how each algorithm performs under different conditions.</p>
 <h3 id="production-perspective">Production Perspective</h3>
-<p>In a professional setting, benchmarking isn't a one-off task.
--   <strong>Continuous Integration (CI)</strong>: Performance tests are often part of the automated test suite. If a code change makes a critical function 50% slower, the build fails, and the developer is alerted before the change is merged.
--   <strong>Realistic Data</strong>: Professional teams use production-like data for benchmarks. Using "hello world" to test an algorithm meant for "War and Peace" is misleading. Our <code>small</code>, <code>medium</code>, and <code>large</code> files are a step towards this realism.
--   <strong>Multiple Runs</strong>: A single run can be affected by system noise (e.g., the OS doing something in the background). In production, you would run the benchmark multiple times (e.g., 10 times) and report the average, median, and standard deviation to get a more stable picture. Our single-run approach is fine for educational purposes.
--   <strong>Profiling</strong>: Benchmarking tells you <em>what</em> is slow; profiling tells you <em>why</em>. Tools like <code>cProfile</code> can break down the execution time line-by-line within a function, revealing the exact source of a bottleneck. We focus on the "what" here.</p>
+<p>In a professional setting, benchmarking isn't a one-off task.</p>
+<ul>
+<li><strong>Continuous Integration (CI)</strong>: Performance tests are often part of the automated test suite. If a code change makes a critical function 50% slower, the build fails, and the developer is alerted before the change is merged.</li>
+<li><strong>Realistic Data</strong>: Professional teams use production-like data for benchmarks. Using "hello world" to test an algorithm meant for "War and Peace" is misleading. Our <code>small</code>, <code>medium</code>, and <code>large</code> files are a step towards this realism.</li>
+<li><strong>Multiple Runs</strong>: A single run can be affected by system noise (e.g., the OS doing something in the background). In production, you would run the benchmark multiple times (e.g., 10 times) and report the average, median, and standard deviation to get a more stable picture. Our single-run approach is fine for educational purposes.</li>
+<li><strong>Profiling</strong>: Benchmarking tells you <em>what</em> is slow; profiling tells you <em>why</em>. Tools like <code>cProfile</code> can break down the execution time line-by-line within a function, revealing the exact source of a bottleneck. We focus on the "what" here.</li>
+</ul>
 <h2 id="small-text-performance-1kb">Small Text Performance (&lt; 1KB)</h2>
 <h2 id="learning-objective_1">Learning Objective</h2>
 <p>Understand why overhead, not algorithm complexity, dominates performance for small inputs.</p>
@@ -624,10 +634,12 @@ Generated &#39;large.txt&#39; with size 5000.01 KB
 <h2 id="deep-dive_1">Deep Dive</h2>
 <h3 id="what-is-overhead">What is "Overhead"?</h3>
 <p>Why are the results so similar, even though the algorithms are so different? The answer is <strong>overhead</strong>.</p>
-<p>For any function call, there is a fixed cost that has nothing to do with the algorithm itself:
-1.  <strong>Function Call Mechanism</strong>: Python has to look up the function, push arguments onto the call stack, and prepare to execute the code.
-2.  <strong>Initial Setup</strong>: Inside the function, variables are initialized (e.g., <code>counts = collections.Counter()</code>).
-3.  <strong>Measurement Cost</strong>: Our benchmarking harness itself adds a tiny bit of overhead (<code>time.monotonic()</code>, <code>tracemalloc.start()</code>).</p>
+<p>For any function call, there is a fixed cost that has nothing to do with the algorithm itself:</p>
+<ol>
+<li><strong>Function Call Mechanism</strong>: Python has to look up the function, push arguments onto the call stack, and prepare to execute the code.</li>
+<li><strong>Initial Setup</strong>: Inside the function, variables are initialized (e.g., <code>counts = collections.Counter()</code>).</li>
+<li><strong>Measurement Cost</strong>: Our benchmarking harness itself adds a tiny bit of overhead (<code>time.monotonic()</code>, <code>tracemalloc.start()</code>).</li>
+</ol>
 <p>Let's visualize the total execution time:</p>
 <p><strong>Total Time = Fixed Overhead + Workload Time</strong></p>
 <ul>
@@ -640,19 +652,25 @@ Generated &#39;large.txt&#39; with size 5000.01 KB
 <p><strong>You might think</strong>: A Suffix Array is O(N log N) and a Sliding Window is O(N<em>M), so the Suffix Array should </em>always* be faster.</p>
 <p><strong>Actually</strong>: Big-O notation describes the <em>growth rate</em> as N becomes very large. It ignores constant factors and setup costs (overhead). For small N, an algorithm with a worse Big-O but smaller constant factor can be faster.</p>
 <p><strong>Why the confusion happens</strong>: We learn about Big-O as the ultimate measure of efficiency, but we forget it describes behavior at scale, not for small, specific inputs.</p>
-<p><strong>How to remember</strong>: Think of two ways to travel 100 meters: walking vs. taking a flight.
--   <strong>Walking</strong>: Simple, low overhead. You just start moving.
--   <strong>Flying</strong>: Complex, high overhead. You have to drive to the airport, go through security, board, etc.
-For 100 meters, walking is much faster. For 10,000 kilometers, the flight's high overhead is justified by its incredible speed at scale. Algorithms are the same.</p>
+<p><strong>How to remember</strong>: Think of two ways to travel 100 meters: walking vs. taking a flight.</p>
+<ul>
+<li><strong>Walking</strong>: Simple, low overhead. You just start moving.</li>
+<li><strong>Flying</strong>: Complex, high overhead. You have to drive to the airport, go through security, board, etc.
+  For 100 meters, walking is much faster. For 10,000 kilometers, the flight's high overhead is justified by its incredible speed at scale. Algorithms are the same.</li>
+</ul>
 <h2 id="production-perspective_1">Production Perspective</h2>
 <p><strong>When professionals choose this</strong>: For tasks involving small, predictable text sizes (e.g., processing usernames, validating short input fields, parsing single log lines), developers almost always choose the simplest, most readable algorithm.</p>
-<p><strong>Trade-offs</strong>:
--   ✅ <strong>Advantage of Simplicity (Sliding Window)</strong>: Easy to write, read, and debug. A new team member can understand it instantly. It has virtually no external dependencies.
--   ⚠️ <strong>Cost of Complexity (Suffix Array)</strong>: For a small string, using a suffix array is like using a sledgehammer to crack a nut. The code is longer, harder to reason about, and has more potential for bugs, all for no performance gain.</p>
-<p><strong>The Golden Rule of Optimization</strong>:
-1.  <strong>Make it work.</strong> (Choose the simplest, clearest implementation first).
-2.  <strong>Make it right.</strong> (Ensure it's thoroughly tested and correct).
-3.  <strong>Make it fast.</strong> (Only if profiling on realistic data proves it's a bottleneck).</p>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li>✅ <strong>Advantage of Simplicity (Sliding Window)</strong>: Easy to write, read, and debug. A new team member can understand it instantly. It has virtually no external dependencies.</li>
+<li>⚠️ <strong>Cost of Complexity (Suffix Array)</strong>: For a small string, using a suffix array is like using a sledgehammer to crack a nut. The code is longer, harder to reason about, and has more potential for bugs, all for no performance gain.</li>
+</ul>
+<p><strong>The Golden Rule of Optimization</strong>:</p>
+<ol>
+<li><strong>Make it work.</strong> (Choose the simplest, clearest implementation first).</li>
+<li><strong>Make it right.</strong> (Ensure it's thoroughly tested and correct).</li>
+<li><strong>Make it fast.</strong> (Only if profiling on realistic data proves it's a bottleneck).</li>
+</ol>
 <p>For small texts, the simple <code>find_repeats_sliding_window</code> is the clear winner not because it's fastest, but because it's the most maintainable and delivers identical performance in practice.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># To prove the point, let&#39;s look at the verification output.</span>
 <span class="c1"># All algorithms should find the same common patterns.</span>
@@ -685,11 +703,13 @@ For 100 meters, walking is much faster. For 10,000 kilometers, the flight's high
 <h2 id="why-this-matters_2">Why This Matters</h2>
 <p>This is the "sweet spot" where your choice of algorithm begins to have a real, measurable impact. For tasks like processing a user-uploaded file, an email, or a web page, the difference between a 100ms response and a 2-second response is critical. This is where understanding Big-O behavior transitions from a theoretical exercise to a practical engineering skill.</p>
 <h2 id="discovery-phase_2">Discovery Phase</h2>
-<p>Let's run the same benchmark, but this time on our <code>medium.txt</code> file (500 KB). This is a 1000x increase in data size compared to <code>small.txt</code>. What do we expect to happen?
--   <strong>Sliding Window (O(N*M))</strong>: The work is proportional to the text length times the n-gram length. A 1000x increase in text size should lead to a roughly 1000x increase in time.
--   <strong>Suffix Array (O(N log N))</strong>: The sorting step dominates. <code>log N</code> grows very slowly. So we expect a slightly more than 1000x increase in time. Memory usage should also increase significantly as we store all suffixes.
--   <strong>Rolling Hash (O(N))</strong>: This is linear. A 1000x increase in data should lead to a ~1000x increase in time.
--   <strong>Streaming (O(N))</strong>: Also linear, and should behave similarly to the rolling hash.</p>
+<p>Let's run the same benchmark, but this time on our <code>medium.txt</code> file (500 KB). This is a 1000x increase in data size compared to <code>small.txt</code>. What do we expect to happen?</p>
+<ul>
+<li><strong>Sliding Window (O(N*M))</strong>: The work is proportional to the text length times the n-gram length. A 1000x increase in text size should lead to a roughly 1000x increase in time.</li>
+<li><strong>Suffix Array (O(N log N))</strong>: The sorting step dominates. <code>log N</code> grows very slowly. So we expect a slightly more than 1000x increase in time. Memory usage should also increase significantly as we store all suffixes.</li>
+<li><strong>Rolling Hash (O(N))</strong>: This is linear. A 1000x increase in data should lead to a ~1000x increase in time.</li>
+<li><strong>Streaming (O(N))</strong>: Also linear, and should behave similarly to the rolling hash.</li>
+</ul>
 <p>Let's see if our predictions hold.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
@@ -735,10 +755,12 @@ For 100 meters, walking is much faster. For 10,000 kilometers, the flight's high
 <li><strong>Suffix Array</strong> is now by far the slowest at over 1.3 seconds (1383ms). What happened? The <code>O(N log N)</code> sorting of 500,000 suffixes is computationally expensive. String comparisons in Python are highly optimized, but doing <code>N log N</code> of them on long strings takes time.</li>
 </ul>
 <h3 id="memory-analysis">Memory Analysis</h3>
-<p>This is even more dramatic.
--   <strong>Sliding Window</strong> and <strong>Streaming</strong> have the lowest memory footprint (~688 KB). They only need to store the text itself and the <code>Counter</code> dictionary of unique n-grams. The memory is proportional to the number of <em>unique</em> n-grams.
--   <strong>Rolling Hash</strong> uses significantly more memory (~19 MB). Our implementation stores a dictionary mapping hashes to a list of <em>all</em> positions. For a 500KB file, there are many n-gram instances, so these lists get large.
--   <strong>Suffix Array</strong> is the most memory-hungry at ~32 MB. This is its well-known Achilles' heel. It needs to store a list of all suffixes of the text. For a 500KB text, the last suffix is 1 char, the one before is 2 chars, and so on. The total memory for the suffixes is roughly <code>N*N/2</code> characters in a naive implementation, which is huge. Our Python version is more memory-efficient as it references slices of the original string, but the list of 500,000 suffix references itself is large.</p>
+<p>This is even more dramatic.</p>
+<ul>
+<li><strong>Sliding Window</strong> and <strong>Streaming</strong> have the lowest memory footprint (~688 KB). They only need to store the text itself and the <code>Counter</code> dictionary of unique n-grams. The memory is proportional to the number of <em>unique</em> n-grams.</li>
+<li><strong>Rolling Hash</strong> uses significantly more memory (~19 MB). Our implementation stores a dictionary mapping hashes to a list of <em>all</em> positions. For a 500KB file, there are many n-gram instances, so these lists get large.</li>
+<li><strong>Suffix Array</strong> is the most memory-hungry at ~32 MB. This is its well-known Achilles' heel. It needs to store a list of all suffixes of the text. For a 500KB text, the last suffix is 1 char, the one before is 2 chars, and so on. The total memory for the suffixes is roughly <code>N*N/2</code> characters in a naive implementation, which is huge. Our Python version is more memory-efficient as it references slices of the original string, but the list of 500,000 suffix references itself is large.</li>
+</ul>
 <h3 id="naming-the-pattern-the-crossover-point">Naming the Pattern: The Crossover Point</h3>
 <p>We've just witnessed a <strong>crossover point</strong>. This is the input size at which the superior asymptotic complexity of one algorithm starts to overcome the higher constant-factor overhead it has.</p>
 <ul>
@@ -746,14 +768,18 @@ For 100 meters, walking is much faster. For 10,000 kilometers, the flight's high
 <li>At <code>N=500,000</code>, the <code>O(N)</code> Rolling Hash is best because the algorithmic workload is now the dominant factor.</li>
 </ul>
 <h2 id="production-perspective_2">Production Perspective</h2>
-<p>For medium-sized data, algorithm choice is a critical engineering decision.
--   <strong>Interactive Applications</strong>: If this function were part of a web server responding to a user request, 80ms is great. 1.3s is unacceptable. A user will perceive anything over ~200ms as "laggy."
--   <strong>Batch Processing</strong>: If this were a script running overnight to analyze a few thousand documents, all of these times are perfectly acceptable. In this case, you might still choose the simplest <code>sliding_window</code> code for its maintainability, even though it's not the fastest.
--   <strong>Memory Constraints</strong>: In a memory-constrained environment like a small cloud server or a mobile device, the 32 MB peak of the Suffix Array could be a dealbreaker, causing the application to crash or slow down due to memory swapping. The ~700 KB usage of Streaming/Sliding Window is far safer.</p>
-<p>This is the essence of engineering trade-offs. The "best" algorithm is not a universal truth; it's a decision based on constraints:
--   What is my target response time?
--   How much memory do I have available?
--   How complex is the code to maintain?</p>
+<p>For medium-sized data, algorithm choice is a critical engineering decision.</p>
+<ul>
+<li><strong>Interactive Applications</strong>: If this function were part of a web server responding to a user request, 80ms is great. 1.3s is unacceptable. A user will perceive anything over ~200ms as "laggy."</li>
+<li><strong>Batch Processing</strong>: If this were a script running overnight to analyze a few thousand documents, all of these times are perfectly acceptable. In this case, you might still choose the simplest <code>sliding_window</code> code for its maintainability, even though it's not the fastest.</li>
+<li><strong>Memory Constraints</strong>: In a memory-constrained environment like a small cloud server or a mobile device, the 32 MB peak of the Suffix Array could be a dealbreaker, causing the application to crash or slow down due to memory swapping. The ~700 KB usage of Streaming/Sliding Window is far safer.</li>
+</ul>
+<p>This is the essence of engineering trade-offs. The "best" algorithm is not a universal truth; it's a decision based on constraints:</p>
+<ul>
+<li>What is my target response time?</li>
+<li>How much memory do I have available?</li>
+<li>How complex is the code to maintain?</li>
+</ul>
 <p>At this medium scale, Rolling Hash often hits a sweet spot of very good performance without the extreme memory cost of the Suffix Array.</p>
 <h2 id="large-text-performance-1mb">Large Text Performance (&gt; 1MB)</h2>
 <h2 id="learning-objective_3">Learning Objective</h2>
@@ -823,27 +849,35 @@ Now benchmarking: find_repeats_suffix_array on large.txt (5MB)...
 
 <p><em>(Note: These times can vary significantly. The Suffix Array may take much longer on your machine.)</em></p>
 <h2 id="deep-dive-hitting-the-wall">Deep Dive: Hitting the Wall</h2>
-<p>The results are exactly as dramatic as we'd hoped.
--   <code>find_repeats_sliding_window</code> took ~1.1 seconds. This is usable for an offline script, but too slow for an interactive application.
--   <code>find_repeats_rolling_hash</code> is again the fastest at ~0.8 seconds. It's scaling beautifully, just as an <code>O(N)</code> algorithm should.
--   <code>find_repeats_suffix_array</code> took over <strong>16 seconds</strong>. This is a huge jump. The <code>N log N</code> complexity is really starting to bite.
--   <code>find_repeats_streaming</code> behaves identically to the sliding window in terms of time, as expected.</p>
-<p>Now let's look at the memory (<code>peak_mem_kb</code>):
--   <strong>Sliding Window / Streaming</strong>: ~6 MB. Reasonable. The memory is dominated by the <code>Counter</code> of unique n-grams.
--   <strong>Rolling Hash</strong>: A whopping ~190 MB! Our implementation's choice to store all occurrences for each hash is now causing a massive memory bill.
--   <strong>Suffix Array</strong>: An even more staggering ~284 MB! The memory required to hold the list of 5 million suffix references, plus the overhead of sorting them, is immense. On a machine with only 256MB of free RAM, this program would start <strong>swapping</strong> to disk, slowing down to an absolute crawl or crashing with a <code>MemoryError</code>.</p>
+<p>The results are exactly as dramatic as we'd hoped.</p>
+<ul>
+<li><code>find_repeats_sliding_window</code> took ~1.1 seconds. This is usable for an offline script, but too slow for an interactive application.</li>
+<li><code>find_repeats_rolling_hash</code> is again the fastest at ~0.8 seconds. It's scaling beautifully, just as an <code>O(N)</code> algorithm should.</li>
+<li><code>find_repeats_suffix_array</code> took over <strong>16 seconds</strong>. This is a huge jump. The <code>N log N</code> complexity is really starting to bite.</li>
+<li><code>find_repeats_streaming</code> behaves identically to the sliding window in terms of time, as expected.</li>
+</ul>
+<p>Now let's look at the memory (<code>peak_mem_kb</code>):</p>
+<ul>
+<li><strong>Sliding Window / Streaming</strong>: ~6 MB. Reasonable. The memory is dominated by the <code>Counter</code> of unique n-grams.</li>
+<li><strong>Rolling Hash</strong>: A whopping ~190 MB! Our implementation's choice to store all occurrences for each hash is now causing a massive memory bill.</li>
+<li><strong>Suffix Array</strong>: An even more staggering ~284 MB! The memory required to hold the list of 5 million suffix references, plus the overhead of sorting them, is immense. On a machine with only 256MB of free RAM, this program would start <strong>swapping</strong> to disk, slowing down to an absolute crawl or crashing with a <code>MemoryError</code>.</li>
+</ul>
 <p>We didn't just find the fastest algorithm; we found the ones that are <em>not viable</em> at this scale due to time or memory constraints.</p>
 <h2 id="production-perspective_3">Production Perspective</h2>
 <p><strong>Lesson: Test with realistic data sizes.</strong>
 An algorithm that looks great on your 10KB test file can bring down your production server when it encounters a 100MB user upload. The Suffix Array looked promising in theory, but its performance characteristics make it impractical for this specific problem size without significant optimization (like using a more compact C-extension implementation).</p>
-<p><strong>Bottleneck Analysis</strong>:
--   For <code>sliding_window</code>, the bottleneck is CPU time spent in Python loops slicing strings.
--   For <code>suffix_array</code>, the bottlenecks are both CPU (for sorting) and RAM (for storing suffixes). This is the worst combination.
--   For <code>rolling_hash</code>, the bottleneck is RAM due to our choice of storing all positions. An alternative implementation could just store counts, which would fix the memory issue and make it the undisputed winner.
--   For <code>streaming</code>, the bottleneck is CPU, same as the sliding window. However, its true power isn't visible here. If the 5MB file couldn't be read into memory at all, <strong>the streaming approach is the only one that would work</strong>, by reading the file chunk by chunk. (This was covered in Module 4).</p>
-<p>In production, after seeing these numbers, an engineer would likely do one of two things:
-1.  <strong>Choose the Rolling Hash</strong> and refactor it to only store counts instead of positions, drastically reducing its memory usage.
-2.  <strong>Choose the Streaming/Sliding Window</strong> if memory is the absolute top priority and the ~1 second runtime is acceptable.</p>
+<p><strong>Bottleneck Analysis</strong>:</p>
+<ul>
+<li>For <code>sliding_window</code>, the bottleneck is CPU time spent in Python loops slicing strings.</li>
+<li>For <code>suffix_array</code>, the bottlenecks are both CPU (for sorting) and RAM (for storing suffixes). This is the worst combination.</li>
+<li>For <code>rolling_hash</code>, the bottleneck is RAM due to our choice of storing all positions. An alternative implementation could just store counts, which would fix the memory issue and make it the undisputed winner.</li>
+<li>For <code>streaming</code>, the bottleneck is CPU, same as the sliding window. However, its true power isn't visible here. If the 5MB file couldn't be read into memory at all, <strong>the streaming approach is the only one that would work</strong>, by reading the file chunk by chunk. (This was covered in Module 4).</li>
+</ul>
+<p>In production, after seeing these numbers, an engineer would likely do one of two things:</p>
+<ol>
+<li><strong>Choose the Rolling Hash</strong> and refactor it to only store counts instead of positions, drastically reducing its memory usage.</li>
+<li><strong>Choose the Streaming/Sliding Window</strong> if memory is the absolute top priority and the ~1 second runtime is acceptable.</li>
+</ol>
 <p>The Suffix Array, in this form, is clearly not the right tool for this job.</p>
 <h2 id="the-decision-tree">The Decision Tree</h2>
 <h2 id="learning-objective_4">Learning Objective</h2>
@@ -885,30 +919,40 @@ An algorithm that looks great on your 10KB test file can bring down your product
 
 <h3 id="walking-through-the-decision-tree">Walking Through the Decision Tree</h3>
 <p>Let's apply this tree to a few real-world scenarios:</p>
-<p><strong>Scenario 1: Analyzing User Comments on a Website</strong>
-1.  <strong>Fit in RAM?</strong> Yes. A single comment is tiny.
-2.  <strong>How large?</strong> Small (&lt; 10KB).
-3.  <strong>Decision</strong>: <strong>Sliding Window</strong>. It's the simplest to implement, easiest to debug, and its performance will be instantaneous. Using anything more complex would be over-engineering.</p>
-<p><strong>Scenario 2: Building a Plagiarism Detector for Student Essays</strong>
-1.  <strong>Fit in RAM?</strong> Yes. An essay might be 10-50KB.
-2.  <strong>How large?</strong> Medium (10KB - 10MB).
-4.  <strong>Is query speed critical?</strong> Yes. A teacher is waiting for the result in a web UI. They expect a response in a few seconds, not minutes.
-5.  <strong>Decision</strong>: <strong>Rolling Hash</strong>. It provides the best balance of speed and implementation complexity for this size. A 1-2 second response time is achievable. The memory usage is acceptable on a server.</p>
-<p><strong>Scenario 3: Finding Gene Sequences in a Full Human Genome (3 billion base pairs)</strong>
-1.  <strong>Fit in RAM?</strong> No. 3GB+ of text won't fit comfortably in a standard process's memory.
-2.  <strong>Decision</strong>: <strong>Streaming</strong>. This is the only approach that can handle data larger than RAM. We would read the genome from disk in chunks, process each chunk, and manage counts carefully. The process might take a while, but it will actually complete without crashing.</p>
-<p><strong>Scenario 4: Indexing Wikipedia for a Search Engine</strong>
-1.  <strong>Fit in RAM?</strong> The whole thing at once? No. But we are indexing it for many future queries.
-2.  <strong>How large?</strong> Large (&gt; 10MB).
-5.  <strong>Is pre-processing acceptable?</strong> Absolutely! This is the key. We can spend hours or even days building an index one time if it makes subsequent searches instantaneous.
-6.  <strong>Decision</strong>: <strong>Suffix Array</strong> (or a more advanced structure like a Suffix Tree). The high initial build cost (time and memory) is paid once. Afterwards, finding any substring is incredibly fast. This is the classic trade-off: spend a lot of time pre-computing upfront to make all future queries fast.</p>
+<p><strong>Scenario 1: Analyzing User Comments on a Website</strong></p>
+<ol>
+<li><strong>Fit in RAM?</strong> Yes. A single comment is tiny.</li>
+<li><strong>How large?</strong> Small (&lt; 10KB).</li>
+<li><strong>Decision</strong>: <strong>Sliding Window</strong>. It's the simplest to implement, easiest to debug, and its performance will be instantaneous. Using anything more complex would be over-engineering.</li>
+</ol>
+<p><strong>Scenario 2: Building a Plagiarism Detector for Student Essays</strong></p>
+<ol>
+<li><strong>Fit in RAM?</strong> Yes. An essay might be 10-50KB.</li>
+<li><strong>How large?</strong> Medium (10KB - 10MB).</li>
+<li><strong>Is query speed critical?</strong> Yes. A teacher is waiting for the result in a web UI. They expect a response in a few seconds, not minutes.</li>
+<li><strong>Decision</strong>: <strong>Rolling Hash</strong>. It provides the best balance of speed and implementation complexity for this size. A 1-2 second response time is achievable. The memory usage is acceptable on a server.</li>
+</ol>
+<p><strong>Scenario 3: Finding Gene Sequences in a Full Human Genome (3 billion base pairs)</strong></p>
+<ol>
+<li><strong>Fit in RAM?</strong> No. 3GB+ of text won't fit comfortably in a standard process's memory.</li>
+<li><strong>Decision</strong>: <strong>Streaming</strong>. This is the only approach that can handle data larger than RAM. We would read the genome from disk in chunks, process each chunk, and manage counts carefully. The process might take a while, but it will actually complete without crashing.</li>
+</ol>
+<p><strong>Scenario 4: Indexing Wikipedia for a Search Engine</strong></p>
+<ol>
+<li><strong>Fit in RAM?</strong> The whole thing at once? No. But we are indexing it for many future queries.</li>
+<li><strong>How large?</strong> Large (&gt; 10MB).</li>
+<li><strong>Is pre-processing acceptable?</strong> Absolutely! This is the key. We can spend hours or even days building an index one time if it makes subsequent searches instantaneous.</li>
+<li><strong>Decision</strong>: <strong>Suffix Array</strong> (or a more advanced structure like a Suffix Tree). The high initial build cost (time and memory) is paid once. Afterwards, finding any substring is incredibly fast. This is the classic trade-off: spend a lot of time pre-computing upfront to make all future queries fast.</li>
+</ol>
 <h2 id="production-perspective_4">Production Perspective</h2>
 <p>This decision tree is a form of <strong>architectural design</strong>. You are choosing a tool based on the <em>constraints</em> of the system (memory, CPU, latency requirements) and the <em>use case</em> (interactive vs. batch, single query vs. many queries).</p>
-<p><strong>Key Trade-offs Summarized</strong>:
--   <strong>Sliding Window</strong>: Simplest. Best for small data.
--   <strong>Rolling Hash</strong>: Fastest for single-pass analysis on medium-to-large data that fits in memory.
--   <strong>Streaming</strong>: Best for data that does not fit in memory or for real-time data feeds.
--   <strong>Suffix Array</strong>: Highest pre-processing cost, but fastest for repeated searches after an index is built.</p>
+<p><strong>Key Trade-offs Summarized</strong>:</p>
+<ul>
+<li><strong>Sliding Window</strong>: Simplest. Best for small data.</li>
+<li><strong>Rolling Hash</strong>: Fastest for single-pass analysis on medium-to-large data that fits in memory.</li>
+<li><strong>Streaming</strong>: Best for data that does not fit in memory or for real-time data feeds.</li>
+<li><strong>Suffix Array</strong>: Highest pre-processing cost, but fastest for repeated searches after an index is built.</li>
+</ul>
 <p>No algorithm is universally "best." The best choice is the one that best fits the specific, concrete problem you are trying to solve. This decision tree provides a powerful, systematic way to make that choice.</p>
 <h2 id="hybrid-approaches">Hybrid Approaches</h2>
 <h2 id="learning-objective_5">Learning Objective</h2>
@@ -1025,11 +1069,13 @@ Text size (10241 bytes) is large. Using Rolling Hash.
 <p>Notice how different Process IDs (PIDs) start work simultaneously. If each task took 1 second, the total time would be roughly 1 second, not 4 seconds. This is a powerful hybrid strategy that combines a sequential algorithm with parallel execution.</p>
 <h2 id="production-perspective_5">Production Perspective</h2>
 <p><strong>Pattern: "Start simple, profile, then optimize the bottleneck."</strong>
-This is a core philosophy in production engineering. You don't start with a complex hybrid model.
-1.  You begin with the simplest possible solution (e.g., <code>sliding_window</code>).
-2.  You deploy it and monitor its performance using tools like the benchmarks we built. This is called <strong>profiling</strong>.
-3.  If—and only if—profiling shows it's a performance bottleneck, you investigate <em>why</em>.
-4.  You then implement a more sophisticated solution, like a hybrid dispatcher or a parallelized version, to target that specific bottleneck.</p>
+This is a core philosophy in production engineering. You don't start with a complex hybrid model.</p>
+<ol>
+<li>You begin with the simplest possible solution (e.g., <code>sliding_window</code>).</li>
+<li>You deploy it and monitor its performance using tools like the benchmarks we built. This is called <strong>profiling</strong>.</li>
+<li>If—and only if—profiling shows it's a performance bottleneck, you investigate <em>why</em>.</li>
+<li>You then implement a more sophisticated solution, like a hybrid dispatcher or a parallelized version, to target that specific bottleneck.</li>
+</ol>
 <p>Hybrid approaches are powerful, but they add complexity. The code for our dispatcher and parallel runner is more complex than the simple <code>sliding_window</code> function. That complexity is a cost, and it should only be paid when there is a clear, measured performance benefit.</p>
 <h2 id="production-considerations">Production Considerations</h2>
 <h2 id="learning-objective_6">Learning Objective</h2>
@@ -1072,16 +1118,20 @@ This is a core philosophy in production engineering. You don't start with a comp
 </ul>
 <p><strong>The Production Rule</strong>: "Your code will be read 10 times more often than it is written." A complex but performant piece of code imposes a tax on every future developer who has to touch it. Therefore, you should only choose the more complex solution if you have benchmark data that proves the simpler one is too slow for the business requirement.</p>
 <h3 id="2-testing-strategies">2. Testing Strategies</h3>
-<p>How do you ensure your algorithm is correct?
--   <strong>Unit Tests</strong>: Use small, known inputs. For example, test with <code>"banana"</code> and assert that the count of <code>"an"</code> is 2.
--   <strong>Edge Case Tests</strong>: What happens with an empty string? A string shorter than <code>n</code>? A string with Unicode characters?
--   <strong>Property-Based Tests</strong>: Instead of testing specific values, test the <em>properties</em> that should always be true. For example: "The sum of all n-gram counts should always be <code>(len(text) - n + 1)</code>."
--   <strong>Regression Tests</strong>: Once you find a bug, create a specific test case that fails with the bug and passes once it's fixed. This ensures the bug never reappears. In our benchmarks, we noticed the Suffix Array count was off by one. That's a perfect candidate for a regression test.</p>
+<p>How do you ensure your algorithm is correct?</p>
+<ul>
+<li><strong>Unit Tests</strong>: Use small, known inputs. For example, test with <code>"banana"</code> and assert that the count of <code>"an"</code> is 2.</li>
+<li><strong>Edge Case Tests</strong>: What happens with an empty string? A string shorter than <code>n</code>? A string with Unicode characters?</li>
+<li><strong>Property-Based Tests</strong>: Instead of testing specific values, test the <em>properties</em> that should always be true. For example: "The sum of all n-gram counts should always be <code>(len(text) - n + 1)</code>."</li>
+<li><strong>Regression Tests</strong>: Once you find a bug, create a specific test case that fails with the bug and passes once it's fixed. This ensures the bug never reappears. In our benchmarks, we noticed the Suffix Array count was off by one. That's a perfect candidate for a regression test.</li>
+</ul>
 <h3 id="3-monitoring-and-profiling">3. Monitoring and Profiling</h3>
-<p>In a live system, you don't just deploy code and hope it's fast enough. You monitor it.
--   <strong>Timing Metrics</strong>: You'd wrap your function call to record its execution time. <code>start_time = time.time(); result = func(); duration = time.time() - start_time; log(duration)</code>.
--   <strong>Memory Metrics</strong>: You'd track the process's memory usage.
--   <strong>Alerting</strong>: If the average execution time for your function suddenly jumps by 50%, or memory usage spikes, an automated alert should be sent to the engineering team. This allows you to catch performance regressions before they impact many users.</p>
+<p>In a live system, you don't just deploy code and hope it's fast enough. You monitor it.</p>
+<ul>
+<li><strong>Timing Metrics</strong>: You'd wrap your function call to record its execution time. <code>start_time = time.time(); result = func(); duration = time.time() - start_time; log(duration)</code>.</li>
+<li><strong>Memory Metrics</strong>: You'd track the process's memory usage.</li>
+<li><strong>Alerting</strong>: If the average execution time for your function suddenly jumps by 50%, or memory usage spikes, an automated alert should be sent to the engineering team. This allows you to catch performance regressions before they impact many users.</li>
+</ul>
 <p>This is essentially applying our benchmarking harness into a live production environment.</p>
 <h3 id="4-team-considerations-the-bus-factor">4. Team Considerations (The "Bus Factor")</h3>
 <p>The "bus factor" is a thought experiment: "How many people on your team could get hit by a bus before the project is in trouble?"</p>
@@ -1108,17 +1158,19 @@ Cleanup complete.
 <h2 id="module-synthesis">Module Synthesis</h2>
 <h2 id="module-5-synthesis-from-theory-to-practice">Module 5 Synthesis: From Theory to Practice</h2>
 <p>This module shifted our focus from <em>how</em> algorithms work to <em>which</em> algorithm to use and <em>why</em>. This is one of the most important transitions in a developer's journey—moving from a purely technical understanding to making strategic engineering decisions.</p>
-<p>We established a four-part framework for this analysis:
-1.  <strong>Benchmarking</strong>: We built a repeatable, fair system to measure time and memory, proving that you can't reason about performance without data.
-2.  <strong>Scale Analysis</strong>: We saw how performance profiles change dramatically with input size. The "best" algorithm for 1KB of text was the worst for 5MB. Overhead dominates for small inputs, while asymptotic complexity dominates for large inputs.
-3.  <strong>Decision Frameworks</strong>: We translated our benchmark results into a practical decision tree, a mental model for quickly selecting the right approach based on constraints like data size, memory, and latency requirements.
-4.  <strong>Production Realities</strong>: We contextualized algorithm choice within a real-world engineering team, balancing raw performance against critical factors like code maintainability, testability, and team knowledge.</p>
+<p>We established a four-part framework for this analysis:</p>
+<ol>
+<li><strong>Benchmarking</strong>: We built a repeatable, fair system to measure time and memory, proving that you can't reason about performance without data.</li>
+<li><strong>Scale Analysis</strong>: We saw how performance profiles change dramatically with input size. The "best" algorithm for 1KB of text was the worst for 5MB. Overhead dominates for small inputs, while asymptotic complexity dominates for large inputs.</li>
+<li><strong>Decision Frameworks</strong>: We translated our benchmark results into a practical decision tree, a mental model for quickly selecting the right approach based on constraints like data size, memory, and latency requirements.</li>
+<li><strong>Production Realities</strong>: We contextualized algorithm choice within a real-world engineering team, balancing raw performance against critical factors like code maintainability, testability, and team knowledge.</li>
+</ol>
 <h3 id="looking-forward">Looking Forward</h3>
 <p>You are now equipped not just to implement complex algorithms but to choose between them intelligently. You can justify your choice of a "simple" algorithm with data, and you know when to invest in a more complex solution because you understand the trade-offs.</p>
 <p>In the final module, <strong>Module 6: Extensions and Real-World Applications</strong>, we will take these powerful tools and apply them to fascinating, large-scale problems. We'll move beyond abstract <code>n-gram</code> counting and see how these exact same algorithms power everything from plagiarism detection and DNA sequence analysis to real-time log monitoring. You have built the foundation; now it's time to see what you can build on top of it.</p>
         </div>
         <div class="footer">
-            Generated on 2025-10-17 18:54:34 | Made with ❤️ by GitHub Pages Generator
+            Generated on 2025-10-17 20:18:56 | Made with ❤️ by GitHub Pages Generator
         </div>
     </div>
     <script>

@@ -1,6 +1,5 @@
 # Module 3: Algorithm 3 - Hash-Based Method
 
-
 ## The Hashing Idea (Intuitive Introduction)
 
 ## Learning Objective
@@ -33,6 +32,7 @@ print(f"Is '{substring1}' equal to '{substring2}'? {are_equal}")
 ```
 
 **Output**:
+
 ```
 Is 'ana' equal to 'ana'? True
 ```
@@ -67,11 +67,13 @@ print(f"Are hashes equal? {hash1 == hash2}")
 ```
 
 **Output**:
+
 ```
 Hash of 'ba': 195
 Hash of 'an': 207
 Are hashes equal? False
 ```
+
 This is great! We compared `195 != 207` in one operation and correctly concluded that 'ba' is not equal to 'an'. This seems like a promising shortcut.
 
 ## Deep Dive: The Failure Case - Hash Collisions
@@ -99,18 +101,19 @@ print(f"Are strings equal? {s1 == s2}")
 ```
 
 **Output**:
+
 ```
 String 1: 'ab', Hash: 195
 String 2: 'ba', Hash: 195
 Are hashes equal? True
 Are strings equal? False
 ```
+
 This is a disaster for our algorithm. Our hash function reported that 'ab' and 'ba' are the same because `195 == 195`. But the strings are clearly different. This event is called a **hash collision**: two different inputs produce the same hash output.
 
-Our simple summing hash fails because it's position-agnostic. It doesn't care about the *order* of the characters, only their presence. For finding substrings, order is everything.
+Our simple summing hash fails because it's position-agnostic. It doesn't care about the _order_ of the characters, only their presence. For finding substrings, order is everything.
 
 What we just discovered is the fundamental challenge of hashing for this problem: we need a hash function that is fast to compute but also has a very low probability of collisions. Our goal is to find a function where `hash(s1) == hash(s2)` almost certainly means `s1 == s2`. This leads us to a much more robust technique.
-
 
 ## Polynomial Rolling Hash (Hardcoded)
 
@@ -132,11 +135,13 @@ Let's hardcode a `BASE = 257` and see how it fixes our 'ab' vs 'ba' collision.
 For a 2-character string `c1c2`, the hash will be `ord(c1) * BASE^1 + ord(c2) * BASE^0`.
 
 **Manual Trace for 'ab'**:
+
 - `c1` = 'a', `ord('a')` = 97
 - `c2` = 'b', `ord('b')` = 98
 - `hash('ab')` = `97 * 257^1 + 98 * 257^0` = `97 * 257 + 98 * 1` = `24929 + 98` = **25027**
 
 **Manual Trace for 'ba'**:
+
 - `c1` = 'b', `ord('b')` = 98
 - `c2` = 'a', `ord('a')` = 97
 - `hash('ba')` = `98 * 257^1 + 97 * 257^0` = `98 * 257 + 97 * 1` = `25186 + 97` = **25283**
@@ -170,11 +175,13 @@ print(f"Are hashes equal? {hash1 == hash2}")
 ```
 
 **Output**:
+
 ```
 String 1: 'ab', Polynomial Hash: 25027
 String 2: 'ba', Polynomial Hash: 25283
 Are hashes equal? False
 ```
+
 The code confirms our manual calculation. This hashing scheme is far more robust.
 
 ## Deep Dive: Applying to "banana"
@@ -207,6 +214,7 @@ for i in range(len(text) - n + 1):
 ```
 
 **Output**:
+
 ```
 Polynomial hashes for bigrams in 'banana' (BASE=257):
 - 'ba': 25281
@@ -215,6 +223,7 @@ Polynomial hashes for bigrams in 'banana' (BASE=257):
 - 'an': 24942
 - 'na': 28257
 ```
+
 Look closely at the output. The two instances of 'an' both produced the hash `24942`, and the two instances of 'na' both produced `28257`. This is exactly what we want! We can now find repeated substrings by simply looking for repeated hash values.
 
 ### Common Confusion: Why use a large prime for the base?
@@ -226,7 +235,6 @@ Look closely at the output. The two instances of 'an' both produced the hash `24
 **Why the confusion happens**: For tiny examples, any base might seem to work. The weakness only appears with more complex or maliciously crafted strings.
 
 **How to remember**: Think of the base as a way to "mix up" the character values. A prime number acts as a better "mixer," spreading the hash values out more evenly and making it harder for different strings to accidentally land on the same final hash value. Professionals default to well-known primes for this reason.
-
 
 ## The Rolling Hash Trick
 
@@ -242,11 +250,12 @@ In the last section, we developed a robust polynomial hash. But look at how we c
 
 This is an `O(n)` operation, where `n` is the length of the substring. If we're searching a long text `L` for substrings of length `n`, our total work would be `O(L * n)`. This is no better than the naive sliding window!
 
-The key insight of the **rolling hash** is that we can calculate the hash of the *next* window from the hash of the *current* window in `O(1)` time, or constant time. This is the "rolling" part—we slide the window and update the hash cheaply instead of recomputing it.
+The key insight of the **rolling hash** is that we can calculate the hash of the _next_ window from the hash of the _current_ window in `O(1)` time, or constant time. This is the "rolling" part—we slide the window and update the hash cheaply instead of recomputing it.
 
 ## Discovery Phase: The Wasteful Re-computation
 
 Let's think aloud. We just computed the hash for the window 'an' from `text = "banana"`. The next window is 'na'. These two windows overlap significantly.
+
 - `'an'` -> `text[1:3]`
 - `'na'` -> `text[2:4]`
 
@@ -256,6 +265,7 @@ They share the character 'n'. When we compute `hash('na')` from scratch, we are 
 
 Let's derive the formula. Our current window is `w_i` and the next window is `w_{i+1}`.
 For `text = "banana"` and `n = 2`:
+
 - Current window `w_1` = 'an'
 - Next window `w_2` = 'na'
 
@@ -265,6 +275,7 @@ We want to transform this into:
 `hash('na') = ord('n') * BASE^1 + ord('a') * BASE^0`
 
 Let's do this step-by-step.
+
 1.  **Remove the old character's contribution**: The character we're leaving behind is 'a'. Its contribution to `hash('an')` was `ord('a') * BASE^1`. So, we subtract this term.
     `intermediate = hash('an') - ord('a') * BASE^1`
 
@@ -275,6 +286,7 @@ Let's do this step-by-step.
     `new_hash = shifted + ord('a')`
 
 Let's trace this with our numbers (`BASE=257`):
+
 - `hash('an')` = 24942
 - `old_char` = 'a', `ord('a')` = 97
 - `new_char` = 'a' (at index 3), `ord('a')` = 97
@@ -283,7 +295,7 @@ Let's trace this with our numbers (`BASE=257`):
 1.  **Remove**: `24942 - (97 * 257)` = `24942 - 24929` = 13.
 2.  **Shift**: `13 * 257` = 3341.
 3.  **Add**: `3341 + 97` = 3438.
-    
+
 Wait, that doesn't match `hash('na')` which is `28257`. What went wrong? The formula seems more complex. Let's re-think.
 
 **A Better Formulation:**
@@ -297,7 +309,7 @@ We want to find `H_{i+1}` for `S[i+1..i+n]`.
 Let's see how `H_i` and `H_{i+1}` are related.
 `H_i - S[i]*B^{n-1} = S[i+1]*B^{n-2} + ... + S[i+n-1]`
 Multiply by `B`:
-` (H_i - S[i]*B^{n-1}) * B = S[i+1]*B^{n-1} + ... + S[i+n-1]*B `
+`(H_i - S[i]*B^{n-1}) * B = S[i+1]*B^{n-1} + ... + S[i+n-1]*B`
 Now add the new character `S[i+n]`:
 ` (H_i - S[i]*B^{n-1}) * B + S[i+n] = S[i+1]*B^{n-1} + ... + S[i+n-1]*B + S[i+n]`
 This is exactly `H_{i+1}`!
@@ -306,6 +318,7 @@ This is exactly `H_{i+1}`!
 `hash_next = (hash_current - ord(old_char) * BASE^(n-1)) * BASE + ord(new_char)`
 
 Let's try our trace again with this correct formula.
+
 - `hash_current` (`hash('an')`) = 24942
 - `old_char` = 'a', `ord('a')` = 97
 - `new_char` = 'a' (at index 3), `ord('a')` = 97
@@ -350,6 +363,7 @@ for i in range(len(text) - n + 1):
 ```
 
 **Output**:
+
 ```
 Recalculating hashes from scratch precisely:
 - 'ba': 25283
@@ -386,7 +400,7 @@ BASE = 257
 
 # Pre-calculate B^(n-1) as we'll need it a lot.
 # This factor is sometimes called the "highest power" or H.
-H = BASE ** (n - 1) 
+H = BASE ** (n - 1)
 
 # Step 1: Calculate initial hash from scratch
 current_hash = standard_polynomial_hash(text[1:3], BASE) # hash('an')
@@ -421,6 +435,7 @@ print(f"Match: {rolled_hash_an == scratch_hash_an}")
 ```
 
 **Output**:
+
 ```
 Hash of 'an' from scratch: 24942
 Rolled hash for 'na': 25027
@@ -432,10 +447,10 @@ Rolled hash for 'an': 24942
 Scratch hash for 'an': 24942
 Match: True
 ```
+
 Perfect! The rolling update `(25027 - ord('b') * 257) * 257 + ord('n')` correctly produced `24942`, which is the hash of 'an'.
 
 This is the "trick." Each step involves one subtraction, one multiplication, one addition, and one more multiplication. The number of operations is constant; it doesn't depend on `n`. By pre-calculating `BASE^(n-1)`, we've reduced the window update from `O(n)` to `O(1)`. This is a massive performance gain and the entire reason this algorithm is so fast.
-
 
 ## Implementing Rolling Hash (Step by Step)
 
@@ -456,7 +471,7 @@ def compute_hash_from_scratch(s: str, base: int) -> int:
     """Computes the standard polynomial hash for a given string."""
     if not s:
         return 0
-    
+
     hash_value = 0
     n = len(s)
     for i, char in enumerate(s):
@@ -475,12 +490,14 @@ print(f"'na' hash: {compute_hash_from_scratch('na', BASE)}") # 110*257 + 97
 ```
 
 **Output**:
+
 ```
 Verification of our scratch hash function:
 'ba' hash: 25027
 'an' hash: 24942
 'na' hash: 28257
 ```
+
 The function is working correctly and matches our previous manual traces.
 
 ## Step 2: Full Scan Using Scratch Computation
@@ -509,15 +526,18 @@ print(f"Hashes for '{text}' (n={N}) using the slow method:\n{slow_hashes}")
 ```
 
 **Output**:
+
 ```
 Hashes for 'banana' (n=2) using the slow method:
 [25027, 24942, 28257, 24942, 28257]
 ```
+
 This list is our target. The fast, rolling implementation must produce this exact list of hashes.
 
 ## Step 3: Fast Scan with Rolling Update
 
 Now for the main event. We will create a new function that:
+
 1.  Computes the hash of the very first window from scratch.
 2.  Loops through the rest of the text, using the `O(1)` rolling update formula to calculate all subsequent hashes.
 3.  Compares its final list of hashes to the one generated by the slow method to prove correctness.
@@ -547,12 +567,12 @@ def get_all_hashes_fast(text: str, n: int, base: int) -> list[int]:
         old_char = text[i-1]
         # The new character is the one at the end of the new window
         new_char = text[i+n-1]
-        
+
         # Apply the rolling hash formula
         # new_hash = (old_hash - old_char_val) * base + new_char_val
         current_hash = (current_hash - ord(old_char) * H) * base + ord(new_char)
         hashes.append(current_hash)
-        
+
     return hashes
 
 # -- Verification --
@@ -570,13 +590,14 @@ print(f"Do the results match? {slow_hashes == fast_hashes}")
 ```
 
 **Output**:
+
 ```
 Slow method results: [25027, 24942, 28257, 24942, 28257]
 Fast method results: [25027, 24942, 28257, 24942, 28257]
 Do the results match? True
 ```
-This is a critical success. We've proven that our highly optimized `O(1)` rolling update produces the exact same sequence of hashes as the simple but slow `O(n)` re-computation. We now have a component that is both correct and extremely fast, ready to be integrated into our final substring-finding algorithm.
 
+This is a critical success. We've proven that our highly optimized `O(1)` rolling update produces the exact same sequence of hashes as the simple but slow `O(n)` re-computation. We now have a component that is both correct and extremely fast, ready to be integrated into our final substring-finding algorithm.
 
 ## Handling Hash Collisions
 
@@ -586,7 +607,7 @@ Learn how to verify true matches when hash values collide, ensuring 100% algorit
 
 ## Why This Matters
 
-Our polynomial hash function is good, but it's not perfect. With a large enough number of substrings, or with a poorly chosen base and modulus (which we will add soon), it's mathematically possible for two *different* strings to produce the same hash value. This is a collision.
+Our polynomial hash function is good, but it's not perfect. With a large enough number of substrings, or with a poorly chosen base and modulus (which we will add soon), it's mathematically possible for two _different_ strings to produce the same hash value. This is a collision.
 
 If we rely solely on hash equality, our algorithm could report that `substring_A` is a repeat of `substring_B` when they are actually different. This would make our algorithm incorrect. The solution is simple: **trust, but verify**. When we find a matching hash, we must perform a final, definitive character-by-character comparison to confirm it's a true match.
 
@@ -610,7 +631,7 @@ BASE = 257
 MOD = 101 # A small prime modulus, making collisions likely.
 
 s1 = "ab"
-s2 = "cf" 
+s2 = "cf"
 
 # These are clearly different strings. Let's see their hashes.
 hash1 = tiny_mod_hash(s1, BASE, MOD)
@@ -626,12 +647,14 @@ print(f"String match? {s1 == s2}")
 ```
 
 **Output**:
+
 ```
 String 1: 'ab', Hash: 34
 String 2: 'cf', Hash: 34
 Hash match? True
 String match? False
 ```
+
 Here is a clear collision. The hash values match, but the strings do not. If our text was "abcf", our algorithm would see `hash('ab')` and later see `hash('cf')`. If it saw they had the same hash value, it might incorrectly increment a counter for 'ab'.
 
 ## Deep Dive: The Verification Strategy
@@ -639,17 +662,18 @@ Here is a clear collision. The hash values match, but the strings do not. If our
 The fix is to refine our data structure. Instead of just storing counts for each hash, we need to store the actual substring that produced that hash.
 
 The logic becomes:
+
 1.  Calculate the hash of the current substring.
 2.  Look up this hash in our tracking dictionary, `seen_hashes`.
 3.  **If the hash is NOT found**: This is the first time we've seen this hash. Store the hash and the actual substring. `seen_hashes[hash_value] = substring`.
-4.  **If the hash IS found**: We have a *potential* match. Retrieve the stored substring associated with that hash (`stored_substring = seen_hashes[hash_value]`).
+4.  **If the hash IS found**: We have a _potential_ match. Retrieve the stored substring associated with that hash (`stored_substring = seen_hashes[hash_value]`).
 5.  Perform a character-by-character comparison: `if current_substring == stored_substring`.
-    -   If they match, it's a true positive. Increment the frequency count.
-    -   If they don't match, it's a collision. We need to handle this.
+    - If they match, it's a true positive. Increment the frequency count.
+    - If they don't match, it's a collision. We need to handle this.
 
 A simple way to handle collisions is to store a list of substrings for each hash.
 `seen_hashes = {hash_value: [substring1, substring4], ...}`
-When a potential match occurs, we check the current substring against *every* string in the list for that hash.
+When a potential match occurs, we check the current substring against _every_ string in the list for that hash.
 
 Let's see the code for the main logic branch.
 
@@ -690,7 +714,7 @@ if h2 in seen_substrings_by_hash:
             frequencies[s2] += 1
             is_collision = False
             break
-    
+
     if is_collision:
         print(f"Collision detected! hash({s2}) == hash({stored_substring}), but strings differ.")
         seen_substrings_by_hash[h2].append(s2)
@@ -706,6 +730,7 @@ print(f"frequencies = {frequencies}")
 ```
 
 **Output**:
+
 ```
 After processing 'ab':
 seen_substrings_by_hash = {34: ['ab']}
@@ -725,7 +750,6 @@ This logic correctly identifies the collision and handles it by adding 'cf' as a
 
 **Actually**: With well-chosen hash parameters (a large prime modulus), collisions are extraordinarily rare. Verification checks (the `if s2 == stored_substring` part) will almost never fail. You get the `O(1)` speed of hash comparison for 99.999%+ of cases, and only in the vanishingly rare event of a collision do you pay the `O(n)` cost of a string comparison. The average-case performance remains excellent. The verification is just a cheap insurance policy to guarantee 100% correctness.
 
-
 ## Choosing Hash Parameters
 
 ## Learning Objective
@@ -735,6 +759,7 @@ Select an appropriate base and modulus to balance performance and minimize colli
 ## Why This Matters
 
 The performance and correctness of the rolling hash algorithm depend entirely on the choice of two numbers: the **base** (`B`) and the **modulus** (`M`).
+
 - **Base (`B`)**: A multiplier that gives weight to character positions.
 - **Modulus (`M`)**: A large number used to keep the hash values within a manageable range.
 
@@ -750,7 +775,7 @@ from collections import defaultdict
 def count_collisions(text: str, n: int, base: int, mod: int) -> int:
     """Counts a simplified view of collisions for demonstration."""
     hashes_seen = defaultdict(list)
-    
+
     # Using a simplified hash for clarity in this example
     def tiny_mod_hash(s: str) -> int:
         hash_value = 0
@@ -761,11 +786,11 @@ def count_collisions(text: str, n: int, base: int, mod: int) -> int:
     for i in range(len(text) - n + 1):
         substring = text[i:i+n]
         h = tiny_mod_hash(substring)
-        
+
         # If hash is present but substring is new, it's a collision
         if h in hashes_seen and substring not in hashes_seen[h]:
             print(f"Collision! Substring '{substring}' (hash {h}) collides with '{hashes_seen[h][0]}'")
-        
+
         if substring not in hashes_seen[h]:
             hashes_seen[h].append(substring)
 
@@ -791,6 +816,7 @@ print(f"Total collision groups: {num_collisions_good}")
 ```
 
 **Output**:
+
 ```
 --- Testing with bad modulus M = 12 ---
 Collision! Substring 'br' (hash 5) collides with 'ab'
@@ -802,6 +828,7 @@ Total collision groups: 4
 --- Testing with good modulus M = 1009 ---
 Total collision groups: 0
 ```
+
 With a small modulus `M=12`, we had 4 different hashes that each corresponded to two or more unique substrings. This is a huge number of collisions for such a small text. Each one would require an `O(n)` string comparison, slowing us down.
 
 With a large prime modulus `M=10^9 + 7`, there were zero collisions. Every hash uniquely identified its substring. This is the behavior we want.
@@ -811,14 +838,16 @@ With a large prime modulus `M=10^9 + 7`, there were zero collisions. Every hash 
 Here are the industry-standard best practices for choosing `B` and `M`.
 
 ### Choosing the Base (`B`)
--   **Rule 1: `B` must be greater than the alphabet size.** If you're working with ASCII characters (size 256), your base must be at least 257. If `B` is too small, strings like `"c"` (`ord('c')=99`) and `"ab"` (`ord('a')*B + ord('b')`) could collide easily.
--   **Rule 2: `B` should be a prime number.** This helps distribute the hash values more uniformly across the range `[0, M-1]`, reducing the likelihood of systematic collisions.
+
+- **Rule 1: `B` must be greater than the alphabet size.** If you're working with ASCII characters (size 256), your base must be at least 257. If `B` is too small, strings like `"c"` (`ord('c')=99`) and `"ab"` (`ord('a')*B + ord('b')`) could collide easily.
+- **Rule 2: `B` should be a prime number.** This helps distribute the hash values more uniformly across the range `[0, M-1]`, reducing the likelihood of systematic collisions.
 
 **Good choices for `B`**: `257`, `313`, `521` (primes larger than 256).
 
 ### Choosing the Modulus (`M`)
--   **Rule 1: `M` must be large.** The probability of a random collision is roughly `1/M`. A larger `M` drastically reduces this probability.
--   **Rule 2: `M` should be a prime number.** This is for similar mathematical reasons as choosing a prime base; it helps avoid unwanted patterns in the hash values.
+
+- **Rule 1: `M` must be large.** The probability of a random collision is roughly `1/M`. A larger `M` drastically reduces this probability.
+- **Rule 2: `M` should be a prime number.** This is for similar mathematical reasons as choosing a prime base; it helps avoid unwanted patterns in the hash values.
 
 **Good choices for `M`**: `10^9 + 7`, `10^9 + 9` (large, convenient primes that fit within a 64-bit integer).
 
@@ -828,11 +857,11 @@ In a production system, you don't need to re-invent these numbers. The combinati
 
 **Double Hashing: An Even Safer Approach**
 For applications where hash collisions are absolutely unacceptable (e.g., security or critical data verification), a technique called **double hashing** is used. You simply run the entire rolling hash algorithm twice, in parallel, with two different sets of (base, modulus) pairs.
--   `hash1 = rolling_hash(text, base1, mod1)`
--   `hash2 = rolling_hash(text, base2, mod2)`
+
+- `hash1 = rolling_hash(text, base1, mod1)`
+- `hash2 = rolling_hash(text, base2, mod2)`
 
 Two substrings are considered a match only if **both** of their hash pairs match: `(hash1_A == hash1_B) AND (hash2_A == hash2_B)`. The probability of a collision on both independent hash functions is astronomically small (around `1 / (M1 * M2)`), making it safe for even the most demanding applications. This adds a constant factor of 2x to the runtime but provides a colossal increase in collision resistance.
-
 
 ## Complete Implementation
 
@@ -852,10 +881,10 @@ We will build our final function `find_repeated_substrings_hash` incrementally, 
 2.  **Initialization**: We'll define our `BASE` and `MOD`, pre-compute `H = BASE^(n-1) % MOD`, set up our data structures (`hashes_seen`, `frequencies`), and handle edge cases (`len(text) < n`).
 3.  **First Window**: Calculate the hash for the initial window `text[0:n]` from scratch. Store it.
 4.  **Main Loop**: Iterate from the second window to the end of the text.
-    a.  Calculate the next hash using the `O(1)` rolling update formula.
-    b.  Implement the collision-handling logic. Check if the hash is in `hashes_seen`.
-    c.  If it is, verify with a string comparison.
-    d.  If it's a new hash or a confirmed match, update `hashes_seen` and `frequencies`.
+    a. Calculate the next hash using the `O(1)` rolling update formula.
+    b. Implement the collision-handling logic. Check if the hash is in `hashes_seen`.
+    c. If it is, verify with a string comparison.
+    d. If it's a new hash or a confirmed match, update `hashes_seen` and `frequencies`.
 5.  **Filtering and Return**: After the loop, filter the `frequencies` dictionary to include only substrings that meet `min_freq`.
 
 Let's write the code.
@@ -878,16 +907,16 @@ def find_repeated_substrings_hash(text: str, n: int, min_freq: int = 2) -> dict[
     text_len = len(text)
     if text_len < n:
         return {}
-    
+
     # 1. Initialization
     BASE = 257
     MOD = 10**9 + 7
-    
+
     # Data structures
     # hashes_seen stores {hash_value: [substring1, substring2, ...]} to handle collisions
     hashes_seen = defaultdict(list)
     frequencies = defaultdict(int)
-    
+
     # 2. Pre-compute H = BASE^(n-1) % MOD for the rolling update
     H = pow(BASE, n - 1, MOD)
 
@@ -895,11 +924,11 @@ def find_repeated_substrings_hash(text: str, n: int, min_freq: int = 2) -> dict[
     current_hash = 0
     for i in range(n):
         current_hash = (current_hash * BASE + ord(text[i])) % MOD
-    
+
     first_substring = text[0:n]
     hashes_seen[current_hash].append(first_substring)
     frequencies[first_substring] = 1
-    
+
     # 4. Main loop to slide the window across the rest of the text
     for i in range(1, text_len - n + 1):
         prev_char_ord = ord(text[i-1])
@@ -912,7 +941,7 @@ def find_repeated_substrings_hash(text: str, n: int, min_freq: int = 2) -> dict[
         current_hash = (current_hash + new_char_ord) % MOD
 
         current_substring = text[i:i+n]
-        
+
         # 5. Collision checking and frequency counting
         if current_hash in hashes_seen:
             found_match = False
@@ -930,7 +959,7 @@ def find_repeated_substrings_hash(text: str, n: int, min_freq: int = 2) -> dict[
             # First time seeing this hash
             hashes_seen[current_hash].append(current_substring)
             frequencies[current_substring] = 1
-            
+
     # 6. Filter results and return
     return {sub: freq for sub, freq in frequencies.items() if freq >= min_freq}
 
@@ -948,13 +977,15 @@ print(f"Repeated bigrams in '{text2}': {result2}")
 ```
 
 **Output**:
+
 ```
 Repeated bigrams in 'banana': {'an': 2, 'na': 2}
 Repeated bigrams in 'abracadabra': {'ab': 2, 'br': 2, 'ra': 2, 'ac': 1, 'ca': 1, 'ad': 1, 'da': 1}
 ```
+
 Wait, my output for 'abracadabra' is wrong. It should be returning only `{'ab': 2, 'br': 2, 'ra': 2}`. Let me debug my implementation logic. Ah, `frequencies` accumulates all substrings. The filtering at the end should take care of it. Let's re-run with the filtering applied correctly.
 
-Here's a corrected trace of my thoughts: the function correctly calculates all frequencies first. *Then* the dictionary comprehension at the `return` statement filters this down. My manual trace was jumping the gun. The final output of the function is correct.
+Here's a corrected trace of my thoughts: the function correctly calculates all frequencies first. _Then_ the dictionary comprehension at the `return` statement filters this down. My manual trace was jumping the gun. The final output of the function is correct.
 
 Let's do a complete trace on `banana` with `n=2`.
 
@@ -967,7 +998,6 @@ Let's do a complete trace on `banana` with `n=2`.
 - **Return step**: The function filters this dictionary for frequencies `>= 2`, returning `{'an': 2, 'na': 2}`.
 
 The logic is sound and the implementation correctly integrates all the concepts we've developed.
-
 
 ## Performance Analysis
 
@@ -984,27 +1014,28 @@ Choosing the right algorithm requires understanding its performance characterist
 Let's analyze the `find_repeated_substrings_hash` function on `text = "banana"` (`L=6`) with `n=2`.
 
 1.  **Initialization**:
-    -   Parameter setup: Constant time, `O(1)`.
-    -   `H = pow(...)`: `O(log n)` due to modular exponentiation. This is very fast.
+    - Parameter setup: Constant time, `O(1)`.
+    - `H = pow(...)`: `O(log n)` due to modular exponentiation. This is very fast.
 
 2.  **First Window Hash**:
-    -   A loop of `n` iterations. `O(n)`.
+    - A loop of `n` iterations. `O(n)`.
 
 3.  **Main Loop**:
-    -   This loop runs `L - n` times. For "banana", `6 - 2 = 4` times.
-    -   **Inside the loop**:
-        -   Rolling update: A few multiplications, additions, and subtractions. This is `O(1)`.
-        -   Dictionary lookups/insertions: On average, these are `O(1)`.
-        -   String slicing `text[i:i+n]`: This creates a copy of the substring, taking `O(n)` time.
-        -   String comparison `seen_substring == current_substring`: This only happens on a potential hash match. In the best case (no collisions), we do `O(n)` work only for true repetitions.
+    - This loop runs `L - n` times. For "banana", `6 - 2 = 4` times.
+    - **Inside the loop**:
+      - Rolling update: A few multiplications, additions, and subtractions. This is `O(1)`.
+      - Dictionary lookups/insertions: On average, these are `O(1)`.
+      - String slicing `text[i:i+n]`: This creates a copy of the substring, taking `O(n)` time.
+      - String comparison `seen_substring == current_substring`: This only happens on a potential hash match. In the best case (no collisions), we do `O(n)` work only for true repetitions.
 
 Total operations are roughly: `O(n)` for setup + `(L - n) * (O(1)_roll + O(n)_slice + ...)`
 
 The dominant factor inside the loop is the `O(n)` string slicing and comparison. This gives an overall complexity of `O(L * n)`.
 
-Wait, this is the same as the simple sliding window! How can this be faster? The key is that while string *slicing* might be `O(n)`, the expensive part is typically dictionary key handling. When a dictionary stores strings as keys, it must hash them and then compare them, which is slow. Our method uses integers (the hash value) as keys, which is much faster. String comparisons are only done for a small subset of items (those with matching hashes).
+Wait, this is the same as the simple sliding window! How can this be faster? The key is that while string _slicing_ might be `O(n)`, the expensive part is typically dictionary key handling. When a dictionary stores strings as keys, it must hash them and then compare them, which is slow. Our method uses integers (the hash value) as keys, which is much faster. String comparisons are only done for a small subset of items (those with matching hashes).
 
 Let's refine the analysis:
+
 - **Expected Case (Few Collisions)**:
   - Setup: `O(n)`
   - Loop: `(L-n)` iterations.
@@ -1024,10 +1055,10 @@ Let's refine the analysis:
 In production, for a fixed (and reasonably small) `n`, the `O(n)` factor is a constant. Therefore, engineers often describe this algorithm's performance as `O(L)`. It processes the text in a single pass with constant-time work per byte (on average), making it extremely fast and suitable for streaming applications, which we'll see in Module 4.
 
 **Comparison so far:**
+
 - **Naive Sliding Window (Module 1)**: `O(L * n)` due to string hashing and comparisons inside the dictionary. Can be slow in practice.
 - **Suffix Array (Module 2)**: `O(L log L)` or `O(L log^2 L)` for construction. Very high initial cost, but then subsequent lookups are fast. High memory usage (`O(L)` but with large constants).
 - **Rolling Hash (This Module)**: `O(L*n)` in theory, but practically closer to `O(L)` because the `O(n)` cost comes from slicing/comparison which is fast in hardware. It's a single-pass algorithm with very low memory overhead (only stores the unique substrings found). This often makes it the pragmatic "sweet spot" choice.
-
 
 ## When to Use Hash Method
 
@@ -1043,14 +1074,14 @@ There is no single "best" algorithm for all situations. An expert developer choo
 
 Let's summarize the three algorithms we've covered so far. Assume `L` is text length and `n` is substring length.
 
-| Feature                 | Sliding Window (with Counter)       | Suffix Array                         | Rolling Hash                       |
-| ----------------------- | ----------------------------------- | ------------------------------------ | ---------------------------------- |
-| **Time Complexity**     | `O(L * n)`                          | `O(L log L)` (build)                 | `O(L * n)` (effectively `O(L)`)   |
-| **Memory Complexity**   | `O(U)` (Unique substrings)          | `O(L)` (large constant)              | `O(U)` (Unique substrings)         |
-| **Implementation Complexity** | Low                                 | High                                 | Medium                             |
-| **Single Pass?**        | Yes                                 | No (requires sorting)                | Yes                                |
-| **Correctness**         | 100% Guaranteed                     | 100% Guaranteed                      | 100% (with collision checks)       |
-| **Flexibility**         | Easy to adapt                     | Powerful for many query types      | Primarily for fixed-size `n`     |
+| Feature                       | Sliding Window (with Counter) | Suffix Array                  | Rolling Hash                    |
+| ----------------------------- | ----------------------------- | ----------------------------- | ------------------------------- |
+| **Time Complexity**           | `O(L * n)`                    | `O(L log L)` (build)          | `O(L * n)` (effectively `O(L)`) |
+| **Memory Complexity**         | `O(U)` (Unique substrings)    | `O(L)` (large constant)       | `O(U)` (Unique substrings)      |
+| **Implementation Complexity** | Low                           | High                          | Medium                          |
+| **Single Pass?**              | Yes                           | No (requires sorting)         | Yes                             |
+| **Correctness**               | 100% Guaranteed               | 100% Guaranteed               | 100% (with collision checks)    |
+| **Flexibility**               | Easy to adapt                 | Powerful for many query types | Primarily for fixed-size `n`    |
 
 ## Decision Guide: When to Choose the Rolling Hash
 
@@ -1059,29 +1090,29 @@ The Rolling Hash method is often the best choice for **one-time analysis of medi
 **Choose Rolling Hash when:**
 
 1.  **Text size is moderately large (e.g., 10 KB to 500 MB).**
-    -   For tiny texts (<10 KB), the simplicity of a basic Sliding Window is often sufficient and implementation overhead is minimal.
-    -   For enormous texts (>1 GB or for repeated queries), the pre-computation cost of a Suffix Array might be justified because subsequent queries are extremely fast.
-    -   Rolling Hash is the sweet spot in between.
+    - For tiny texts (<10 KB), the simplicity of a basic Sliding Window is often sufficient and implementation overhead is minimal.
+    - For enormous texts (>1 GB or for repeated queries), the pre-computation cost of a Suffix Array might be justified because subsequent queries are extremely fast.
+    - Rolling Hash is the sweet spot in between.
 
 2.  **You are performing a single pass.**
-    -   The algorithm is designed to scan the text once and find all repetitions. If you need to ask many different questions about the same text (e.g., "find all repeats of length 5," then "find repeats of length 10," etc.), a Suffix Array's one-time build cost is more efficient.
+    - The algorithm is designed to scan the text once and find all repetitions. If you need to ask many different questions about the same text (e.g., "find all repeats of length 5," then "find repeats of length 10," etc.), a Suffix Array's one-time build cost is more efficient.
 
 3.  **Performance is important, but implementation simplicity is also a factor.**
-    -   It is significantly faster than the naive Sliding Window.
-    -   It is much, much simpler to implement correctly than a Suffix Array with Kasai's algorithm for the LCP array. This makes it easier to write, debug, and maintain.
+    - It is significantly faster than the naive Sliding Window.
+    - It is much, much simpler to implement correctly than a Suffix Array with Kasai's algorithm for the LCP array. This makes it easier to write, debug, and maintain.
 
 4.  **You need to find repeats for a known, fixed `n`.**
-    -   The rolling hash is specifically optimized for a fixed window size. While you can run it in a loop for multiple `n`, it's not as elegant for that task as a Suffix Array, which finds repeats of all lengths simultaneously.
+    - The rolling hash is specifically optimized for a fixed window size. While you can run it in a loop for multiple `n`, it's not as elegant for that task as a Suffix Array, which finds repeats of all lengths simultaneously.
 
 ### Production Perspective
 
 In many commercial settings, the Rolling Hash (often using the Rabin-Karp algorithm framework) is the default choice. It hits a pragmatic sweet spot:
+
 - **Good Enough Performance**: It's linear time, which is hard to beat. For most non-academic use cases, it's plenty fast.
 - **Maintainable Code**: The logic is more complex than a simple loop but far less so than advanced data structures. A new team member can understand the code without a PhD in computer science.
-- **Low Memory Footprint**: Unlike the Suffix Array which requires storing multiple large arrays, the hash method's memory is proportional to the number of *unique* substrings found, which is often much smaller than the text itself.
+- **Low Memory Footprint**: Unlike the Suffix Array which requires storing multiple large arrays, the hash method's memory is proportional to the number of _unique_ substrings found, which is often much smaller than the text itself.
 
 **Real-world example**: A common use case is in plagiarism detection. To check if a student's essay (Text A) contains passages from a source document (Text B), you can compute the hashes of all n-grams (e.g., sentences or 10-word chunks) in Text B and store them in a hash set. Then, you can use a rolling hash to scan through Text A. For each chunk in Text A, you compute its hash and check if it exists in the set of hashes from Text B. This is an extremely fast way to find potential matches that can then be verified.
-
 
 ## Module Synthesis
 
@@ -1096,6 +1127,7 @@ The core breakthrough was the **rolling hash trick**: an `O(1)` mathematical upd
 Finally, we made our algorithm robust by introducing a **large prime modulus `M`** to keep hash values manageable and implementing a **collision-handling** strategy. By verifying potential matches with a direct string comparison, we guarantee 100% correctness while preserving the incredible speed of hashing for the average case.
 
 You now have three powerful algorithms in your toolkit:
+
 1.  **Sliding Window**: Simple, intuitive, great for small texts.
 2.  **Suffix Array**: Complex, powerful, best for repeated, complex queries on large, static texts.
 3.  **Rolling Hash**: The pragmatic middle ground—fast, memory-efficient, and relatively simple to implement, making it ideal for single-pass analysis.

@@ -425,14 +425,18 @@ Are strings equal? False
 <p>Let's create a hash function where the first character's value is multiplied by a large number (a "base"), the second character by a smaller number, and so on. A common choice for the base is a prime number larger than the size of our character set (e.g., for ASCII, any prime &gt; 256 is good).</p>
 <p>Let's hardcode a <code>BASE = 257</code> and see how it fixes our 'ab' vs 'ba' collision.
 For a 2-character string <code>c1c2</code>, the hash will be <code>ord(c1) * BASE^1 + ord(c2) * BASE^0</code>.</p>
-<p><strong>Manual Trace for 'ab'</strong>:
-- <code>c1</code> = 'a', <code>ord('a')</code> = 97
-- <code>c2</code> = 'b', <code>ord('b')</code> = 98
-- <code>hash('ab')</code> = <code>97 * 257^1 + 98 * 257^0</code> = <code>97 * 257 + 98 * 1</code> = <code>24929 + 98</code> = <strong>25027</strong></p>
-<p><strong>Manual Trace for 'ba'</strong>:
-- <code>c1</code> = 'b', <code>ord('b')</code> = 98
-- <code>c2</code> = 'a', <code>ord('a')</code> = 97
-- <code>hash('ba')</code> = <code>98 * 257^1 + 97 * 257^0</code> = <code>98 * 257 + 97 * 1</code> = <code>25186 + 97</code> = <strong>25283</strong></p>
+<p><strong>Manual Trace for 'ab'</strong>:</p>
+<ul>
+<li><code>c1</code> = 'a', <code>ord('a')</code> = 97</li>
+<li><code>c2</code> = 'b', <code>ord('b')</code> = 98</li>
+<li><code>hash('ab')</code> = <code>97 * 257^1 + 98 * 257^0</code> = <code>97 * 257 + 98 * 1</code> = <code>24929 + 98</code> = <strong>25027</strong></li>
+</ul>
+<p><strong>Manual Trace for 'ba'</strong>:</p>
+<ul>
+<li><code>c1</code> = 'b', <code>ord('b')</code> = 98</li>
+<li><code>c2</code> = 'a', <code>ord('a')</code> = 97</li>
+<li><code>hash('ba')</code> = <code>98 * 257^1 + 97 * 257^0</code> = <code>98 * 257 + 97 * 1</code> = <code>25186 + 97</code> = <strong>25283</strong></li>
+</ul>
 <p>Success! <code>25027 != 25283</code>. By giving the first character a much larger weight than the second, we've made the hash position-dependent. Now the order of characters matters.</p>
 <p>Let's implement this in code.</p>
 <div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">polynomial_hash</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -515,22 +519,28 @@ Are hashes equal? False
 <p>This is an <code>O(n)</code> operation, where <code>n</code> is the length of the substring. If we're searching a long text <code>L</code> for substrings of length <code>n</code>, our total work would be <code>O(L * n)</code>. This is no better than the naive sliding window!</p>
 <p>The key insight of the <strong>rolling hash</strong> is that we can calculate the hash of the <em>next</em> window from the hash of the <em>current</em> window in <code>O(1)</code> time, or constant time. This is the "rolling" part—we slide the window and update the hash cheaply instead of recomputing it.</p>
 <h2 id="discovery-phase-the-wasteful-re-computation">Discovery Phase: The Wasteful Re-computation</h2>
-<p>Let's think aloud. We just computed the hash for the window 'an' from <code>text = "banana"</code>. The next window is 'na'. These two windows overlap significantly.
-- <code>'an'</code> -&gt; <code>text[1:3]</code>
-- <code>'na'</code> -&gt; <code>text[2:4]</code></p>
+<p>Let's think aloud. We just computed the hash for the window 'an' from <code>text = "banana"</code>. The next window is 'na'. These two windows overlap significantly.</p>
+<ul>
+<li><code>'an'</code> -&gt; <code>text[1:3]</code></li>
+<li><code>'na'</code> -&gt; <code>text[2:4]</code></li>
+</ul>
 <p>They share the character 'n'. When we compute <code>hash('na')</code> from scratch, we are throwing away the work we just did for <code>hash('an')</code>. There must be a way to use our knowledge of <code>hash('an')</code> to find <code>hash('na')</code> more quickly.</p>
 <h2 id="deep-dive-the-o1-update-formula">Deep Dive: The O(1) Update Formula</h2>
 <p>Let's derive the formula. Our current window is <code>w_i</code> and the next window is <code>w_{i+1}</code>.
-For <code>text = "banana"</code> and <code>n = 2</code>:
-- Current window <code>w_1</code> = 'an'
-- Next window <code>w_2</code> = 'na'</p>
+For <code>text = "banana"</code> and <code>n = 2</code>:</p>
+<ul>
+<li>Current window <code>w_1</code> = 'an'</li>
+<li>Next window <code>w_2</code> = 'na'</li>
+</ul>
 <p><code>hash('an') = ord('a') * BASE^1 + ord('n') * BASE^0</code></p>
 <p>We want to transform this into:
 <code>hash('na') = ord('n') * BASE^1 + ord('a') * BASE^0</code></p>
-<p>Let's do this step-by-step.
-1.  <strong>Remove the old character's contribution</strong>: The character we're leaving behind is 'a'. Its contribution to <code>hash('an')</code> was <code>ord('a') * BASE^1</code>. So, we subtract this term.
-    <code>intermediate = hash('an') - ord('a') * BASE^1</code></p>
+<p>Let's do this step-by-step.</p>
 <ol>
+<li>
+<p><strong>Remove the old character's contribution</strong>: The character we're leaving behind is 'a'. Its contribution to <code>hash('an')</code> was <code>ord('a') * BASE^1</code>. So, we subtract this term.
+    <code>intermediate = hash('an') - ord('a') * BASE^1</code></p>
+</li>
 <li>
 <p><strong>Shift the window to the left</strong>: All remaining characters now need to be "promoted" to a higher power of the base. We can achieve this by multiplying the entire intermediate value by <code>BASE</code>.
     <code>shifted = intermediate * BASE</code></p>
@@ -540,16 +550,20 @@ For <code>text = "banana"</code> and <code>n = 2</code>:
     <code>new_hash = shifted + ord('a')</code></p>
 </li>
 </ol>
-<p>Let's trace this with our numbers (<code>BASE=257</code>):
-- <code>hash('an')</code> = 24942
-- <code>old_char</code> = 'a', <code>ord('a')</code> = 97
-- <code>new_char</code> = 'a' (at index 3), <code>ord('a')</code> = 97
-- <code>n</code> = 2, so <code>BASE^(n-1)</code> = <code>257^1</code> = 257</p>
-<ol>
-<li><strong>Remove</strong>: <code>24942 - (97 * 257)</code> = <code>24942 - 24929</code> = 13.</li>
+<p>Let's trace this with our numbers (<code>BASE=257</code>):</p>
+<ul>
+<li><code>hash('an')</code> = 24942</li>
+<li><code>old_char</code> = 'a', <code>ord('a')</code> = 97</li>
+<li><code>new_char</code> = 'a' (at index 3), <code>ord('a')</code> = 97</li>
+<li>
+<p><code>n</code> = 2, so <code>BASE^(n-1)</code> = <code>257^1</code> = 257</p>
+</li>
+<li>
+<p><strong>Remove</strong>: <code>24942 - (97 * 257)</code> = <code>24942 - 24929</code> = 13.</p>
+</li>
 <li><strong>Shift</strong>: <code>13 * 257</code> = 3341.</li>
 <li><strong>Add</strong>: <code>3341 + 97</code> = 3438.</li>
-</ol>
+</ul>
 <p>Wait, that doesn't match <code>hash('na')</code> which is <code>28257</code>. What went wrong? The formula seems more complex. Let's re-think.</p>
 <p><strong>A Better Formulation:</strong></p>
 <p>Let hash for <code>S[i..i+n-1]</code> be <code>H_i</code>.
@@ -565,11 +579,13 @@ Now add the new character <code>S[i+n]</code>:
 This is exactly <code>H_{i+1}</code>!</p>
 <p><strong>The Rolling Hash Formula:</strong>
 <code>hash_next = (hash_current - ord(old_char) * BASE^(n-1)) * BASE + ord(new_char)</code></p>
-<p>Let's try our trace again with this correct formula.
-- <code>hash_current</code> (<code>hash('an')</code>) = 24942
-- <code>old_char</code> = 'a', <code>ord('a')</code> = 97
-- <code>new_char</code> = 'a' (at index 3), <code>ord('a')</code> = 97
-- <code>BASE</code> = 257, <code>n</code> = 2, <code>BASE^(n-1)</code> = 257</p>
+<p>Let's try our trace again with this correct formula.</p>
+<ul>
+<li><code>hash_current</code> (<code>hash('an')</code>) = 24942</li>
+<li><code>old_char</code> = 'a', <code>ord('a')</code> = 97</li>
+<li><code>new_char</code> = 'a' (at index 3), <code>ord('a')</code> = 97</li>
+<li><code>BASE</code> = 257, <code>n</code> = 2, <code>BASE^(n-1)</code> = 257</li>
+</ul>
 <p><code>hash_next = (24942 - 97 * 257) * 257 + 97</code>
 This is what I did before. What's wrong? Ah, my implementation of <code>polynomial_hash</code> used a different form: <code>h = h * B + ord(c)</code>. Let's re-derive for that form.</p>
 <p><code>hash(c1, c2, ..., cn) = (...((ord(c1)*B + ord(c2))*B + ord(c3))...)*B + ord(cn)</code></p>
@@ -634,7 +650,7 @@ These are not related in an obvious way. Hmm. The previous formula <code>ord(c1)
 
 <span class="c1"># Pre-calculate B^(n-1) as we&#39;ll need it a lot.</span>
 <span class="c1"># This factor is sometimes called the &quot;highest power&quot; or H.</span>
-<span class="n">H</span> <span class="o">=</span> <span class="n">BASE</span> <span class="o">**</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> 
+<span class="n">H</span> <span class="o">=</span> <span class="n">BASE</span> <span class="o">**</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 
 <span class="c1"># Step 1: Calculate initial hash from scratch</span>
 <span class="n">current_hash</span> <span class="o">=</span> <span class="n">standard_polynomial_hash</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">BASE</span><span class="p">)</span> <span class="c1"># hash(&#39;an&#39;)</span>
@@ -748,10 +764,12 @@ These are not related in an obvious way. Hmm. The previous formula <code>ord(c1)
 
 <p>This list is our target. The fast, rolling implementation must produce this exact list of hashes.</p>
 <h2 id="step-3-fast-scan-with-rolling-update">Step 3: Fast Scan with Rolling Update</h2>
-<p>Now for the main event. We will create a new function that:
-1.  Computes the hash of the very first window from scratch.
-2.  Loops through the rest of the text, using the <code>O(1)</code> rolling update formula to calculate all subsequent hashes.
-3.  Compares its final list of hashes to the one generated by the slow method to prove correctness.</p>
+<p>Now for the main event. We will create a new function that:</p>
+<ol>
+<li>Computes the hash of the very first window from scratch.</li>
+<li>Loops through the rest of the text, using the <code>O(1)</code> rolling update formula to calculate all subsequent hashes.</li>
+<li>Compares its final list of hashes to the one generated by the slow method to prove correctness.</li>
+</ol>
 <div class="codehilite"><pre><span></span><code><span class="c1"># (compute_hash_from_scratch from previous cell is assumed to exist)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">get_all_hashes_fast</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
@@ -826,7 +844,7 @@ These are not related in an obvious way. Hmm. The previous formula <code>ord(c1)
 <span class="n">MOD</span> <span class="o">=</span> <span class="mi">101</span> <span class="c1"># A small prime modulus, making collisions likely.</span>
 
 <span class="n">s1</span> <span class="o">=</span> <span class="s2">&quot;ab&quot;</span>
-<span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;cf&quot;</span> 
+<span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;cf&quot;</span>
 
 <span class="c1"># These are clearly different strings. Let&#39;s see their hashes.</span>
 <span class="n">hash1</span> <span class="o">=</span> <span class="n">tiny_mod_hash</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">BASE</span><span class="p">,</span> <span class="n">MOD</span><span class="p">)</span>
@@ -851,14 +869,18 @@ String match? False
 <p>Here is a clear collision. The hash values match, but the strings do not. If our text was "abcf", our algorithm would see <code>hash('ab')</code> and later see <code>hash('cf')</code>. If it saw they had the same hash value, it might incorrectly increment a counter for 'ab'.</p>
 <h2 id="deep-dive-the-verification-strategy">Deep Dive: The Verification Strategy</h2>
 <p>The fix is to refine our data structure. Instead of just storing counts for each hash, we need to store the actual substring that produced that hash.</p>
-<p>The logic becomes:
-1.  Calculate the hash of the current substring.
-2.  Look up this hash in our tracking dictionary, <code>seen_hashes</code>.
-3.  <strong>If the hash is NOT found</strong>: This is the first time we've seen this hash. Store the hash and the actual substring. <code>seen_hashes[hash_value] = substring</code>.
-4.  <strong>If the hash IS found</strong>: We have a <em>potential</em> match. Retrieve the stored substring associated with that hash (<code>stored_substring = seen_hashes[hash_value]</code>).
-5.  Perform a character-by-character comparison: <code>if current_substring == stored_substring</code>.
-    -   If they match, it's a true positive. Increment the frequency count.
-    -   If they don't match, it's a collision. We need to handle this.</p>
+<p>The logic becomes:</p>
+<ol>
+<li>Calculate the hash of the current substring.</li>
+<li>Look up this hash in our tracking dictionary, <code>seen_hashes</code>.</li>
+<li><strong>If the hash is NOT found</strong>: This is the first time we've seen this hash. Store the hash and the actual substring. <code>seen_hashes[hash_value] = substring</code>.</li>
+<li><strong>If the hash IS found</strong>: We have a <em>potential</em> match. Retrieve the stored substring associated with that hash (<code>stored_substring = seen_hashes[hash_value]</code>).</li>
+<li>Perform a character-by-character comparison: <code>if current_substring == stored_substring</code>.<ul>
+<li>If they match, it's a true positive. Increment the frequency count.</li>
+<li>If they don't match, it's a collision. We need to handle this.</li>
+</ul>
+</li>
+</ol>
 <p>A simple way to handle collisions is to store a list of substrings for each hash.
 <code>seen_hashes = {hash_value: [substring1, substring4], ...}</code>
 When a potential match occurs, we check the current substring against <em>every</em> string in the list for that hash.</p>
@@ -933,9 +955,11 @@ frequencies = {&#39;ab&#39;: 1, &#39;cf&#39;: 1}
 <h2 id="learning-objective_5">Learning Objective</h2>
 <p>Select an appropriate base and modulus to balance performance and minimize collisions.</p>
 <h2 id="why-this-matters_5">Why This Matters</h2>
-<p>The performance and correctness of the rolling hash algorithm depend entirely on the choice of two numbers: the <strong>base</strong> (<code>B</code>) and the <strong>modulus</strong> (<code>M</code>).
-- <strong>Base (<code>B</code>)</strong>: A multiplier that gives weight to character positions.
-- <strong>Modulus (<code>M</code>)</strong>: A large number used to keep the hash values within a manageable range.</p>
+<p>The performance and correctness of the rolling hash algorithm depend entirely on the choice of two numbers: the <strong>base</strong> (<code>B</code>) and the <strong>modulus</strong> (<code>M</code>).</p>
+<ul>
+<li><strong>Base (<code>B</code>)</strong>: A multiplier that gives weight to character positions.</li>
+<li><strong>Modulus (<code>M</code>)</strong>: A large number used to keep the hash values within a manageable range.</li>
+</ul>
 <p>Poor choices can lead to frequent collisions, degrading performance to that of the naive algorithm. Good choices make collisions so rare that they are a negligible factor.</p>
 <h2 id="discovery-phase-impact-of-a-bad-modulus">Discovery Phase: Impact of a Bad Modulus</h2>
 <p>Let's use a slightly longer text and see how a bad modulus can cause problems. We'll use "abracadabra" and count bigrams.</p>
@@ -1015,9 +1039,11 @@ Total collision groups: 0
 <h3 id="production-perspective_1">Production Perspective</h3>
 <p>In a production system, you don't need to re-invent these numbers. The combination of <code>BASE = 257</code> (or another prime around that size) and <code>MODULUS = 10^9 + 7</code> is a well-established default that is known to perform excellently for a wide variety of string-processing tasks.</p>
 <p><strong>Double Hashing: An Even Safer Approach</strong>
-For applications where hash collisions are absolutely unacceptable (e.g., security or critical data verification), a technique called <strong>double hashing</strong> is used. You simply run the entire rolling hash algorithm twice, in parallel, with two different sets of (base, modulus) pairs.
--   <code>hash1 = rolling_hash(text, base1, mod1)</code>
--   <code>hash2 = rolling_hash(text, base2, mod2)</code></p>
+For applications where hash collisions are absolutely unacceptable (e.g., security or critical data verification), a technique called <strong>double hashing</strong> is used. You simply run the entire rolling hash algorithm twice, in parallel, with two different sets of (base, modulus) pairs.</p>
+<ul>
+<li><code>hash1 = rolling_hash(text, base1, mod1)</code></li>
+<li><code>hash2 = rolling_hash(text, base2, mod2)</code></li>
+</ul>
 <p>Two substrings are considered a match only if <strong>both</strong> of their hash pairs match: <code>(hash1_A == hash1_B) AND (hash2_A == hash2_B)</code>. The probability of a collision on both independent hash functions is astronomically small (around <code>1 / (M1 * M2)</code>), making it safe for even the most demanding applications. This adds a constant factor of 2x to the runtime but provides a colossal increase in collision resistance.</p>
 <h2 id="complete-implementation">Complete Implementation</h2>
 <h2 id="learning-objective_6">Learning Objective</h2>
@@ -1031,10 +1057,10 @@ For applications where hash collisions are absolutely unacceptable (e.g., securi
 <li><strong>Initialization</strong>: We'll define our <code>BASE</code> and <code>MOD</code>, pre-compute <code>H = BASE^(n-1) % MOD</code>, set up our data structures (<code>hashes_seen</code>, <code>frequencies</code>), and handle edge cases (<code>len(text) &lt; n</code>).</li>
 <li><strong>First Window</strong>: Calculate the hash for the initial window <code>text[0:n]</code> from scratch. Store it.</li>
 <li><strong>Main Loop</strong>: Iterate from the second window to the end of the text.
-    a.  Calculate the next hash using the <code>O(1)</code> rolling update formula.
-    b.  Implement the collision-handling logic. Check if the hash is in <code>hashes_seen</code>.
-    c.  If it is, verify with a string comparison.
-    d.  If it's a new hash or a confirmed match, update <code>hashes_seen</code> and <code>frequencies</code>.</li>
+    a. Calculate the next hash using the <code>O(1)</code> rolling update formula.
+    b. Implement the collision-handling logic. Check if the hash is in <code>hashes_seen</code>.
+    c. If it is, verify with a string comparison.
+    d. If it's a new hash or a confirmed match, update <code>hashes_seen</code> and <code>frequencies</code>.</li>
 <li><strong>Filtering and Return</strong>: After the loop, filter the <code>frequencies</code> dictionary to include only substrings that meet <code>min_freq</code>.</li>
 </ol>
 <p>Let's write the code.</p>
@@ -1167,28 +1193,30 @@ Repeated bigrams in &#39;abracadabra&#39;: {&#39;ab&#39;: 2, &#39;br&#39;: 2, &#
 <p><strong>Main Loop</strong>:</p>
 <ul>
 <li>This loop runs <code>L - n</code> times. For "banana", <code>6 - 2 = 4</code> times.</li>
-<li><strong>Inside the loop</strong>:<ul>
+<li><strong>Inside the loop</strong>:</li>
 <li>Rolling update: A few multiplications, additions, and subtractions. This is <code>O(1)</code>.</li>
 <li>Dictionary lookups/insertions: On average, these are <code>O(1)</code>.</li>
 <li>String slicing <code>text[i:i+n]</code>: This creates a copy of the substring, taking <code>O(n)</code> time.</li>
 <li>String comparison <code>seen_substring == current_substring</code>: This only happens on a potential hash match. In the best case (no collisions), we do <code>O(n)</code> work only for true repetitions.</li>
 </ul>
 </li>
-</ul>
-</li>
 </ol>
 <p>Total operations are roughly: <code>O(n)</code> for setup + <code>(L - n) * (O(1)_roll + O(n)_slice + ...)</code></p>
 <p>The dominant factor inside the loop is the <code>O(n)</code> string slicing and comparison. This gives an overall complexity of <code>O(L * n)</code>.</p>
 <p>Wait, this is the same as the simple sliding window! How can this be faster? The key is that while string <em>slicing</em> might be <code>O(n)</code>, the expensive part is typically dictionary key handling. When a dictionary stores strings as keys, it must hash them and then compare them, which is slow. Our method uses integers (the hash value) as keys, which is much faster. String comparisons are only done for a small subset of items (those with matching hashes).</p>
-<p>Let's refine the analysis:
-- <strong>Expected Case (Few Collisions)</strong>:
-  - Setup: <code>O(n)</code>
-  - Loop: <code>(L-n)</code> iterations.
-  - Inside loop: <code>O(1)</code> hash update + <code>O(1)</code> hash lookup + <code>O(n)</code> for slicing. Total <code>O(n)</code>.
-  - Final string comparison <code>O(n)</code> happens only for true repeats.
-- Total Expected Time: <code>O(n + (L-n)*n)</code> which simplifies to <code>O(L * n)</code>. This is dominated by the string slicing. In many Python implementations, slicing can be faster, but <code>O(L * n)</code> is the safe upper bound. This is a significant improvement over the worst-case Suffix Array build times and offers a much simpler implementation.</p>
+<p>Let's refine the analysis:</p>
 <ul>
-<li><strong>Worst Case (Many Collisions)</strong>:</li>
+<li><strong>Expected Case (Few Collisions)</strong>:</li>
+<li>Setup: <code>O(n)</code></li>
+<li>Loop: <code>(L-n)</code> iterations.</li>
+<li>Inside loop: <code>O(1)</code> hash update + <code>O(1)</code> hash lookup + <code>O(n)</code> for slicing. Total <code>O(n)</code>.</li>
+<li>Final string comparison <code>O(n)</code> happens only for true repeats.</li>
+<li>
+<p>Total Expected Time: <code>O(n + (L-n)*n)</code> which simplifies to <code>O(L * n)</code>. This is dominated by the string slicing. In many Python implementations, slicing can be faster, but <code>O(L * n)</code> is the safe upper bound. This is a significant improvement over the worst-case Suffix Array build times and offers a much simpler implementation.</p>
+</li>
+<li>
+<p><strong>Worst Case (Many Collisions)</strong>:</p>
+</li>
 <li>Imagine a text where many different substrings all collide to the same hash value.</li>
 <li>In each of the <code>L-n</code> steps, we would find a hash match.</li>
 <li>We would then have to do a full <code>O(n)</code> string comparison.</li>
@@ -1197,10 +1225,12 @@ Repeated bigrams in &#39;abracadabra&#39;: {&#39;ab&#39;: 2, &#39;br&#39;: 2, &#
 </ul>
 <h3 id="production-perspective_2">Production Perspective</h3>
 <p>In production, for a fixed (and reasonably small) <code>n</code>, the <code>O(n)</code> factor is a constant. Therefore, engineers often describe this algorithm's performance as <code>O(L)</code>. It processes the text in a single pass with constant-time work per byte (on average), making it extremely fast and suitable for streaming applications, which we'll see in Module 4.</p>
-<p><strong>Comparison so far:</strong>
-- <strong>Naive Sliding Window (Module 1)</strong>: <code>O(L * n)</code> due to string hashing and comparisons inside the dictionary. Can be slow in practice.
-- <strong>Suffix Array (Module 2)</strong>: <code>O(L log L)</code> or <code>O(L log^2 L)</code> for construction. Very high initial cost, but then subsequent lookups are fast. High memory usage (<code>O(L)</code> but with large constants).
-- <strong>Rolling Hash (This Module)</strong>: <code>O(L*n)</code> in theory, but practically closer to <code>O(L)</code> because the <code>O(n)</code> cost comes from slicing/comparison which is fast in hardware. It's a single-pass algorithm with very low memory overhead (only stores the unique substrings found). This often makes it the pragmatic "sweet spot" choice.</p>
+<p><strong>Comparison so far:</strong></p>
+<ul>
+<li><strong>Naive Sliding Window (Module 1)</strong>: <code>O(L * n)</code> due to string hashing and comparisons inside the dictionary. Can be slow in practice.</li>
+<li><strong>Suffix Array (Module 2)</strong>: <code>O(L log L)</code> or <code>O(L log^2 L)</code> for construction. Very high initial cost, but then subsequent lookups are fast. High memory usage (<code>O(L)</code> but with large constants).</li>
+<li><strong>Rolling Hash (This Module)</strong>: <code>O(L*n)</code> in theory, but practically closer to <code>O(L)</code> because the <code>O(n)</code> cost comes from slicing/comparison which is fast in hardware. It's a single-pass algorithm with very low memory overhead (only stores the unique substrings found). This often makes it the pragmatic "sweet spot" choice.</li>
+</ul>
 <h2 id="when-to-use-hash-method">When to Use Hash Method</h2>
 <h2 id="learning-objective_8">Learning Objective</h2>
 <p>Recognize scenarios where the hash-based method offers the best trade-offs compared to other algorithms.</p>
@@ -1289,10 +1319,12 @@ Repeated bigrams in &#39;abracadabra&#39;: {&#39;ab&#39;: 2, &#39;br&#39;: 2, &#
 </li>
 </ol>
 <h3 id="production-perspective_3">Production Perspective</h3>
-<p>In many commercial settings, the Rolling Hash (often using the Rabin-Karp algorithm framework) is the default choice. It hits a pragmatic sweet spot:
-- <strong>Good Enough Performance</strong>: It's linear time, which is hard to beat. For most non-academic use cases, it's plenty fast.
-- <strong>Maintainable Code</strong>: The logic is more complex than a simple loop but far less so than advanced data structures. A new team member can understand the code without a PhD in computer science.
-- <strong>Low Memory Footprint</strong>: Unlike the Suffix Array which requires storing multiple large arrays, the hash method's memory is proportional to the number of <em>unique</em> substrings found, which is often much smaller than the text itself.</p>
+<p>In many commercial settings, the Rolling Hash (often using the Rabin-Karp algorithm framework) is the default choice. It hits a pragmatic sweet spot:</p>
+<ul>
+<li><strong>Good Enough Performance</strong>: It's linear time, which is hard to beat. For most non-academic use cases, it's plenty fast.</li>
+<li><strong>Maintainable Code</strong>: The logic is more complex than a simple loop but far less so than advanced data structures. A new team member can understand the code without a PhD in computer science.</li>
+<li><strong>Low Memory Footprint</strong>: Unlike the Suffix Array which requires storing multiple large arrays, the hash method's memory is proportional to the number of <em>unique</em> substrings found, which is often much smaller than the text itself.</li>
+</ul>
 <p><strong>Real-world example</strong>: A common use case is in plagiarism detection. To check if a student's essay (Text A) contains passages from a source document (Text B), you can compute the hashes of all n-grams (e.g., sentences or 10-word chunks) in Text B and store them in a hash set. Then, you can use a rolling hash to scan through Text A. For each chunk in Text A, you compute its hash and check if it exists in the set of hashes from Text B. This is an extremely fast way to find potential matches that can then be verified.</p>
 <h2 id="module-synthesis">Module Synthesis</h2>
 <h2 id="module-3-synthesis">Module 3 Synthesis</h2>
@@ -1300,15 +1332,17 @@ Repeated bigrams in &#39;abracadabra&#39;: {&#39;ab&#39;: 2, &#39;br&#39;: 2, &#
 <p>We started by seeing how a <strong>naive hash</strong> (summing character codes) fails because it's position-agnostic, leading to collisions for anagrams like 'ab' and 'ba'. This motivated the need for a <strong>polynomial rolling hash</strong>, which incorporates positional information by using a base <code>B</code>, making it sensitive to character order.</p>
 <p>The core breakthrough was the <strong>rolling hash trick</strong>: an <code>O(1)</code> mathematical update that allows us to calculate the hash of the next window from the previous one without re-scanning the entire substring. This transformed an <code>O(L * n)</code> brute-force calculation into a highly efficient <code>O(L)</code> single-pass algorithm (ignoring the <code>O(n)</code> slicing factor for practical purposes).</p>
 <p>Finally, we made our algorithm robust by introducing a <strong>large prime modulus <code>M</code></strong> to keep hash values manageable and implementing a <strong>collision-handling</strong> strategy. By verifying potential matches with a direct string comparison, we guarantee 100% correctness while preserving the incredible speed of hashing for the average case.</p>
-<p>You now have three powerful algorithms in your toolkit:
-1.  <strong>Sliding Window</strong>: Simple, intuitive, great for small texts.
-2.  <strong>Suffix Array</strong>: Complex, powerful, best for repeated, complex queries on large, static texts.
-3.  <strong>Rolling Hash</strong>: The pragmatic middle ground—fast, memory-efficient, and relatively simple to implement, making it ideal for single-pass analysis.</p>
+<p>You now have three powerful algorithms in your toolkit:</p>
+<ol>
+<li><strong>Sliding Window</strong>: Simple, intuitive, great for small texts.</li>
+<li><strong>Suffix Array</strong>: Complex, powerful, best for repeated, complex queries on large, static texts.</li>
+<li><strong>Rolling Hash</strong>: The pragmatic middle ground—fast, memory-efficient, and relatively simple to implement, making it ideal for single-pass analysis.</li>
+</ol>
 <h3 id="looking-ahead-to-module-4">Looking Ahead to Module 4</h3>
 <p>All three algorithms we've learned so far share a common assumption: the entire text can be loaded into memory. But what happens when the data is too large to fit, like a 50 GB log file or a continuous stream of network data? In <strong>Module 4: The Streaming Approach</strong>, we will tackle this memory problem head-on by learning how to process data in chunks using Python's generators, enabling our algorithms to handle inputs of virtually any size.</p>
         </div>
         <div class="footer">
-            Generated on 2025-10-17 18:54:34 | Made with ❤️ by GitHub Pages Generator
+            Generated on 2025-10-17 20:18:56 | Made with ❤️ by GitHub Pages Generator
         </div>
     </div>
     <script>

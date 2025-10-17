@@ -414,11 +414,13 @@ First 10 bigrams: [&#39;ba&#39;, &#39;an&#39;, &#39;na&#39;, &#39;an&#39;, &#39;
 <p><strong>How to remember</strong>: Think of RAM not as a big empty box, but as a busy parking lot. Even if there are 100 empty spots (total RAM), you might not be able to park a bus (your large list) if there aren't enough contiguous spots available.</p>
 <h3 id="production-perspective">Production Perspective</h3>
 <p><strong>When professionals face this</strong>:
-This isn't a theoretical problem; it's a daily reality in many fields:
-- <strong>Web Analytics</strong>: Processing server logs that can be gigabytes per hour.
-- <strong>Natural Language Processing</strong>: Analyzing massive text corpora like the entire English Wikipedia (over 17 GB) or Common Crawl (petabytes).
-- <strong>Bioinformatics</strong>: Scanning DNA sequences that are billions of base pairs long.
-- <strong>Finance</strong>: Analyzing real-time streams of stock market data.</p>
+This isn't a theoretical problem; it's a daily reality in many fields:</p>
+<ul>
+<li><strong>Web Analytics</strong>: Processing server logs that can be gigabytes per hour.</li>
+<li><strong>Natural Language Processing</strong>: Analyzing massive text corpora like the entire English Wikipedia (over 17 GB) or Common Crawl (petabytes).</li>
+<li><strong>Bioinformatics</strong>: Scanning DNA sequences that are billions of base pairs long.</li>
+<li><strong>Finance</strong>: Analyzing real-time streams of stock market data.</li>
+</ul>
 <p><strong>The shift in thinking</strong>:
 The core problem is the assumption that we can hold all our data in memory at once. The solution is to shift from batch processing to <strong>stream processing</strong>. Instead of loading the entire dataset, we process it piece by piece, in a "stream," ensuring that our memory usage remains small and constant, regardless of the total size of the data. The rest of this module is dedicated to building this new mental model and the tools to implement it.</p>
 <h2 id="generators-vs-lists-the-core-mechanism">Generators vs Lists (The Core Mechanism)</h2>
@@ -544,16 +546,20 @@ Caught StopIteration: The generator is exhausted.
 <p><strong>You might think</strong>: <code>yield</code> is just a fancy way to <code>return</code> a value from a function.</p>
 <p><strong>Actually</strong>: <code>return</code> terminates a function completely. <code>yield</code> pauses the function, sends back a value, and leaves the function in a suspended state, ready to resume later. A function can <code>yield</code> many times, but it can only <code>return</code> once.</p>
 <p><strong>Why the confusion happens</strong>: Both keywords send a value from a function back to its caller, so their syntax looks similar at a glance.</p>
-<p><strong>How to remember</strong>:
--   <code>return</code>: Think "return and exit." The function is done.
--   <code>yield</code>: Think "yield and pause." It's like a traffic sign yielding the right-of-way; it gives control back temporarily, but it's still in the middle of its journey.</p>
+<p><strong>How to remember</strong>:</p>
+<ul>
+<li><code>return</code>: Think "return and exit." The function is done.</li>
+<li><code>yield</code>: Think "yield and pause." It's like a traffic sign yielding the right-of-way; it gives control back temporarily, but it's still in the middle of its journey.</li>
+</ul>
 <h3 id="production-perspective_1">Production Perspective</h3>
 <p><strong>When professionals choose this</strong>:
-Generators are not just a memory-saving trick; they are a core pattern for building decoupled, efficient data pipelines.
-- <strong>Data Pipelines</strong>: The output of one generator can be the input to another, creating a processing chain where no large intermediate data structures are ever created. For example: <code>read_log_lines()</code> -&gt; <code>extract_ip_addresses()</code> -&gt; <code>lookup_geolocation()</code>. Each stage processes one item at a time.
-- <strong>Working with Streams</strong>: When reading from network sockets, databases, or large files, the data source itself is often a stream. Generators are the natural and often only way to interact with such data.
-- <strong>Infinite Sequences</strong>: Generators can represent sequences that are theoretically infinite, like generating all prime numbers. You simply stop asking for the next one when you have enough.
-- <strong>Improved Responsiveness</strong>: In applications with a user interface, using a generator to process a large file can prevent the UI from freezing, as work is done in smaller chunks.</p>
+Generators are not just a memory-saving trick; they are a core pattern for building decoupled, efficient data pipelines.</p>
+<ul>
+<li><strong>Data Pipelines</strong>: The output of one generator can be the input to another, creating a processing chain where no large intermediate data structures are ever created. For example: <code>read_log_lines()</code> -&gt; <code>extract_ip_addresses()</code> -&gt; <code>lookup_geolocation()</code>. Each stage processes one item at a time.</li>
+<li><strong>Working with Streams</strong>: When reading from network sockets, databases, or large files, the data source itself is often a stream. Generators are the natural and often only way to interact with such data.</li>
+<li><strong>Infinite Sequences</strong>: Generators can represent sequences that are theoretically infinite, like generating all prime numbers. You simply stop asking for the next one when you have enough.</li>
+<li><strong>Improved Responsiveness</strong>: In applications with a user interface, using a generator to process a large file can prevent the UI from freezing, as work is done in smaller chunks.</li>
+</ul>
 <h2 id="building-a-simple-generator">Building a Simple Generator</h2>
 <h2 id="learning-objective_2">Learning Objective</h2>
 <p>Write generator functions by progressing from a hardcoded example to a flexible, parameterized version.</p>
@@ -649,13 +655,15 @@ ana
 </ol>
 <h3 id="common-confusion-off-by-one-errors-in-the-loop-range">Common Confusion: Off-by-One Errors in the Loop Range</h3>
 <p><strong>You might think</strong>: The loop should go to <code>len(text) - n</code>. Why the <code>+ 1</code>?</p>
-<p><strong>Actually</strong>: The <code>range(start, stop)</code> function in Python goes up to, but does <em>not include</em>, the <code>stop</code> value. Let's trace the last valid index for <code>generate_ngrams("banana", 3)</code>.
--   <code>text</code> has length 6. <code>n</code> is 3.
--   The last possible trigram is 'ana', which starts at index 3 (<code>text[3:6]</code>).
--   So, our loop variable <code>i</code> must be allowed to reach 3.
--   The loop range is <code>len(text) - n + 1</code>, which is <code>6 - 3 + 1 = 4</code>.
--   <code>range(4)</code> produces the indices 0, 1, 2, 3. The loop runs correctly for <code>i = 3</code> and stops before <code>i</code> becomes 4.
--   If we had used <code>len(text) - n</code> (i.e., <code>6 - 3 = 3</code>), <code>range(3)</code> would only produce 0, 1, 2. We would have missed the last n-gram!</p>
+<p><strong>Actually</strong>: The <code>range(start, stop)</code> function in Python goes up to, but does <em>not include</em>, the <code>stop</code> value. Let's trace the last valid index for <code>generate_ngrams("banana", 3)</code>.</p>
+<ul>
+<li><code>text</code> has length 6. <code>n</code> is 3.</li>
+<li>The last possible trigram is 'ana', which starts at index 3 (<code>text[3:6]</code>).</li>
+<li>So, our loop variable <code>i</code> must be allowed to reach 3.</li>
+<li>The loop range is <code>len(text) - n + 1</code>, which is <code>6 - 3 + 1 = 4</code>.</li>
+<li><code>range(4)</code> produces the indices 0, 1, 2, 3. The loop runs correctly for <code>i = 3</code> and stops before <code>i</code> becomes 4.</li>
+<li>If we had used <code>len(text) - n</code> (i.e., <code>6 - 3 = 3</code>), <code>range(3)</code> would only produce 0, 1, 2. We would have missed the last n-gram!</li>
+</ul>
 <p><strong>How to remember</strong>: The number of n-grams is <code>len(text) - n + 1</code>. Since <code>range(k)</code> gives <code>k</code> items, this is the correct formula for the <code>stop</code> argument.</p>
 <h3 id="production-perspective_2">Production Perspective</h3>
 <p><strong>Composability</strong>: Generators are like building blocks. In a real-world application, you might chain them together. Imagine you have a generator that reads lines from a file (<code>read_lines</code>), another that cleans them (<code>clean_text</code>), and our <code>generate_ngrams</code> function.</p>
@@ -769,12 +777,14 @@ Counter({&#39;an&#39;: 2, &#39;na&#39;: 2, &#39;ba&#39;: 1})
 <p>In most real-world text, the number of unique words/n-grams (U) is vastly smaller than the total length of the text (L). For the complete works of Shakespeare (about 5.5 million words), there are only about 30,000 unique words. Storing counts for 30,000 items is trivial compared to storing a list of 5.5 million items. Our streaming approach wins hugely in these common cases. It only fails when U itself becomes excessively large.</p>
 <p><strong>How to remember</strong>: The generator solves the memory problem for the <em>sequence's length</em>. The next challenge is solving it for the <em>sequence's variety</em>.</p>
 <h3 id="production-perspective_3">Production Perspective</h3>
-<p>This simple streaming counter is a workhorse in data analysis.
-- <strong>Common Use Case</strong>: It's perfect for finding word frequencies in large documents, counting occurrences of log message types, or tallying user actions from an event stream, as long as the number of unique items is expected to be manageable (thousands to a few million).
-- <strong>The Limit</strong>: This approach hits its limit in domains like:
-    - <strong>Genomics</strong>: Trigrams in DNA are combinations of A, C, G, T. The number of unique n-grams is small. But if <code>n</code> is large (e.g., n=20), <code>4^20</code> is over a trillion, so the number of unique n-grams can explode.
-    - <strong>Network Analysis</strong>: Counting unique IP address pairs in traffic data could result in billions of unique pairs.
-    - <strong>Internet of Things (IoT)</strong>: Unique sensor ID and timestamp combinations can be nearly infinite.</p>
+<p>This simple streaming counter is a workhorse in data analysis.</p>
+<ul>
+<li><strong>Common Use Case</strong>: It's perfect for finding word frequencies in large documents, counting occurrences of log message types, or tallying user actions from an event stream, as long as the number of unique items is expected to be manageable (thousands to a few million).</li>
+<li><strong>The Limit</strong>: This approach hits its limit in domains like:</li>
+<li><strong>Genomics</strong>: Trigrams in DNA are combinations of A, C, G, T. The number of unique n-grams is small. But if <code>n</code> is large (e.g., n=20), <code>4^20</code> is over a trillion, so the number of unique n-grams can explode.</li>
+<li><strong>Network Analysis</strong>: Counting unique IP address pairs in traffic data could result in billions of unique pairs.</li>
+<li><strong>Internet of Things (IoT)</strong>: Unique sensor ID and timestamp combinations can be nearly infinite.</li>
+</ul>
 <p>For these "high cardinality" problems, we need a way to count things without even storing all the unique keys. This leads us to the next section: approximate counting with bounded memory.</p>
 <h2 id="bounded-memory-counter">Bounded Memory Counter</h2>
 <h2 id="learning-objective_4">Learning Objective</h2>
@@ -785,11 +795,13 @@ Counter({&#39;an&#39;: 2, &#39;na&#39;: 2, &#39;ba&#39;: 1})
 <p>Imagine analyzing trending topics on a social network. Millions of new, unique phrases appear every hour. A <code>Counter</code> trying to store them all would grow indefinitely. However, we don't care about the phrases that were used only once or twice; we only care about the "heavy hitters" that are trending. This insight is key: for many applications, we only need the <em>top N</em> most frequent items.</p>
 <p>This allows us to set a hard limit on our counter's size. If we want the top 10,000 trending phrases, we'll build a counter that never stores more than 10,000 items.</p>
 <h2 id="discovery-phase-an-eviction-policy">Discovery Phase: An Eviction Policy</h2>
-<p>How do we keep the counter size fixed?
-1.  We set a <code>max_size</code>.
-2.  We add items to the counter as usual.
-3.  When a <strong>new</strong> item arrives and the counter is already full (at <code>max_size</code>), we must make room by evicting an existing item.
-4.  <strong>Which item to evict?</strong> To keep the most frequent items, the best candidate for eviction is the <em>least frequent</em> item currently in the counter.</p>
+<p>How do we keep the counter size fixed?</p>
+<ol>
+<li>We set a <code>max_size</code>.</li>
+<li>We add items to the counter as usual.</li>
+<li>When a <strong>new</strong> item arrives and the counter is already full (at <code>max_size</code>), we must make room by evicting an existing item.</li>
+<li><strong>Which item to evict?</strong> To keep the most frequent items, the best candidate for eviction is the <em>least frequent</em> item currently in the counter.</li>
+</ol>
 <p>This is a "least frequent eviction" policy. Let's build a simple class to manage this logic.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
 
@@ -856,18 +868,20 @@ Step 9: Added &#39;e&#39;. Counter state: Counter({&#39;a&#39;: 3, &#39;c&#39;: 
 </code></pre></div>
 
 <h2 id="deep-dive-analyzing-the-trace">Deep Dive: Analyzing the Trace</h2>
-<p>Let's look at the critical moments in the trace:
--   <strong>Steps 1-3</strong>: The counter is not full, so 'a', 'b', and 'c' are added normally.
--   <strong>Steps 4-5</strong>: 'a' and 'b' are already present, so their counts are simply incremented. The size doesn't change.
--   <strong>Step 6 (First Eviction)</strong>:
-    -   The new item is 'd'.
-    -   The counter is full (size 3) with <code>Counter({'a': 2, 'b': 2, 'c': 1})</code>.
-    -   The "least frequent" item is 'c', with a count of 1.
-    -   'c' is evicted.
-    -   'd' is added with a count of 1.
-    -   The new state is <code>Counter({'a': 2, 'b': 2, 'd': 1})</code>.
--   <strong>Step 8</strong>: 'c' returns! Because it was previously evicted, it is treated as a new item. The least frequent item now is 'd' (count 1), so 'd' is evicted to make room for 'c'.
--   <strong>Step 9</strong>: 'e' arrives. The least frequent items are 'c' and 'e' (both with count 1). <code>min</code> arbitrarily picks 'c' for eviction, and 'e' is added.</p>
+<p>Let's look at the critical moments in the trace:</p>
+<ul>
+<li><strong>Steps 1-3</strong>: The counter is not full, so 'a', 'b', and 'c' are added normally.</li>
+<li><strong>Steps 4-5</strong>: 'a' and 'b' are already present, so their counts are simply incremented. The size doesn't change.</li>
+<li><strong>Step 6 (First Eviction)</strong>:</li>
+<li>The new item is 'd'.</li>
+<li>The counter is full (size 3) with <code>Counter({'a': 2, 'b': 2, 'c': 1})</code>.</li>
+<li>The "least frequent" item is 'c', with a count of 1.</li>
+<li>'c' is evicted.</li>
+<li>'d' is added with a count of 1.</li>
+<li>The new state is <code>Counter({'a': 2, 'b': 2, 'd': 1})</code>.</li>
+<li><strong>Step 8</strong>: 'c' returns! Because it was previously evicted, it is treated as a new item. The least frequent item now is 'd' (count 1), so 'd' is evicted to make room for 'c'.</li>
+<li><strong>Step 9</strong>: 'e' arrives. The least frequent items are 'c' and 'e' (both with count 1). <code>min</code> arbitrarily picks 'c' for eviction, and 'e' is added.</li>
+</ul>
 <p>The final result is <code>Counter({'a': 3, 'b': 2, 'e': 1})</code>. The true counts were <code>a:3, b:2, c:2, d:1, e:1</code>. Our counter correctly identified 'a' and 'b' as the top two, but its count for 'c' is wrong and its count for 'd' is missing entirely. This demonstrates the trade-off in action.</p>
 <h3 id="common-confusion-this-isnt-accurate-am-i-losing-important-data">Common Confusion: "This isn't accurate! Am I losing important data?"</h3>
 <p><strong>You might think</strong>: This counter gives wrong answers. If it throws away data, it seems unreliable and dangerous.</p>
@@ -876,10 +890,12 @@ Step 9: Added &#39;e&#39;. Counter state: Counter({&#39;a&#39;: 3, &#39;c&#39;: 
 <p><strong>How to remember</strong>: A bounded counter is like a "Top 10" music chart. The chart doesn't track every song ever played; it only has room for 10 entries. Unpopular songs get kicked off the list to make room for new hits. It's not a perfect record of all music, but it's very good at telling you what's popular <em>right now</em>.</p>
 <h3 id="production-perspective_4">Production Perspective</h3>
 <p><strong>When professionals choose this</strong>:
-Approximate counting algorithms are workhorses in large-scale data systems.
-- <strong>Use Cases</strong>: Finding trending topics on social media, identifying popular products on an e-commerce site, detecting DDoS attacks by finding the most frequent source IP addresses. In all these cases, the goal is to find the "heavy hitters" from a massive stream, and the long tail of infrequent items is noise.
-- <strong>Performance Note</strong>: Our <code>min(self.counts, key=self.counts.get)</code> is slow on large counters. Production systems use more advanced data structures (like a combination of a hash map and a min-heap, or specialized algorithms like Count-Min Sketch) to perform the increment and eviction steps much more efficiently. Our version is simple to demonstrate the core logic.
-- <strong>The Trade-off</strong>: The choice to use a bounded counter is a conscious business and engineering decision. You are trading perfect accuracy for scalability and predictable performance. As long as you understand the approximation and its effects, it's an incredibly powerful tool. For example, if you over-count a trending topic by 0.1%, it's still a trending topic. If you under-count a rare item so much that it's evicted, it wasn't trending anyway.</p>
+Approximate counting algorithms are workhorses in large-scale data systems.</p>
+<ul>
+<li><strong>Use Cases</strong>: Finding trending topics on social media, identifying popular products on an e-commerce site, detecting DDoS attacks by finding the most frequent source IP addresses. In all these cases, the goal is to find the "heavy hitters" from a massive stream, and the long tail of infrequent items is noise.</li>
+<li><strong>Performance Note</strong>: Our <code>min(self.counts, key=self.counts.get)</code> is slow on large counters. Production systems use more advanced data structures (like a combination of a hash map and a min-heap, or specialized algorithms like Count-Min Sketch) to perform the increment and eviction steps much more efficiently. Our version is simple to demonstrate the core logic.</li>
+<li><strong>The Trade-off</strong>: The choice to use a bounded counter is a conscious business and engineering decision. You are trading perfect accuracy for scalability and predictable performance. As long as you understand the approximation and its effects, it's an incredibly powerful tool. For example, if you over-count a trending topic by 0.1%, it's still a trending topic. If you under-count a rare item so much that it's evicted, it wasn't trending anyway.</li>
+</ul>
 <h2 id="file-streaming-chunk-processing">File Streaming (Chunk Processing)</h2>
 <h2 id="learning-objective_5">Learning Objective</h2>
 <p>Process files that are larger than available RAM by reading them in fixed-size chunks and correctly handling data that spans across chunk boundaries.</p>
@@ -949,10 +965,12 @@ Counts after chunk 3: Counter({&#39;lph&#39;: 1, &#39;pha&#39;: 1, &#39;ha-&#39;
 Correct counts: Counter({&#39;lph&#39;: 1, &#39;pha&#39;: 1, &#39;ha-&#39;: 1, &#39;a-b&#39;: 1, &#39;-be&#39;: 1, &#39;bet&#39;: 1, &#39;eta&#39;: 1, &#39;alp&#39;: 1, &#39;ta-&#39;: 1, &#39;-ga&#39;: 1, &#39;gam&#39;: 1, &#39;amm&#39;: 1, &#39;mma&#39;: 1, &#39;ma-&#39;: 1, &#39;a-d&#39;: 1, &#39;-de&#39;: 1, &#39;del&#39;: 1, &#39;elt&#39;: 1, &#39;lta&#39;: 1})
 </code></pre></div>
 
-<p>Failure! Our chunked processing missed several trigrams, like <code>'ta-'</code> and <code>'elt'</code>. Why?
--   The last trigram in Chunk 1 should be <code>a-b</code>.
--   The first trigram in Chunk 2 should be <code>-ga</code>.
--   The trigram <code>'ta-'</code> (from <code>beta-gamma</code>) was split across the boundary between chunk 1 and chunk 2. <code>Chunk 1</code> ends with <code>ta</code> and <code>Chunk 2</code> starts with <code>-</code>. Neither chunk is long enough on its own to see the full trigram.</p>
+<p>Failure! Our chunked processing missed several trigrams, like <code>'ta-'</code> and <code>'elt'</code>. Why?</p>
+<ul>
+<li>The last trigram in Chunk 1 should be <code>a-b</code>.</li>
+<li>The first trigram in Chunk 2 should be <code>-ga</code>.</li>
+<li>The trigram <code>'ta-'</code> (from <code>beta-gamma</code>) was split across the boundary between chunk 1 and chunk 2. <code>Chunk 1</code> ends with <code>ta</code> and <code>Chunk 2</code> starts with <code>-</code>. Neither chunk is long enough on its own to see the full trigram.</li>
+</ul>
 <h2 id="deep-dive-the-overlap-buffer-solution">Deep Dive: The Overlap Buffer Solution</h2>
 <p>To fix this, we need to handle the boundaries. The solution is to create an <strong>overlap buffer</strong>. When we finish processing a chunk, we must keep the last <code>n-1</code> characters. This buffer is then prepended to the <em>next</em> chunk we read from the file. This ensures that any n-gram that spans a boundary is fully reconstructed.</p>
 <p>Let's build a generator that correctly implements this file streaming logic.</p>
@@ -1022,10 +1040,12 @@ Result: Counter({&#39;alp&#39;: 1, &#39;lph&#39;: 1, &#39;pha&#39;: 1, &#39;ha-&
 <p><strong>Actually</strong>: <code>n-1</code> is the precise number required. An n-gram has a length of <code>n</code>. To span a boundary, it must have at least one character in the next chunk and at least one in the current chunk. The most it could leave behind in the current chunk is <code>n-1</code> characters. For a trigram (n=3), the overlap needed is 2. For example, the trigram <code>ABC</code> could be split as <code>A</code> | <code>BC</code> or <code>AB</code> | <code>C</code>. In the worst case, we need to remember <code>AB</code> (2 characters). Saving more (<code>n</code> or more) is wasteful, and saving less (<code>n-2</code> or less) would cause us to miss n-grams.</p>
 <p><strong>How to remember</strong>: To form a complete n-gram, you need <code>n</code> characters. If the next chunk provides the <code>n</code>'th character, you must have the preceding <code>n-1</code> characters from the previous chunk.</p>
 <h3 id="production-perspective_5">Production Perspective</h3>
-<p><strong>Choosing a Chunk Size</strong>: The <code>chunk_size</code> is a tunable parameter.
--   <strong>Too small</strong>: Reading a file in tiny chunks (e.g., 64 bytes) can be inefficient. Each <code>read()</code> call is a system call, which has overhead. Too many calls can slow down your program due to I/O overhead.
--   <strong>Too large</strong>: The chunk size determines the peak memory usage of your processing loop. If you set <code>chunk_size</code> to 1GB, you're back to a high-memory batch process.
--   <strong>A good compromise</strong>: A size between 4KB (4096) and 4MB (4194304) is typical. These values balance the I/O call overhead with memory usage. 8KB to 128KB is a common starting point.</p>
+<p><strong>Choosing a Chunk Size</strong>: The <code>chunk_size</code> is a tunable parameter.</p>
+<ul>
+<li><strong>Too small</strong>: Reading a file in tiny chunks (e.g., 64 bytes) can be inefficient. Each <code>read()</code> call is a system call, which has overhead. Too many calls can slow down your program due to I/O overhead.</li>
+<li><strong>Too large</strong>: The chunk size determines the peak memory usage of your processing loop. If you set <code>chunk_size</code> to 1GB, you're back to a high-memory batch process.</li>
+<li><strong>A good compromise</strong>: A size between 4KB (4096) and 4MB (4194304) is typical. These values balance the I/O call overhead with memory usage. 8KB to 128KB is a common starting point.</li>
+</ul>
 <p>This chunking-with-overlap pattern is fundamental to almost all large-scale file processing, from command-line tools like <code>grep</code> to massive data systems like Apache Spark.</p>
 <h2 id="module-synthesis">Module Synthesis</h2>
 <h2 id="module-synthesis-assembling-the-full-pipeline">Module Synthesis: Assembling the Full Pipeline</h2>
@@ -1127,8 +1147,8 @@ Result: Counter({&#39;alp&#39;: 1, &#39;lph&#39;: 1, &#39;pha&#39;: 1, &#39;ha-&
 <span class="n">n_size</span> <span class="o">=</span> <span class="mi">4</span>
 <span class="n">top_k</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="n">streaming_counter</span> <span class="o">=</span> <span class="n">find_common_ngrams_streaming</span><span class="p">(</span>
-    <span class="n">filepath</span><span class="o">=</span><span class="n">dummy_filepath</span><span class="p">,</span> 
-    <span class="n">n</span><span class="o">=</span><span class="n">n_size</span><span class="p">,</span> 
+    <span class="n">filepath</span><span class="o">=</span><span class="n">dummy_filepath</span><span class="p">,</span>
+    <span class="n">n</span><span class="o">=</span><span class="n">n_size</span><span class="p">,</span>
     <span class="n">max_unique_ngrams</span><span class="o">=</span><span class="mi">100</span>
 <span class="p">)</span>
 
@@ -1165,7 +1185,7 @@ Result: Counter({&#39;alp&#39;: 1, &#39;lph&#39;: 1, &#39;pha&#39;: 1, &#39;ha-&
 <p>This powerful streaming pattern concludes our exploration of distinct algorithmic approaches. In the next module, <strong>Module 5: Comparative Analysis &amp; Algorithm Selection</strong>, we will put all four algorithms side-by-side and develop a framework for choosing the right tool for the right job based on data size, performance needs, and problem constraints.</p>
         </div>
         <div class="footer">
-            Generated on 2025-10-17 18:54:34 | Made with ❤️ by GitHub Pages Generator
+            Generated on 2025-10-17 20:18:56 | Made with ❤️ by GitHub Pages Generator
         </div>
     </div>
     <script>

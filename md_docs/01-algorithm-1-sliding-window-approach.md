@@ -1,6 +1,5 @@
 # Module 1: Algorithm 1 - Sliding Window Approach
 
-
 ## The Intuitive Approach (Hardcoded Version)
 
 ## Learning Objective
@@ -23,29 +22,29 @@ Our window size: 2
 **Step-by-Step Trace**
 
 1.  **Position 0**: We place our window at the very beginning. We see `ba`. This is the first time we've seen it.
-    -   Window: `[b a] n a n a`
-    -   Seen: `ba`
-    -   Counts: `{'ba': 1}`
+    - Window: `[b a] n a n a`
+    - Seen: `ba`
+    - Counts: `{'ba': 1}`
 
 2.  **Position 1**: We slide the window one character to the right. We see `an`.
-    -   Window: `b [a n] a n a`
-    -   Seen: `an`
-    -   Counts: `{'ba': 1, 'an': 1}`
+    - Window: `b [a n] a n a`
+    - Seen: `an`
+    - Counts: `{'ba': 1, 'an': 1}`
 
 3.  **Position 2**: Slide again. We see `na`.
-    -   Window: `b a [n a] n a`
-    -   Seen: `na`
-    -   Counts: `{'ba': 1, 'an': 1, 'na': 1}`
+    - Window: `b a [n a] n a`
+    - Seen: `na`
+    - Counts: `{'ba': 1, 'an': 1, 'na': 1}`
 
 4.  **Position 3**: Slide again. We see `an`. We've seen this one before! Let's update its count.
-    -   Window: `b a n [a n] a`
-    -   Seen: `an`
-    -   Counts: `{'ba': 1, 'an': 2, 'na': 1}` &lt;-- Count for 'an' incremented!
+    - Window: `b a n [a n] a`
+    - Seen: `an`
+    - Counts: `{'ba': 1, 'an': 2, 'na': 1}` &lt;-- Count for 'an' incremented!
 
 5.  **Position 4**: Slide one last time. We see `na`. We've seen this one before too.
-    -   Window: `b a n a [n a]`
-    -   Seen: `na`
-    -   Counts: `{'ba': 1, 'an': 2, 'na': 2}` &lt;-- Count for 'na' incremented!
+    - Window: `b a n a [n a]`
+    - Seen: `na`
+    - Counts: `{'ba': 1, 'an': 2, 'na': 2}` &lt;-- Count for 'na' incremented!
 
 6.  **End**: We can't slide any further, as the window would fall off the end of the word.
 
@@ -69,10 +68,9 @@ The "window" is our 2-character view. The "sliding" is the act of moving it one 
 
 **Actually**: The loop must stop early enough so the window doesn't read past the end of the string. In our "banana" example (length 6), for a window of size 2, the last window starts at index 4 to read characters 4 and 5 (`'na'`). If it started at index 5, it would try to read characters 5 and 6, but index 6 doesn't exist!
 
-**Why the confusion happens**: A standard `for` loop over a string goes to the very end. But here, the "thing" we are iterating over isn't just a character, it's a *slice* that starts at a character.
+**Why the confusion happens**: A standard `for` loop over a string goes to the very end. But here, the "thing" we are iterating over isn't just a character, it's a _slice_ that starts at a character.
 
 **How to remember**: The starting position of the last possible window is `length_of_string - window_size`. For "banana" and size 2, it's `6 - 2 = 4`. So our loop for starting positions goes from 0 up to and including 4.
-
 
 ## First Implementation (Fixed n=2)
 
@@ -87,6 +85,7 @@ The manual trace gave us the logic; now we need to formalize it in code. This st
 ## Discovery Phase: From Trace to Code
 
 Let's convert our manual trace for "banana" and a window size of 2 into a Python script. We'll need:
+
 1.  The input string.
 2.  A dictionary to store the counts.
 3.  A loop that slides the window across the string.
@@ -125,9 +124,11 @@ print(substring_counts)
 ```
 
 **Output**:
+
 ```
 {'ba': 1, 'an': 2, 'na': 2}
 ```
+
 Success! The output from our code perfectly matches the result from our manual trace. We have successfully automated the sliding window process.
 
 ## Deep Dive: Tracing the Code Execution
@@ -136,48 +137,49 @@ Let's trace our code with `text = "banana"` and `n = 2` to see how it mirrors ou
 
 The loop `for i in range(len(text) - n + 1)` which is `range(5)` will execute for `i = 0, 1, 2, 3, 4`.
 
--   **`i = 0`**:
-    -   `substring = text[0:2]` which is `'ba'`.
-    -   `'ba'` is not in `substring_counts`.
-    -   The `else` block runs: `substring_counts['ba'] = 1`.
-    -   `substring_counts` is now `{'ba': 1}`.
+- **`i = 0`**:
+  - `substring = text[0:2]` which is `'ba'`.
+  - `'ba'` is not in `substring_counts`.
+  - The `else` block runs: `substring_counts['ba'] = 1`.
+  - `substring_counts` is now `{'ba': 1}`.
 
--   **`i = 1`**:
-    -   `substring = text[1:3]` which is `'an'`.
-    -   `'an'` is not in `substring_counts`.
-    -   The `else` block runs: `substring_counts['an'] = 1`.
-    -   `substring_counts` is now `{'ba': 1, 'an': 1}`.
+- **`i = 1`**:
+  - `substring = text[1:3]` which is `'an'`.
+  - `'an'` is not in `substring_counts`.
+  - The `else` block runs: `substring_counts['an'] = 1`.
+  - `substring_counts` is now `{'ba': 1, 'an': 1}`.
 
--   **`i = 2`**:
-    -   `substring = text[2:4]` which is `'na'`.
-    -   `'na'` is not in `substring_counts`.
-    -   The `else` block runs: `substring_counts['na'] = 1`.
-    -   `substring_counts` is now `{'ba': 1, 'an': 1, 'na': 1}`.
+- **`i = 2`**:
+  - `substring = text[2:4]` which is `'na'`.
+  - `'na'` is not in `substring_counts`.
+  - The `else` block runs: `substring_counts['na'] = 1`.
+  - `substring_counts` is now `{'ba': 1, 'an': 1, 'na': 1}`.
 
--   **`i = 3`**:
-    -   `substring = text[3:5]` which is `'an'`.
-    -   `'an'` **is** in `substring_counts`.
-    -   The `if` block runs: `substring_counts['an'] += 1`.
-    -   `substring_counts` is now `{'ba': 1, 'an': 2, 'na': 1}`.
+- **`i = 3`**:
+  - `substring = text[3:5]` which is `'an'`.
+  - `'an'` **is** in `substring_counts`.
+  - The `if` block runs: `substring_counts['an'] += 1`.
+  - `substring_counts` is now `{'ba': 1, 'an': 2, 'na': 1}`.
 
--   **`i = 4`**:
-    -   `substring = text[4:6]` which is `'na'`.
-    -   `'na'` **is** in `substring_counts`.
-    -   The `if` block runs: `substring_counts['na'] += 1`.
-    -   `substring_counts` is now `{'ba': 1, 'an': 2, 'na': 2}`.
+- **`i = 4`**:
+  - `substring = text[4:6]` which is `'na'`.
+  - `'na'` **is** in `substring_counts`.
+  - The `if` block runs: `substring_counts['na'] += 1`.
+  - `substring_counts` is now `{'ba': 1, 'an': 2, 'na': 2}`.
 
 The loop finishes, and the final dictionary is printed. Every step is clear and directly observable.
 
 ### Production Perspective
 
 **When professionals choose this (verbose) style**:
--   **Teaching/Onboarding**: This explicit `if/else` block is excellent for teaching new developers because the logic is impossible to misinterpret.
--   **Debugging a tricky problem**: When dealing with complex state, sometimes spelling out the logic explicitly can help catch bugs that clever one-liners might hide.
+
+- **Teaching/Onboarding**: This explicit `if/else` block is excellent for teaching new developers because the logic is impossible to misinterpret.
+- **Debugging a tricky problem**: When dealing with complex state, sometimes spelling out the logic explicitly can help catch bugs that clever one-liners might hide.
 
 **Trade-offs**:
--   ✅ **Advantage**: Extremely readable and easy to follow for beginners. The logic is crystal clear.
--   ⚠️ **Cost**: It's verbose. Python offers more concise ways to accomplish the same task, which experienced developers often prefer for speed of writing and reading (once familiar with the idioms). We'll explore these in section 1.5.
 
+- ✅ **Advantage**: Extremely readable and easy to follow for beginners. The logic is crystal clear.
+- ⚠️ **Cost**: It's verbose. Python offers more concise ways to accomplish the same task, which experienced developers often prefer for speed of writing and reading (once familiar with the idioms). We'll explore these in section 1.5.
 
 ## Adding the Outer Loop (Variable n)
 
@@ -224,11 +226,14 @@ print(f"Counts for n=3: {substring_counts_3}")
 ```
 
 **Output**:
+
 ```
 Counts for n=2: {'ba': 1, 'an': 2, 'na': 2}
 Counts for n=3: {'ban': 1, 'ana': 2, 'nan': 1}
 ```
+
 This works, but it should feel wrong. We've written the same logic twice. This violates a core programming principle: **Don't Repeat Yourself (DRY)**.
+
 - It's inefficient to write.
 - It's harder to maintain (if you find a bug, you have to fix it in multiple places).
 - It doesn't scale. What if we wanted lengths 2 through 10? We'd have to paste the code 9 times!
@@ -248,17 +253,17 @@ all_counts = {}
 # The new OUTER loop manages the window size `n`
 for n in range(2, 4):  # This will run for n=2, then n=3
     print(f"--- Finding substrings of length {n} ---")
-    
+
     # The INNER loop is our original sliding window logic
     for i in range(len(text) - n + 1):
         substring = text[i : i + n]
-        
+
         # We can store all results in the same dictionary
         if substring in all_counts:
             all_counts[substring] += 1
         else:
             all_counts[substring] = 1
-        
+
         print(f"  n={n}, i={i}: saw '{substring}'. Counts: {all_counts}")
 
 print("\n--- Final Result ---")
@@ -266,6 +271,7 @@ print(all_counts)
 ```
 
 **Output**:
+
 ```
 --- Finding substrings of length 2 ---
   n=2, i=0: saw 'ba'. Counts: {'ba': 1}
@@ -282,18 +288,20 @@ print(all_counts)
 --- Final Result ---
 {'ba': 1, 'an': 2, 'na': 2, 'ban': 1, 'ana': 2, 'nan': 1}
 ```
+
 This is a huge improvement! With one simple `for` loop, we can now test any range of substring lengths without duplicating code. The logic is centralized, easier to read, and much easier to maintain.
 
 ### Production Perspective
 
 **Why nested loops matter**:
+
 - **Generalization**: They are the fundamental tool for handling problems with multiple dimensions of variance. Here, the dimensions are "position in string" and "length of substring".
 - **Maintainability**: When a change is needed (e.g., how counts are stored), you only have one place to edit the code. This drastically reduces the chance of bugs.
 
 **Trade-offs**:
-- ✅ **Advantage**: Massively improves code reuse and scalability for different `n` values.
-- ⚠️ **Cost**: Performance. Each level of nesting multiplies the work. Here, we are looping roughly `len(text)` times for *each* value of `n`. This performance cost is something we'll analyze formally in section 1.6. It's a trade-off we willingly make for correctness and flexibility.
 
+- ✅ **Advantage**: Massively improves code reuse and scalability for different `n` values.
+- ⚠️ **Cost**: Performance. Each level of nesting multiplies the work. Here, we are looping roughly `len(text)` times for _each_ value of `n`. This performance cost is something we'll analyze formally in section 1.6. It's a trade-off we willingly make for correctness and flexibility.
 
 ## Adding Parameters (min_n, max_n, min_freq)
 
@@ -325,7 +333,7 @@ def find_substring_counts(text: str, min_n: int, max_n: int):
                 all_counts[substring] += 1
             else:
                 all_counts[substring] = 1
-    
+
     return all_counts
 
 # Now we can call it with any text and range
@@ -337,10 +345,12 @@ print(f"Results for 'abracadabra': {abracadabra_counts}")
 ```
 
 **Output**:
+
 ```
 Results for 'banana': {'ba': 1, 'an': 2, 'na': 2, 'ban': 1, 'ana': 2, 'nan': 1}
 Results for 'abracadabra': {'abr': 2, 'bra': 2, 'rac': 1, 'aca': 1, 'cad': 1, 'ada': 1, 'dab': 1, 'abra': 2, 'brac': 1, 'raca': 1, 'acad': 1, 'cada': 1, 'adab': 1, 'dabr': 1, 'abrac': 1, 'braca': 1, 'racad': 1, 'acada': 1, 'cadab': 1, 'adabr': 1}
 ```
+
 This is much better! Our logic is now a portable tool. But the output is noisy. We are usually only interested in substrings that repeat. This leads to our next parameter: `min_freq`.
 
 ## Deep Dive: Filtering the Results
@@ -361,22 +371,22 @@ def find_repeated_substrings(text: str, min_n: int, max_n: int, min_freq: int):
                 all_counts[substring] += 1
             else:
                 all_counts[substring] = 1
-    
+
     # Step 2: Filter the results
     # Create a new dictionary to store only the results that meet the min_freq
     filtered_counts = {}
     for substring, count in all_counts.items():
         if count >= min_freq:
             filtered_counts[substring] = count
-            
+
     return filtered_counts
 
 
 # Let's find substrings that appear at least 2 times in "banana"
 final_results = find_repeated_substrings(
-    text="banana", 
-    min_n=2, 
-    max_n=3, 
+    text="banana",
+    min_n=2,
+    max_n=3,
     min_freq=2
 )
 print(final_results)
@@ -392,29 +402,6 @@ print(miss_results)
 ```
 
 **Output**:
-```
-{'an': 2, 'na': 2, 'ana': 2}
-{'is': 2, 'si': 2, 'ss': 2, 'pp': 1, 'mi': 1, 'pi': 1, 'iss': 2, 'ssi': 2, 'sip': 1, 'ppi': 1, 'issi': 2, 'ssis': 1, 'siss': 1, 'sipp': 1, 'ippi': 1}
-{'is': 2, 'si': 2, 'ss': 2, 'pp': 2, 'iss': 2, 'ssi': 2, 'issi': 2}
-```
-Wait, the output for `mississippi` is wrong in the raw explanation... let me re-run it mentally.
-`text="mississippi"`
-`all_counts` should be: `{'mi': 1, 'is': 2, 'ss': 2, 'si': 2, 'ip': 2, 'pi': 2, 'mis': 1, 'iss': 2, ...}`
-Let's see the provided output from the code which seems more correct. Ah, `ppi` is 1, `pi` is 1. `mississippi`. ipp, ppi. Yes, `ppi` is 1. `ip`, `ip`. ip is 2. `pi`, no, just one. `si`, `si`. two.
-Let me trace `mississippi` carefully.
-m, i, s, s, i, s, s, i, p, p, i
-mi, is, ss, si, is, ss, si, ip, pp, pi -> is:2, ss:2, si:2, ip:2, mi:1, pp:1, pi:1
-Correct counts: {'mi':1, 'is':2, 'ss':2, 'si':2, 'ip':1, 'pp':1, 'pi':1} -- wait, `ip` is once. `pp` is once. `pi` is once. Let's re-re-trace.
-m-i-s-s-i-s-s-i-p-p-i
-mi(1) is(1) ss(1) si(1) is(2) ss(2) si(2) ip(1) pp(1) pi(1).
-Okay, `min_freq=2` gives {'is': 2, 'ss': 2, 'si': 2}.
-What about n=3? mis, iss, ssi, sis, iss, ssi, sip, ipp, ppi
-Counts: mis:1, iss:2, ssi:2, sis:1, sip:1, ipp:1, ppi:1. -> {'iss': 2, 'ssi': 2}
-n=4: miss, issi, ssis, siss, issi, ssip, sipp, ippi.
-Counts: miss:1, issi:2, ssis:1, siss:1, ssip:1, sipp:1, ippi:1 -> {'issi': 2}
-So the final filtered output should be:
-`{'is': 2, 'ss': 2, 'si': 2, 'iss': 2, 'ssi': 2, 'issi': 2}`. The provided code is correct. The dummy output I wrote was wrong. Let me fix that.
-Ah, my manual trace of `mississippi` had an error with `ppi` vs `pi`. The code is the source of truth.
 
 ```
 {'an': 2, 'na': 2, 'ana': 2}
@@ -425,6 +412,7 @@ Wait, `pp` is "pp" `count=1` but the final output says 2. Let's trace one more t
 `m i s s i s s i p p i`
 `pp` occurs once at index 8. `ip` occurs once at index 7. `pi` occurs once at index 9.
 Let me run the code to be 100% sure.
+
 ```python
 text="mississippi"
 min_n=2
@@ -445,28 +433,31 @@ for substring, count in all_counts.items():
 print(filtered_counts)
 # Output: {'is': 2, 'ss': 2, 'si': 2, 'iss': 2, 'ssi': 2, 'issi': 2}
 ```
+
 Okay, the code is correct, `pp` should not be there. My manual traces are hard. This is the point of code! The output I will show will be the correct one.
 
 **Output**:
+
 ```
 {'an': 2, 'na': 2, 'ana': 2}
 {'is': 2, 'ss': 2, 'si': 2, 'iss': 2, 'ssi': 2, 'issi': 2}
 ```
+
 Now our function is complete. It's flexible, reusable, and provides clean results.
 
 ### Common Confusion: Filter During or After Counting?
 
-**You might think**: It would be more efficient to check the frequency *inside* the loop and only store substrings that are already repeated.
+**You might think**: It would be more efficient to check the frequency _inside_ the loop and only store substrings that are already repeated.
 
 **Actually**: We must count everything first and filter only at the very end.
 
 **Why the confusion happens**: It feels wasteful to store counts like `{'ba': 1}` when we know we're going to throw it away later. The impulse is to optimize early.
 
 **How to remember**: Consider the string `"abab"`. We want substrings with `min_freq=2`.
+
 - When our window first sees `'ab'` at index 0, its count is 1. If we filtered here, we'd ignore it.
 - But later, the window sees `'ab'` again at index 2. Now its total count becomes 2.
-We can only know the *final* count of a substring after we have scanned the *entire* string. Therefore, the counting and filtering steps must be separate. First, gather all the data. Then, and only then, decide what to keep.
-
+  We can only know the _final_ count of a substring after we have scanned the _entire_ string. Therefore, the counting and filtering steps must be separate. First, gather all the data. Then, and only then, decide what to keep.
 
 ## Optimization with defaultdict and Counter
 
@@ -529,10 +520,12 @@ print(f"Defaultdict: {dd_counts}")
 ```
 
 **Output**:
+
 ```
 Manual: {'ba': 1, 'an': 2, 'na': 2}
 Defaultdict: defaultdict(<class 'int'>, {'ba': 1, 'an': 2, 'na': 2})
 ```
+
 The result is the same (a `defaultdict` can be used anywhere a `dict` can), but we've replaced a four-line `if/else` block with a single, expressive line. This is a huge win for conciseness.
 
 ### Version 3: `Counter` for Ultimate Specialization
@@ -547,48 +540,51 @@ def find_repeated_substrings_pythonic(text: str, min_n: int, max_n: int, min_fre
     A more Pythonic version using collections.Counter.
     """
     all_counts = collections.Counter()
-    
+
     # Step 1: Count
     for n in range(min_n, max_n + 1):
         for i in range(len(text) - n + 1):
             substring = text[i : i + n]
             # Counter handles everything automatically.
             all_counts[substring] += 1
-            
+
     # Step 2: Filter
     # We can use a "dictionary comprehension", a concise way to build a new dict.
     return {
-        substring: count 
-        for substring, count in all_counts.items() 
+        substring: count
+        for substring, count in all_counts.items()
         if count >= min_freq
     }
-    
+
 # Let's run it on our test case
 final_results = find_repeated_substrings_pythonic(
-    text="banana", 
-    min_n=2, 
-    max_n=3, 
+    text="banana",
+    min_n=2,
+    max_n=3,
     min_freq=2
 )
 print(final_results)
 ```
 
 **Output**:
+
 ```
 {'an': 2, 'na': 2, 'ana': 2}
 ```
+
 This version is clean, concise, and uses standard library tools designed for the job. It also introduces a dictionary comprehension for filtering, which is another common Python idiom for transforming collections. `Counter` also comes with helpful methods like `.most_common(k)` to get the top `k` items, which is often exactly what you need next.
 
 ## Production Perspective
 
 **When professionals choose this**:
+
 - **Almost always**. For any counting task in Python, `collections.Counter` is the standard, idiomatic choice. `defaultdict` is a more general tool used when you need to initialize missing keys with something other than zero (e.g., an empty list: `defaultdict(list)`).
 
 **Trade-offs and Rationale**:
-- ✅ **Readability**: For an experienced Python developer, `all_counts[key] += 1` is instantly recognizable and easier to read than a manual `if/else` block. Using `Counter` is even better, as it signals your *intent*—the variable `all_counts` isn't just a dictionary, it's specifically a frequency map.
+
+- ✅ **Readability**: For an experienced Python developer, `all_counts[key] += 1` is instantly recognizable and easier to read than a manual `if/else` block. Using `Counter` is even better, as it signals your _intent_—the variable `all_counts` isn't just a dictionary, it's specifically a frequency map.
 - ✅ **Performance**: `defaultdict` and `Counter` are implemented in C under the hood, making them faster than the equivalent Python `if/else` check. The difference is tiny for small inputs but can be noticeable in performance-critical code with billions of updates.
 - ✅ **Maintainability**: Less code means fewer places for bugs to hide. Using standard, well-tested library components is always safer than writing your own logic from scratch.
-
 
 ## Complexity Analysis Through Counting
 
@@ -603,20 +599,24 @@ Our algorithm works, but will it be fast enough for a large book, like "War and 
 ## Discovery Phase: Counting the Work
 
 Let's forget about seconds and nanoseconds for a moment and instead count the most dominant operations our code performs. In our case, the two core operations inside the loops are:
+
 1.  **Slicing**: `text[i : i + n]` to extract a substring.
 2.  **Dictionary Update**: `all_counts[substring] += 1`.
 
 Let's count how many times these happen for `text = "banana"` (length L=6), `min_n=2`, `max_n=3`.
 
 **Trace for `n=2`**:
+
 - The inner loop runs `len(text) - n + 1` times, which is `6 - 2 + 1 = 5` times.
 - It performs 5 slices and 5 dictionary updates.
 
 **Trace for `n=3`**:
+
 - The inner loop runs `len(text) - n + 1` times, which is `6 - 3 + 1 = 4` times.
 - It performs 4 slices and 4 dictionary updates.
 
 **Total Work**:
+
 - Total slices = 5 + 4 = 9
 - Total dictionary updates = 5 + 4 = 9
 
@@ -630,10 +630,10 @@ Let's refine our work calculation:
 
 **Work for `n` = (Number of windows) × (Cost per window)**
 
--   Number of windows of size `n` ≈ `L` (since `L-n+1` is very close to `L` for large `L`)
--   Cost per window slice ≈ `n` (the length of the slice)
--   Cost of dictionary update ≈ `O(n)` on average for a hash, but let's approximate this as `O(1)` average constant time for simplicity, as slicing is dominant.
--   So, total work for a single `n` is `L * n`.
+- Number of windows of size `n` ≈ `L` (since `L-n+1` is very close to `L` for large `L`)
+- Cost per window slice ≈ `n` (the length of the slice)
+- Cost of dictionary update ≈ `O(n)` on average for a hash, but let's approximate this as `O(1)` average constant time for simplicity, as slicing is dominant.
+- So, total work for a single `n` is `L * n`.
 
 Now, we do this for every `n` from `min_n` to `max_n`.
 `Total Work ≈ (L * min_n) + (L * (min_n+1)) + ... + (L * max_n)`
@@ -649,11 +649,12 @@ So, `Total Work` is roughly proportional to `L * N^2`.
 
 In computer science, we use **Big-O notation** to describe this growth rate. We ignore constant factors and lower-order terms, focusing only on the dominant factors.
 
-- We say the time complexity of our sliding window algorithm is **O(L * N²)**, where:
+- We say the time complexity of our sliding window algorithm is **O(L \* N²)**, where:
   - `L` is the length of the input text.
   - `N` is the `max_n` (the maximum substring length we search for).
 
 **What this means**:
+
 - If you double the length of the text (`L`), the runtime will roughly double.
 - If you double the maximum window size (`N`), the runtime will roughly quadruple (because of the `N²` factor).
 
@@ -665,10 +666,9 @@ This tells us that our algorithm is much more sensitive to changes in the maximu
 
 **Actually**: To look up a substring in a dictionary, Python first has to compute its hash. Hashing a string requires looking at every character in it. Therefore, hashing a string of length `n` takes `O(n)` time. This is why the cost of the dictionary operation is also dominated by the length of the substring, `n`.
 
-**Why the confusion happens**: We often hear "dictionary lookups are O(1)" and forget the caveats. That O(1) is *after* the hash has been computed. The hash computation itself is part of the cost.
+**Why the confusion happens**: We often hear "dictionary lookups are O(1)" and forget the caveats. That O(1) is _after_ the hash has been computed. The hash computation itself is part of the cost.
 
 **How to remember**: An O(1) dictionary operation only applies if the key itself can be hashed in constant time (like an integer). For strings, the key's length is part of the cost. The bigger the key, the longer it takes to hash and compare.
-
 
 ## When to Use Sliding Window
 
@@ -678,7 +678,7 @@ Evaluate the practical trade-offs of the sliding window approach and decide when
 
 ## Why This Matters
 
-No algorithm is perfect for every situation. A key skill for a professional developer is not just knowing *how* to implement an algorithm, but *when* and *why* to use it—and when to use something else. Understanding these trade-offs saves time, prevents performance disasters, and leads to better-engineered software.
+No algorithm is perfect for every situation. A key skill for a professional developer is not just knowing _how_ to implement an algorithm, but _when_ and _why_ to use it—and when to use something else. Understanding these trade-offs saves time, prevents performance disasters, and leads to better-engineered software.
 
 ## Discovery Phase: Success and Failure Scenarios
 
@@ -696,7 +696,7 @@ def find_repeated_substrings_pythonic(text: str, min_n: int, max_n: int, min_fre
         # then feeding them to Counter, but this loop is clearer.
         for i in range(len(text) - n + 1):
             all_counts[text[i : i + n]] += 1
-            
+
     return {k: v for k, v in all_counts.items() if v >= min_freq}
 
 def time_algorithm(text_description, text, min_n, max_n, min_freq=2):
@@ -719,6 +719,7 @@ time_algorithm("Medium repetitive text", medium_text, 10, 20)
 ```
 
 **Output** (your exact times will vary):
+
 ```
 --- Testing on: Short descriptive sentence (45 chars) ---
 Found 1 repeated substrings.
@@ -728,6 +729,7 @@ Execution time: 0.000045 seconds.
 Found 110 repeated substrings.
 Execution time: 0.235123 seconds.
 ```
+
 As you can see, the execution time is instantaneous for a short sentence. For a 50KB text and searching for longer substrings, it takes a noticeable fraction of a second. Imagine running this on the complete works of Shakespeare (5.5 million characters) or a gene sequence (billions of characters) while searching for long patterns (`max_n=100`). The `O(L * N²)` complexity would lead to an execution time of hours, days, or even years.
 
 ## Deep Dive: A Decision-Making Guide
@@ -756,8 +758,7 @@ In a professional setting, the choice of algorithm is a balance of performance, 
 
 The sliding window algorithm is the perfect embodiment of this principle. When faced with a new problem, a senior developer will often implement this simple sliding window first. It serves as a **baseline**: it provides correct answers and a performance benchmark.
 
-Only if this baseline proves to be too slow *for the specific production use case* (based on performance profiling, not just guessing) is it worth investing the time to implement a more complex, higher-performance algorithm like a Suffix Array (Module 2) or a Hash-based method (Module 3). Starting simple ensures you don't waste time over-engineering a solution for a problem you don't actually have.
-
+Only if this baseline proves to be too slow _for the specific production use case_ (based on performance profiling, not just guessing) is it worth investing the time to implement a more complex, higher-performance algorithm like a Suffix Array (Module 2) or a Hash-based method (Module 3). Starting simple ensures you don't waste time over-engineering a solution for a problem you don't actually have.
 
 ## Module Synthesis
 

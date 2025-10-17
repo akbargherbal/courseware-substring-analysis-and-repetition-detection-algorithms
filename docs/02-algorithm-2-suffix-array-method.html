@@ -373,10 +373,12 @@ Starting at position 5: &#39;a&#39;
 <li><strong>Not every substring is a suffix.</strong> For example, <code>"nan"</code> is a substring of "banana" (it starts at index 2 and has length 3), but it is <em>not</em> a suffix because it doesn't go all the way to the end of the original string.</li>
 </ol>
 <p>This distinction is crucial. The suffix array algorithm works because of a powerful property: <strong>every substring of a text is a prefix of exactly one of its suffixes.</strong></p>
-<p>Let's prove this with an example. Take the substring <code>"nan"</code>.
-- Which suffix does it appear at the beginning of?
-- It's a prefix of the suffix starting at index 2: <code>"nan" + "a" = "nana"</code>.
-- No other suffix starts with "nan".</p>
+<p>Let's prove this with an example. Take the substring <code>"nan"</code>.</p>
+<ul>
+<li>Which suffix does it appear at the beginning of?</li>
+<li>It's a prefix of the suffix starting at index 2: <code>"nan" + "a" = "nana"</code>.</li>
+<li>No other suffix starts with "nan".</li>
+</ul>
 <p>This property means that if we can efficiently process all the suffixes, we have indirectly processed all the substrings as well. This is the foundation of our new algorithm.</p>
 <h2 id="practice-checkpoint">Practice Checkpoint</h2>
 <p>Generate all the suffixes for the string <code>text = "abracadabra"</code>. How many suffixes are there? What is the suffix starting at index 7?</p>
@@ -407,9 +409,11 @@ The suffix starting at index 7 is: &#39;dabra&#39;
 <li><strong>Bioinformatics</strong>: DNA is often represented as a huge string (e.g., the human genome is ~3 billion characters). Finding repeated genes or sequences is a fundamental task. Suffix-based structures (like Suffix Trees and Suffix Arrays) are standard tools for this.</li>
 <li><strong>Text Editors &amp; Search Engines</strong>: When you search for a phrase in a large document, the software often uses a pre-built index based on suffixes to find all occurrences nearly instantly, rather than scanning the whole text each time.</li>
 </ul>
-<p><strong>Trade-offs</strong>:
--   ✅ <strong>Advantage</strong>: Creates a structured representation of the text that can be used for many different kinds of queries, not just finding repeats.
--   ⚠️ <strong>Cost</strong>: Generating all suffixes can consume a lot of memory, as we will see in the next sections. For a 1GB file, the list of all its suffixes would be enormous (<code>1GB + (1GB-1) + ...</code>), far too large to fit in RAM. This "naive" approach is just a conceptual starting point. Modern implementations are much smarter.</p>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li>✅ <strong>Advantage</strong>: Creates a structured representation of the text that can be used for many different kinds of queries, not just finding repeats.</li>
+<li>⚠️ <strong>Cost</strong>: Generating all suffixes can consume a lot of memory, as we will see in the next sections. For a 1GB file, the list of all its suffixes would be enormous (<code>1GB + (1GB-1) + ...</code>), far too large to fit in RAM. This "naive" approach is just a conceptual starting point. Modern implementations are much smarter.</li>
+</ul>
 <h2 id="why-sort-suffixes-the-insight">Why Sort Suffixes? (The Insight)</h2>
 <h2 id="learning-objective_1">Learning Objective</h2>
 <p>Discover why sorting helps find repetitions.</p>
@@ -481,15 +485,19 @@ nana
 <li><code>"an"</code> is a prefix of the suffix <code>"ana"</code> (starting at index 3).</li>
 </ul>
 <p>In the sorted list, <code>"ana"</code> and <code>"anana"</code> are adjacent. By comparing them, we can discover the shared prefix <code>"ana"</code>. Since <code>"an"</code> is a prefix of <code>"ana"</code>, we have also found the repeat of <code>"an"</code>.</p>
-<p>So, our new algorithm will be:
-1.  Generate all suffixes.
-2.  Sort them alphabetically.
-3.  Iterate through the sorted list, comparing each suffix to the one right before it.
-4.  The length of the common prefix between them tells us the length of a repeated substring.</p>
+<p>So, our new algorithm will be:</p>
+<ol>
+<li>Generate all suffixes.</li>
+<li>Sort them alphabetically.</li>
+<li>Iterate through the sorted list, comparing each suffix to the one right before it.</li>
+<li>The length of the common prefix between them tells us the length of a repeated substring.</li>
+</ol>
 <h2 id="practice-checkpoint_1">Practice Checkpoint</h2>
-<p>Let's use the string <code>"mississippi"</code>. One of its repeated substrings is <code>"issi"</code>.
-1.  Find the two suffixes that start with <code>"issi"</code>.
-2.  Now, imagine sorting all 11 suffixes of <code>"mississippi"</code>. Where would you expect to find these two specific suffixes?</p>
+<p>Let's use the string <code>"mississippi"</code>. One of its repeated substrings is <code>"issi"</code>.</p>
+<ol>
+<li>Find the two suffixes that start with <code>"issi"</code>.</li>
+<li>Now, imagine sorting all 11 suffixes of <code>"mississippi"</code>. Where would you expect to find these two specific suffixes?</li>
+</ol>
 <p>Let's verify with code.</p>
 <div class="codehilite"><pre><span></span><code><span class="n">practice_text</span> <span class="o">=</span> <span class="s2">&quot;mississippi&quot;</span>
 <span class="n">practice_suffixes</span> <span class="o">=</span> <span class="p">[</span><span class="n">practice_text</span><span class="p">[</span><span class="n">i</span><span class="p">:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">practice_text</span><span class="p">))]</span>
@@ -536,9 +544,11 @@ Excerpt from sorted list:
 <li><strong>Algorithmic Foundation</strong>: This isn't just a programming trick; it's a fundamental algorithmic technique. The problem is reduced to sorting, which is a well-understood problem with very efficient solutions (like Timsort, used in Python, which is <code>O(N log N)</code>).</li>
 <li><strong>Preprocessing Cost</strong>: Sorting the suffixes is a one-time "preprocessing" step. Once the sorted list is built, you can search for patterns very quickly. This is ideal for applications where you analyze the same large text many times (e.g., a search engine indexing a website, or a geneticist analyzing a reference genome).</li>
 </ul>
-<p><strong>Trade-offs</strong>:
--   ✅ <strong>Advantage</strong>: Drastically more efficient than comparing all substrings to all others. It provides a clear path forward for an efficient algorithm.
--   ⚠️ <strong>Cost</strong>: The sorting step itself can be slow and memory-intensive if not handled carefully, especially because the "items" we are sorting (the suffixes) can be very long strings. We will tackle this memory issue next.</p>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li>✅ <strong>Advantage</strong>: Drastically more efficient than comparing all substrings to all others. It provides a clear path forward for an efficient algorithm.</li>
+<li>⚠️ <strong>Cost</strong>: The sorting step itself can be slow and memory-intensive if not handled carefully, especially because the "items" we are sorting (the suffixes) can be very long strings. We will tackle this memory issue next.</li>
+</ul>
 <h2 id="building-suffix-array-hardcoded-example">Building Suffix Array (Hardcoded Example)</h2>
 <h2 id="learning-objective_2">Learning Objective</h2>
 <p>Understand the suffix array as sorted indices, not sorted strings.</p>
@@ -548,21 +558,25 @@ Excerpt from sorted list:
 <h2 id="discovery-phase_2">Discovery Phase</h2>
 <p>Let's go back to "banana". We need to sort the suffixes, but we don't want to store the sorted strings. The key is to remember the original <em>starting position</em> of each suffix.</p>
 <p>First, let's create a list of tuples, where each tuple contains <code>(suffix_string, starting_index)</code>.</p>
-<p>For <code>text = "banana"</code>:
-- <code>('banana', 0)</code>
-- <code>('anana', 1)</code>
-- <code>('nana', 2)</code>
-- <code>('ana', 3)</code>
-- <code>('na', 4)</code>
-- <code>('a', 5)</code></p>
+<p>For <code>text = "banana"</code>:</p>
+<ul>
+<li><code>('banana', 0)</code></li>
+<li><code>('anana', 1)</code></li>
+<li><code>('nana', 2)</code></li>
+<li><code>('ana', 3)</code></li>
+<li><code>('na', 4)</code></li>
+<li><code>('a', 5)</code></li>
+</ul>
 <p>Now, we sort this list of tuples. Python's default sorting for tuples works perfectly here: it will sort based on the first element (the string), and if there's a tie, it uses the second element (which won't happen here since all indices are unique).</p>
-<p>Here is the sorted list of tuples:
-- <code>('a', 5)</code>
-- <code>('ana', 3)</code>
-- <code>('anana', 1)</code>
-- <code>('banana', 0)</code>
-- <code>('na', 4)</code>
-- <code>('nana', 2)</code></p>
+<p>Here is the sorted list of tuples:</p>
+<ul>
+<li><code>('a', 5)</code></li>
+<li><code>('ana', 3)</code></li>
+<li><code>('anana', 1)</code></li>
+<li><code>('banana', 0)</code></li>
+<li><code>('na', 4)</code></li>
+<li><code>('nana', 2)</code></li>
+</ul>
 <p>Look at the second element in each tuple—the original starting positions: <code>5, 3, 1, 0, 4, 2</code>.</p>
 <p>This list of integers is the <strong>Suffix Array</strong>.</p>
 <h2 id="deep-dive_2">Deep Dive</h2>
@@ -627,10 +641,12 @@ Excerpt from sorted list:
 </ul>
 <p>And so on. The suffix array gives us an "indirect" way to access the sorted list of suffixes without ever storing that list explicitly. This saves a massive amount of memory.</p>
 <h2 id="practice-checkpoint_2">Practice Checkpoint</h2>
-<p>Manually construct the suffix array for the text <code>"ababa"</code>.
-1.  List the <code>(suffix, index)</code> pairs.
-2.  Sort them alphabetically.
-3.  Extract the indices.</p>
+<p>Manually construct the suffix array for the text <code>"ababa"</code>.</p>
+<ol>
+<li>List the <code>(suffix, index)</code> pairs.</li>
+<li>Sort them alphabetically.</li>
+<li>Extract the indices.</li>
+</ol>
 <p>Your final suffix array should be <code>[4, 2, 0, 3, 1]</code>. Let's verify with code.</p>
 <div class="codehilite"><pre><span></span><code><span class="n">practice_text</span> <span class="o">=</span> <span class="s2">&quot;ababa&quot;</span>
 
@@ -664,9 +680,11 @@ Excerpt from sorted list:
 <li><strong>Memory Efficiency</strong>: The suffix array for a text of length <code>L</code> requires <code>O(L)</code> space (to store <code>L</code> integers). This is a colossal improvement over the naive <code>O(L^2)</code> space required to store the suffix strings themselves. For a 1GB genome file, the suffix array would take roughly 4GB or 8GB (depending on integer size), which is manageable. <code>O(L^2)</code> would be impossibly large.</li>
 <li><strong>Pointers vs. Values</strong>: This is a classic example of working with "pointers" (or references/indices) to data instead of the data itself. By manipulating the small indices, we can reason about the large suffixes without ever creating copies of them.</li>
 </ul>
-<p><strong>Trade-offs</strong>:
--   ✅ <strong>Advantage</strong>: Dramatically reduces memory consumption, making the algorithm practical for large texts.
--   ⚠️ <strong>Cost</strong>: Adds a layer of indirection. Instead of having the string right there, you have an index <code>j</code>, and you have to go look it up in the original text (<code>text[j:]</code>). This can make the code slightly harder to read and debug initially, but it's a standard pattern you'll get used to.</p>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li>✅ <strong>Advantage</strong>: Dramatically reduces memory consumption, making the algorithm practical for large texts.</li>
+<li>⚠️ <strong>Cost</strong>: Adds a layer of indirection. Instead of having the string right there, you have an index <code>j</code>, and you have to go look it up in the original text (<code>text[j:]</code>). This can make the code slightly harder to read and debug initially, but it's a standard pattern you'll get used to.</li>
+</ul>
 <h2 id="implementing-suffix-array-construction">Implementing Suffix Array Construction</h2>
 <h2 id="learning-objective_3">Learning Objective</h2>
 <p>Code the suffix array builder.</p>
@@ -791,10 +809,12 @@ Excerpt from sorted list:
 <div class="codehilite"><pre><span></span><code><span class="nv">Final</span><span class="w"> </span><span class="nv">suffix</span><span class="w"> </span><span class="nv">array</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="s1">&#39;banana&#39;</span>:<span class="w"> </span>[<span class="mi">5</span>,<span class="w"> </span><span class="mi">3</span>,<span class="w"> </span><span class="mi">1</span>,<span class="w"> </span><span class="mi">0</span>,<span class="w"> </span><span class="mi">4</span>,<span class="w"> </span><span class="mi">2</span>]
 </code></pre></div>
 
-<p>All three versions produce the same result, but they represent a common progression in programming:
-1.  <strong>Verbose and Clear</strong>: Best for learning and debugging.
-2.  <strong>Optimized for a Bottleneck</strong>: Addresses a specific issue (memory).
-3.  <strong>Concise and Idiomatic</strong>: Clean, professional code.</p>
+<p>All three versions produce the same result, but they represent a common progression in programming:</p>
+<ol>
+<li><strong>Verbose and Clear</strong>: Best for learning and debugging.</li>
+<li><strong>Optimized for a Bottleneck</strong>: Addresses a specific issue (memory).</li>
+<li><strong>Concise and Idiomatic</strong>: Clean, professional code.</li>
+</ol>
 <h3 id="common-confusion-is-slicing-always-inefficient">Common Confusion: "Is slicing always inefficient?"</h3>
 <p><strong>You might think</strong>: If <code>text[i:]</code> has performance costs, should I avoid slicing everywhere in Python?</p>
 <p><strong>Actually</strong>: Python's slicing is highly optimized. In many contexts, it's perfectly fine. The issue here is about <em>scale</em>. Creating <code>L</code> slices and holding them all in memory for a <code>sort</code> operation is what leads to <code>O(L^2)</code> space. A single slice operation <code>text[10:20]</code> is very fast and efficient. The problem isn't the slice itself, but doing it <code>L</code> times for increasingly large strings and storing them all simultaneously.</p>
@@ -858,26 +878,16 @@ Excerpt from sorted list:
 </table>
 <p>Now, let's go down the list and compare each suffix (<code>i</code>) with the one just before it (<code>i-1</code>) and record the length of their shared prefix.</p>
 <ul>
-<li><strong>i = 1</strong>: Compare <code>"ana"</code> with <code>"a"</code>.<ul>
+<li><strong>i = 1</strong>: Compare <code>"ana"</code> with <code>"a"</code>.</li>
 <li>Shared prefix: <code>"a"</code>. Length: <strong>1</strong>.</li>
-</ul>
-</li>
-<li><strong>i = 2</strong>: Compare <code>"anana"</code> with <code>"ana"</code>.<ul>
+<li><strong>i = 2</strong>: Compare <code>"anana"</code> with <code>"ana"</code>.</li>
 <li>Shared prefix: <code>"ana"</code>. Length: <strong>3</strong>.</li>
-</ul>
-</li>
-<li><strong>i = 3</strong>: Compare <code>"banana"</code> with <code>"anana"</code>.<ul>
+<li><strong>i = 3</strong>: Compare <code>"banana"</code> with <code>"anana"</code>.</li>
 <li>Shared prefix: <code>""</code> (none). Length: <strong>0</strong>.</li>
-</ul>
-</li>
-<li><strong>i = 4</strong>: Compare <code>"na"</code> with <code>"banana"</code>.<ul>
+<li><strong>i = 4</strong>: Compare <code>"na"</code> with <code>"banana"</code>.</li>
 <li>Shared prefix: <code>""</code> (none). Length: <strong>0</strong>.</li>
-</ul>
-</li>
-<li><strong>i = 5</strong>: Compare <code>"nana"</code> with <code>"na"</code>.<ul>
+<li><strong>i = 5</strong>: Compare <code>"nana"</code> with <code>"na"</code>.</li>
 <li>Shared prefix: <code>"na"</code>. Length: <strong>2</strong>.</li>
-</ul>
-</li>
 </ul>
 <p>By convention, the LCP value for the very first suffix (at <code>i=0</code>) is considered 0, as there's nothing before it to compare with.</p>
 <p>So, the lengths we found are: <code>[0, 1, 3, 0, 0, 2]</code>. This is our LCP array.</p>
@@ -900,7 +910,7 @@ Excerpt from sorted list:
 
         <span class="c1"># Find the length of their common prefix</span>
         <span class="n">common_len</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">while</span> <span class="p">(</span><span class="n">pos1</span> <span class="o">+</span> <span class="n">common_len</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="ow">and</span> 
+        <span class="k">while</span> <span class="p">(</span><span class="n">pos1</span> <span class="o">+</span> <span class="n">common_len</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="ow">and</span>
                <span class="n">pos2</span> <span class="o">+</span> <span class="n">common_len</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="ow">and</span>
                <span class="n">text</span><span class="p">[</span><span class="n">pos1</span> <span class="o">+</span> <span class="n">common_len</span><span class="p">]</span> <span class="o">==</span> <span class="n">text</span><span class="p">[</span><span class="n">pos2</span> <span class="o">+</span> <span class="n">common_len</span><span class="p">]):</span>
             <span class="n">common_len</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -937,10 +947,12 @@ LCP Array:    [0, 1, 3, 0, 0, 2]
 </ul>
 <p>Any LCP value <code>k</code> that is greater than or equal to our desired minimum substring length (<code>min_n</code>) points to a valid repetition.</p>
 <h2 id="practice-checkpoint_3">Practice Checkpoint</h2>
-<p>For the text <code>"ababa"</code>, we found the suffix array is <code>[4, 2, 0, 3, 1]</code>. Manually calculate its LCP array.
-1. Write out the sorted suffixes.
-2. Compare adjacent pairs.
-3. Record the LCP lengths.</p>
+<p>For the text <code>"ababa"</code>, we found the suffix array is <code>[4, 2, 0, 3, 1]</code>. Manually calculate its LCP array.</p>
+<ol>
+<li>Write out the sorted suffixes.</li>
+<li>Compare adjacent pairs.</li>
+<li>Record the LCP lengths.</li>
+</ol>
 <p>You should get <code>[0, 1, 3, 0, 2]</code>. Let's verify.</p>
 <div class="codehilite"><pre><span></span><code><span class="n">practice_text</span> <span class="o">=</span> <span class="s2">&quot;ababa&quot;</span>
 <span class="c1"># Let&#39;s use our builder from the previous section</span>
@@ -960,10 +972,12 @@ Suffix Array: [4, 2, 0, 3, 1]
 LCP Array:    [0, 1, 3, 0, 2]
 </code></pre></div>
 
-<p>Let's interpret <code>LCP[2] = 3</code>. This corresponds to comparing the suffixes at <code>SA[2]</code> (which is <code>0</code>) and <code>SA[1]</code> (which is <code>2</code>).
-- Suffix at index 0: <code>"ababa"</code>
-- Suffix at index 2: <code>"aba"</code>
-Their longest common prefix is <code>"aba"</code>, which has length 3. Correct. This tells us <code>"aba"</code> is a repeated substring.</p>
+<p>Let's interpret <code>LCP[2] = 3</code>. This corresponds to comparing the suffixes at <code>SA[2]</code> (which is <code>0</code>) and <code>SA[1]</code> (which is <code>2</code>).</p>
+<ul>
+<li>Suffix at index 0: <code>"ababa"</code></li>
+<li>Suffix at index 2: <code>"aba"</code>
+  Their longest common prefix is <code>"aba"</code>, which has length 3. Correct. This tells us <code>"aba"</code> is a repeated substring.</li>
+</ul>
 <h3 id="common-confusion-lcp-index-vs-text-index">Common Confusion: LCP index vs. Text index</h3>
 <p><strong>You might think</strong>: <code>LCP[i]</code> is related to the substring at position <code>i</code> in the original text.</p>
 <p><strong>Actually</strong>: <code>LCP[i]</code> is related to the <code>i</code>-th element <em>in the sorted list of suffixes</em>. Its calculation depends on <code>SA[i]</code> and <code>SA[i-1]</code>, which can be any arbitrary positions in the original text.</p>
@@ -976,9 +990,11 @@ Their longest common prefix is <code>"aba"</code>, which has length 3. Correct. 
 <li><strong>Querying Power</strong>: With the SA and LCP arrays, you can answer complex queries very quickly. For example: "Find the longest repeated substring in this 1GB file." You simply need to find the maximum value in the LCP array. This takes <code>O(L)</code> time after the arrays are built. A naive sliding window approach would be drastically slower.</li>
 <li><strong>Data Compression</strong>: LCP arrays are also used in data compression algorithms. The famous <code>bzip2</code> compression tool uses a related algorithm (the Burrows-Wheeler Transform) which relies on suffix sorting. High LCP values indicate redundancy that can be compressed effectively.</li>
 </ul>
-<p><strong>Trade-offs</strong>:
--   ✅ <strong>Advantage</strong>: It makes finding repeated substrings a simple matter of scanning an integer array and checking for values above a threshold. This is extremely fast.
--   ⚠️ <strong>Cost</strong>: The naive LCP construction we wrote takes <code>O(L^2)</code> in the worst case (e.g., for a text like "aaaaa..."). Just as with suffix array construction, this is a performance bottleneck. In a later section, we'll see a clever <code>O(L)</code> algorithm (Kasai's Algorithm) to fix this.</p>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li>✅ <strong>Advantage</strong>: It makes finding repeated substrings a simple matter of scanning an integer array and checking for values above a threshold. This is extremely fast.</li>
+<li>⚠️ <strong>Cost</strong>: The naive LCP construction we wrote takes <code>O(L^2)</code> in the worst case (e.g., for a text like "aaaaa..."). Just as with suffix array construction, this is a performance bottleneck. In a later section, we'll see a clever <code>O(L)</code> algorithm (Kasai's Algorithm) to fix this.</li>
+</ul>
 <h2 id="finding-repeats-with-lcp">Finding Repeats with LCP</h2>
 <h2 id="learning-objective_5">Learning Objective</h2>
 <p>Use LCP values to extract repeated substrings.</p>
@@ -986,54 +1002,52 @@ Their longest common prefix is <code>"aba"</code>, which has length 3. Correct. 
 <p>We have the Suffix Array and the LCP Array. Now is the payoff. We can combine these two data structures to create a complete algorithm for finding repeated substrings. This section shows how to "read" the LCP array to extract the actual repeated strings and their locations, moving from abstract integer arrays to concrete answers.</p>
 <h2 id="discovery-phase_5">Discovery Phase</h2>
 <p>Let's use our <code>banana</code> example and set a goal: <strong>find all repeated substrings of length 2 or more (<code>min_n = 2</code>)</strong>.</p>
-<p>Here are our tools:
--   <code>text = "banana"</code>
--   <code>suffix_array = [5, 3, 1, 0, 4, 2]</code>
--   <code>lcp_array = [0, 1, 3, 0, 0, 2]</code></p>
+<p>Here are our tools:</p>
+<ul>
+<li><code>text = "banana"</code></li>
+<li><code>suffix_array = [5, 3, 1, 0, 4, 2]</code></li>
+<li><code>lcp_array = [0, 1, 3, 0, 0, 2]</code></li>
+</ul>
 <p>Our strategy is to iterate through the <code>lcp_array</code> and look for any value greater than or equal to <code>min_n</code>.</p>
 <h3 id="a-manual-trace">A Manual Trace</h3>
 <p>Let's "think aloud" as we loop through the LCP array from <code>i = 1</code> to <code>len-1</code>.</p>
 <ul>
+<li><strong><code>i = 1</code></strong>: <code>lcp_array[1]</code> is <code>1</code>.</li>
 <li>
-<p><strong><code>i = 1</code></strong>: <code>lcp_array[1]</code> is <code>1</code>.</p>
-<ul>
-<li>Is <code>1 &gt;= min_n</code> (which is 2)? No. We skip this. This means the common prefix <code>"a"</code> is too short.</li>
-</ul>
+<p>Is <code>1 &gt;= min_n</code> (which is 2)? No. We skip this. This means the common prefix <code>"a"</code> is too short.</p>
 </li>
 <li>
 <p><strong><code>i = 2</code></strong>: <code>lcp_array[2]</code> is <code>3</code>.</p>
-<ul>
+</li>
 <li>Is <code>3 &gt;= min_n</code>? Yes! <strong>We found something!</strong></li>
 <li>The LCP value of 3 corresponds to the comparison between suffixes at <code>SA[2]</code> and <code>SA[1]</code>.</li>
 <li>The starting position of the current suffix is <code>pos = suffix_array[2] = 1</code>.</li>
 <li>The length of the repetition is <code>length = lcp_array[2] = 3</code>.</li>
 <li>So, the repeated substring is <code>text[pos : pos + length]</code>, which is <code>text[1 : 1 + 3] = "ana"</code>.</li>
-<li>We have found the repeated substring <code>"ana"</code>.</li>
-</ul>
+<li>
+<p>We have found the repeated substring <code>"ana"</code>.</p>
 </li>
 <li>
 <p><strong><code>i = 3</code></strong>: <code>lcp_array[3]</code> is <code>0</code>.</p>
-<ul>
-<li>Is <code>0 &gt;= min_n</code>? No. Skip.</li>
-</ul>
+</li>
+<li>
+<p>Is <code>0 &gt;= min_n</code>? No. Skip.</p>
 </li>
 <li>
 <p><strong><code>i = 4</code></strong>: <code>lcp_array[4]</code> is <code>0</code>.</p>
-<ul>
-<li>Is <code>0 &gt;= min_n</code>? No. Skip.</li>
-</ul>
+</li>
+<li>
+<p>Is <code>0 &gt;= min_n</code>? No. Skip.</p>
 </li>
 <li>
 <p><strong><code>i = 5</code></strong>: <code>lcp_array[5]</code> is <code>2</code>.</p>
-<ul>
+</li>
 <li>Is <code>2 &gt;= min_n</code>? Yes! <strong>Another find!</strong></li>
 <li>This corresponds to suffixes at <code>SA[5]</code> and <code>SA[4]</code>.</li>
 <li>The starting position is <code>pos = suffix_array[5] = 2</code>.</li>
 <li>The length of the repetition is <code>length = lcp_array[5] = 2</code>.</li>
 <li>The repeated substring is <code>text[pos : pos + length]</code>, which is <code>text[2 : 2 + 2] = "na"</code>.</li>
 <li>We have found the repeated substring <code>"na"</code>.</li>
-</ul>
-</li>
 </ul>
 <p>So, our scan has identified <code>"ana"</code> and <code>"na"</code> as repeated substrings.</p>
 <p>Let's write code to perform this scan.</p>
@@ -1147,9 +1161,11 @@ All unique repeated substrings found: [&#39;an&#39;, &#39;ana&#39;, &#39;na&#39;
 <li><strong>Separation of Concerns</strong>: By separating indexing from querying, you can build the index once and store it. Then, your application can run many queries (with different <code>min_n</code> or <code>min_freq</code> values) very quickly without re-doing the expensive part. This is how database indexes work.</li>
 <li><strong>Performance</strong>: This scan is extremely fast. It's a single pass over an array of <code>L</code> integers, so its time complexity is <code>O(L)</code>. The substring extractions take time, but the core logic is linear. This means once the index is built, queries are nearly instantaneous, even for massive texts.</li>
 </ul>
-<p><strong>Trade-offs</strong>:
--   ✅ <strong>Advantage</strong>: Blazing fast query times after the initial indexing cost.
--   ⚠️ <strong>Cost</strong>: The logic to handle counts is still missing. An LCP value of 3 identifies a substring that appears at least <em>twice</em>. If you have <code>LCP[i]=3</code>, <code>LCP[i+1]=4</code>, <code>LCP[i+2]=3</code>, it means you have a block of four suffixes that all start with the same 3 characters. This means the substring is repeated <em>four</em> times, not two. Our current simple scan doesn't handle this grouping correctly. A complete implementation needs to manage these "runs" of high LCP values to get accurate frequencies.</p>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li>✅ <strong>Advantage</strong>: Blazing fast query times after the initial indexing cost.</li>
+<li>⚠️ <strong>Cost</strong>: The logic to handle counts is still missing. An LCP value of 3 identifies a substring that appears at least <em>twice</em>. If you have <code>LCP[i]=3</code>, <code>LCP[i+1]=4</code>, <code>LCP[i+2]=3</code>, it means you have a block of four suffixes that all start with the same 3 characters. This means the substring is repeated <em>four</em> times, not two. Our current simple scan doesn't handle this grouping correctly. A complete implementation needs to manage these "runs" of high LCP values to get accurate frequencies.</li>
+</ul>
 <h2 id="complete-implementation">Complete Implementation</h2>
 <h2 id="learning-objective_6">Learning Objective</h2>
 <p>Combine all pieces into a working algorithm.</p>
@@ -1157,12 +1173,14 @@ All unique repeated substrings found: [&#39;an&#39;, &#39;ana&#39;, &#39;na&#39;
 <p>We've developed all the necessary components in isolation: the suffix array builder, the LCP array builder, and the LCP scanning logic. Now, we'll assemble them into a single, cohesive function. This is a critical skill for any programmer: taking individual parts that you understand and integrating them into a complete, working system that solves the original problem. We will finally have a function that can rival the sliding window implementation from Module 1.</p>
 <h2 id="discovery-phase_6">Discovery Phase</h2>
 <p>Let's define the function signature we want to build. It should be similar to our function from Module 1 to allow for easy comparison: <code>find_repeats(text, min_n, min_freq)</code>.</p>
-<p>Inside this function, we will perform the following steps in order:
-1.  Build the Suffix Array for the text.
-2.  Build the LCP Array using the text and the Suffix Array.
-3.  Scan the LCP Array to find repeated substrings and count their frequencies.
-4.  Filter the results based on <code>min_freq</code>.
-5.  Return the final dictionary of frequent substrings.</p>
+<p>Inside this function, we will perform the following steps in order:</p>
+<ol>
+<li>Build the Suffix Array for the text.</li>
+<li>Build the LCP Array using the text and the Suffix Array.</li>
+<li>Scan the LCP Array to find repeated substrings and count their frequencies.</li>
+<li>Filter the results based on <code>min_freq</code>.</li>
+<li>Return the final dictionary of frequent substrings.</li>
+</ol>
 <p>Let's build this step-by-step.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
 
@@ -1184,7 +1202,7 @@ All unique repeated substrings found: [&#39;an&#39;, &#39;ana&#39;, &#39;na&#39;
         <span class="n">pos1</span> <span class="o">=</span> <span class="n">suffix_array</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">pos2</span> <span class="o">=</span> <span class="n">suffix_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
         <span class="n">common_len</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">while</span> <span class="p">(</span><span class="n">pos1</span> <span class="o">+</span> <span class="n">common_len</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="ow">and</span> 
+        <span class="k">while</span> <span class="p">(</span><span class="n">pos1</span> <span class="o">+</span> <span class="n">common_len</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="ow">and</span>
                <span class="n">pos2</span> <span class="o">+</span> <span class="n">common_len</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="ow">and</span>
                <span class="n">text</span><span class="p">[</span><span class="n">pos1</span> <span class="o">+</span> <span class="n">common_len</span><span class="p">]</span> <span class="o">==</span> <span class="n">text</span><span class="p">[</span><span class="n">pos2</span> <span class="o">+</span> <span class="n">common_len</span><span class="p">]):</span>
             <span class="n">common_len</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -1272,12 +1290,14 @@ Found repeated substrings in &#39;banana&#39; (min_n=2, min_freq=2):
 <p>This is excellent! The final output <code>{ 'an': 2, 'ana': 2, 'na': 2 }</code> correctly identifies the substrings and their frequencies, matching the sliding window result.</p>
 <h2 id="deep-dive_6">Deep Dive</h2>
 <h3 id="tracing-the-counting-logic">Tracing the Counting Logic</h3>
-<p>The frequency counting is the most subtle part. Let's trace it for <code>"an"</code>.
-1.  The LCP scan reaches <code>i=2</code>, with <code>lcp_val = 3</code>.
-2.  Our inner loop runs for <code>length</code> in <code>[2, 3]</code>.
-3.  When <code>length=2</code>, we extract <code>sub = "an"</code>. We do <code>results["an"] += 1</code>. <code>results</code> is now <code>{'an': 1}</code>.
-4.  When <code>length=3</code>, we extract <code>sub = "ana"</code>. <code>results</code> becomes <code>{'an': 1, 'ana': 1}</code>.
-5.  Later, at <code>i=5</code> with <code>lcp_val = 2</code>, we extract <code>sub = "na"</code>. <code>results</code> becomes <code>{'an': 1, 'ana': 1, 'na': 1}</code>.</p>
+<p>The frequency counting is the most subtle part. Let's trace it for <code>"an"</code>.</p>
+<ol>
+<li>The LCP scan reaches <code>i=2</code>, with <code>lcp_val = 3</code>.</li>
+<li>Our inner loop runs for <code>length</code> in <code>[2, 3]</code>.</li>
+<li>When <code>length=2</code>, we extract <code>sub = "an"</code>. We do <code>results["an"] += 1</code>. <code>results</code> is now <code>{'an': 1}</code>.</li>
+<li>When <code>length=3</code>, we extract <code>sub = "ana"</code>. <code>results</code> becomes <code>{'an': 1, 'ana': 1}</code>.</li>
+<li>Later, at <code>i=5</code> with <code>lcp_val = 2</code>, we extract <code>sub = "na"</code>. <code>results</code> becomes <code>{'an': 1, 'ana': 1, 'na': 1}</code>.</li>
+</ol>
 <p>Our counter stores <code>{ "substring": number_of_adjacent_pairs_in_SA_sharing_it }</code>.
 A <code>min_freq</code> of 2 means the substring must appear at least twice. This corresponds to being the common prefix for at least one adjacent pair in the sorted suffix list. So a count of <code>1</code> in our <code>results</code> counter is enough to pass a <code>min_freq=2</code> filter. That's why <code>count + 1 &gt;= min_freq</code> is the correct logic.</p>
 <p>This counting method is a simplification. A truly accurate count for substrings repeated many times (e.g., "issi" in "mississippi") requires a more complex stack-based scan of the LCP array to find contiguous blocks of high LCP values. However, for many common cases, this implementation gives the correct results and demonstrates the core principle.</p>
@@ -1295,9 +1315,11 @@ A <code>min_freq</code> of 2 means the substring must appear at least twice. Thi
 <p>The LCP array in this region might look like <code>[..., 5, 3, 6, ...]</code>. The <code>LCP=3</code> between the 2nd and 3rd suffixes tells us about one pair. The <code>LCP=6</code> between the 3rd and 4th suffixes tells us about another pair. To know that all 4 are related requires looking at the minimum LCP value over the entire block. Our simple implementation double-counts in some cases and under-counts in others. Getting this perfect requires algorithms beyond the scope of this module, but it's important to know this limitation exists.</p>
 <p><strong>How to remember</strong>: LCP is a <em>pairwise</em> comparison. Frequency is a <em>group</em> property. Our simple loop treats the group as a series of pairs.</p>
 <h3 id="production-perspective_6">Production Perspective</h3>
-<p><strong>When professionals choose this</strong>: This complete, integrated function is a powerful tool. A professional developer would now focus on two things:
-1.  <strong>Optimization</strong>: The <code>build_lcp_array_naive</code> is <code>O(L^2)</code>. As we'll see in the next section, this is the first thing we must fix. The <code>build_suffix_array</code> is also not truly linear time.
-2.  <strong>Encapsulation</strong>: Instead of passing <code>text</code>, <code>sa</code>, <code>lcp</code> around, they would create a <code>class TextIndex</code> that stores these arrays as attributes (<code>self.text</code>, <code>self.sa</code>, <code>self.lcp</code>). The <code>__init__</code> method would build the arrays, and methods like <code>find_repeats(min_n, min_freq)</code> would query them. This makes the code much cleaner and easier to use.</p>
+<p><strong>When professionals choose this</strong>: This complete, integrated function is a powerful tool. A professional developer would now focus on two things:</p>
+<ol>
+<li><strong>Optimization</strong>: The <code>build_lcp_array_naive</code> is <code>O(L^2)</code>. As we'll see in the next section, this is the first thing we must fix. The <code>build_suffix_array</code> is also not truly linear time.</li>
+<li><strong>Encapsulation</strong>: Instead of passing <code>text</code>, <code>sa</code>, <code>lcp</code> around, they would create a <code>class TextIndex</code> that stores these arrays as attributes (<code>self.text</code>, <code>self.sa</code>, <code>self.lcp</code>). The <code>__init__</code> method would build the arrays, and methods like <code>find_repeats(min_n, min_freq)</code> would query them. This makes the code much cleaner and easier to use.</li>
+</ol>
 <p><strong>Real-world example</strong>: The code we've written is a great prototype. If you were building a plagiarism detector, you could run this on a student's essay. The <code>final_counts</code> dictionary would give you a list of suspiciously repeated long phrases. You could then compare these phrases against a database of other documents.</p>
 <h2 id="kasais-algorithm-for-lcp">Kasai's Algorithm for LCP</h2>
 <h2 id="learning-objective_7">Learning Objective</h2>
@@ -1320,9 +1342,11 @@ A <code>min_freq</code> of 2 means the substring must appear at least twice. Thi
 <p>Why? If <code>S_i</code> shared <code>h</code> characters with its neighbor, then <code>S_{i+1}</code> (which is <code>S_i</code> minus one character) must share at least <code>h-1</code> characters with the neighbor (which has also had its first character conceptually removed). We don't need to start our character comparison from 0; we can start it from <code>h-1</code>.</p>
 <p>This allows us to carry over a "hint" (<code>h</code>) from one iteration to the next, saving a huge amount of work.</p>
 <h2 id="deep-dive_7">Deep Dive</h2>
-<p>To implement Kasai's algorithm, we need one more helper structure: the <strong>inverse suffix array</strong>, often called the <code>rank</code> array.
--   <code>suffix_array[i] = j</code> means: the <code>i</code>-th suffix in sorted order starts at text position <code>j</code>.
--   <code>rank[j] = i</code> means: the suffix starting at text position <code>j</code> has rank <code>i</code> in the sorted list.</p>
+<p>To implement Kasai's algorithm, we need one more helper structure: the <strong>inverse suffix array</strong>, often called the <code>rank</code> array.</p>
+<ul>
+<li><code>suffix_array[i] = j</code> means: the <code>i</code>-th suffix in sorted order starts at text position <code>j</code>.</li>
+<li><code>rank[j] = i</code> means: the suffix starting at text position <code>j</code> has rank <code>i</code> in the sorted list.</li>
+</ul>
 <p>The <code>rank</code> array lets us instantly look up the sorted position of any suffix.</p>
 <p>Here is the implementation. Pay close attention to the comments explaining how <code>h</code> is carried over.</p>
 <div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">build_lcp_array_kasai</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">suffix_array</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
@@ -1452,21 +1476,21 @@ Arrays are identical: True
 <li><strong>Approx. Operations</strong>: <code>1,000,000 * 20 = 20,000,000</code></li>
 </ul>
 <p><strong>Conclusion</strong>: For a large text, the Suffix Array method is roughly <strong>5 times faster</strong>.</p>
-<p>What if we wanted to check all substring lengths up to 100?
--   <strong>Sliding Window</strong>: <code>1,000,000 * 100 * 50 ≈ 5,000,000,000</code> operations.
--   <strong>Suffix Array</strong>: The work is <em>unchanged</em>! It's still <code>20,000,000</code> operations to build the index. The final scan is still fast.</p>
+<p>What if we wanted to check all substring lengths up to 100?</p>
+<ul>
+<li><strong>Sliding Window</strong>: <code>1,000,000 * 100 * 50 ≈ 5,000,000,000</code> operations.</li>
+<li><strong>Suffix Array</strong>: The work is <em>unchanged</em>! It's still <code>20,000,000</code> operations to build the index. The final scan is still fast.</li>
+</ul>
 <p>This reveals the true power of the suffix array: its performance does not depend on the number or length of the substrings you are looking for. You pay the <code>O(L log L)</code> cost once, then the search is cheap.</p>
 <h3 id="memory-complexity">Memory Complexity</h3>
 <ul>
 <li><strong>Sliding Window</strong>: Uses a <code>Counter</code> or dictionary to store results. The memory depends on the number of unique n-grams found, but is generally proportional to <code>L</code>. Let's say <code>O(L)</code>.</li>
-<li><strong>Suffix Array</strong>:<ul>
+<li><strong>Suffix Array</strong>:</li>
 <li><code>text</code>: <code>O(L)</code></li>
 <li><code>suffix_array</code>: <code>O(L)</code> (stores <code>L</code> integers)</li>
 <li><code>rank_array</code> (inside Kasai): <code>O(L)</code></li>
 <li><code>lcp_array</code>: <code>O(L)</code></li>
 <li>Total memory is <strong><code>O(L)</code></strong>. It's a constant factor larger than the sliding window's memory, but the asymptotic complexity is the same.</li>
-</ul>
-</li>
 </ul>
 <p>(Note: this assumes our <code>O(L log L)</code> suffix array builder that avoids <code>O(L^2)</code> memory).</p>
 <h3 id="common-confusion-is-ol-log-l-always-better-than-oln">Common Confusion: "Is O(L log L) always better than O(L*N)?"</h3>
@@ -1480,24 +1504,20 @@ Arrays are identical: True
 <h3 id="production-perspective_8">Production Perspective</h3>
 <p><strong>When professionals choose this</strong>: The choice between these two algorithms is a classic engineering trade-off.</p>
 <ul>
-<li>
-<p><strong>Choose Sliding Window when</strong>:</p>
-<ul>
+<li><strong>Choose Sliding Window when</strong>:</li>
 <li>The text is small or medium-sized.</li>
 <li>You only need to run a single, simple query (e.g., "find all 3-grams").</li>
 <li>Implementation simplicity and maintainability are more important than raw speed.</li>
-<li>You are writing a quick, one-off script.</li>
-</ul>
+<li>
+<p>You are writing a quick, one-off script.</p>
 </li>
 <li>
 <p><strong>Choose Suffix Array when</strong>:</p>
-<ul>
+</li>
 <li>The text is large (megabytes or gigabytes).</li>
 <li>You need to run multiple or complex queries on the same text.</li>
 <li>Performance is a critical requirement.</li>
 <li>You are building a reusable service or tool where the initial indexing time is an acceptable cost.</li>
-</ul>
-</li>
 </ul>
 <p>This analysis provides the justification for learning the more complex Suffix Array method. It is asymptotically superior and essential for high-performance text processing applications.</p>
 <h2 id="when-to-use-suffix-array">When to Use Suffix Array</h2>
@@ -1509,13 +1529,17 @@ Arrays are identical: True
 <p>Let's imagine two realistic scenarios to see the trade-off in action.</p>
 <h3 id="scenario-1-one-off-log-analysis">Scenario 1: One-Off Log Analysis</h3>
 <p><strong>The Task</strong>: You have a 50MB web server log file from yesterday. Your boss asks, "Can you quickly find all instances of the 10 most common IP addresses that tried to access 'login.php'?"</p>
-<p><strong>Analysis</strong>:
--   <strong>Text Size</strong>: 50MB is moderately large, but manageable.
--   <strong>Query</strong>: This is a single, specific query. You're looking for patterns that look like <code>XXX.XXX.XXX.XXX - ... "GET /login.php ..."</code>.
--   <strong>Frequency</strong>: This is a one-time request. You'll run the script once and give your boss the answer.</p>
-<p><strong>The Decision</strong>:
--   A <strong>Sliding Window</strong> or even a simple regular expression script is the clear winner here.
--   <strong>Why?</strong> The time it would take you to write, debug, and run a Suffix Array implementation would be far greater than the time it takes to just scan through the file once. The preprocessing cost of building the SA/LCP arrays (<code>O(L log L)</code>) offers no benefit because you are not re-querying the data. Simplicity and speed-of-development win.</p>
+<p><strong>Analysis</strong>:</p>
+<ul>
+<li><strong>Text Size</strong>: 50MB is moderately large, but manageable.</li>
+<li><strong>Query</strong>: This is a single, specific query. You're looking for patterns that look like <code>XXX.XXX.XXX.XXX - ... "GET /login.php ..."</code>.</li>
+<li><strong>Frequency</strong>: This is a one-time request. You'll run the script once and give your boss the answer.</li>
+</ul>
+<p><strong>The Decision</strong>:</p>
+<ul>
+<li>A <strong>Sliding Window</strong> or even a simple regular expression script is the clear winner here.</li>
+<li><strong>Why?</strong> The time it would take you to write, debug, and run a Suffix Array implementation would be far greater than the time it takes to just scan through the file once. The preprocessing cost of building the SA/LCP arrays (<code>O(L log L)</code>) offers no benefit because you are not re-querying the data. Simplicity and speed-of-development win.</li>
+</ul>
 <p>Let's prove it with a simple script concept.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
@@ -1552,17 +1576,23 @@ Arrays are identical: True
 
 <p>This simple approach is fast to write and fast enough to run. Using a suffix array here would be over-engineering.</p>
 <h3 id="scenario-2-interactive-genome-explorer">Scenario 2: Interactive Genome Explorer</h3>
-<p><strong>The Task</strong>: You work for a bioinformatics company. You are building a web application where researchers can load a genome (e.g., the 100MB yeast genome) and then interactively query it for repeated DNA sequences. They might ask:
-1.  "Show me all repeats longer than 50 base pairs."
-2.  "Now, find all repeats between 10 and 20 base pairs that occur at least 100 times."
-3.  "What is the single longest sequence that is repeated perfectly somewhere else in the genome?"</p>
-<p><strong>Analysis</strong>:
--   <strong>Text Size</strong>: 100MB is large.
--   <strong>Query</strong>: The queries are numerous, varied, and happen in real-time based on user input.
--   <strong>Frequency</strong>: The same genome data is analyzed again and again with different parameters.</p>
-<p><strong>The Decision</strong>:
--   The <strong>Suffix Array / LCP Array</strong> method is the perfect fit.
--   <strong>Why?</strong> You can afford a one-time, upfront cost to "index" the genome when the user loads it. This might take a few seconds. After that, every single query from the user becomes an extremely fast scan over the LCP array. Answering "What is the longest repeat?" is as simple as finding <code>max(lcp_array)</code>. This provides the interactive, real-time experience the user needs. Trying to run a full sliding window scan for each user query would be far too slow, taking many seconds or minutes per click.</p>
+<p><strong>The Task</strong>: You work for a bioinformatics company. You are building a web application where researchers can load a genome (e.g., the 100MB yeast genome) and then interactively query it for repeated DNA sequences. They might ask:</p>
+<ol>
+<li>"Show me all repeats longer than 50 base pairs."</li>
+<li>"Now, find all repeats between 10 and 20 base pairs that occur at least 100 times."</li>
+<li>"What is the single longest sequence that is repeated perfectly somewhere else in the genome?"</li>
+</ol>
+<p><strong>Analysis</strong>:</p>
+<ul>
+<li><strong>Text Size</strong>: 100MB is large.</li>
+<li><strong>Query</strong>: The queries are numerous, varied, and happen in real-time based on user input.</li>
+<li><strong>Frequency</strong>: The same genome data is analyzed again and again with different parameters.</li>
+</ul>
+<p><strong>The Decision</strong>:</p>
+<ul>
+<li>The <strong>Suffix Array / LCP Array</strong> method is the perfect fit.</li>
+<li><strong>Why?</strong> You can afford a one-time, upfront cost to "index" the genome when the user loads it. This might take a few seconds. After that, every single query from the user becomes an extremely fast scan over the LCP array. Answering "What is the longest repeat?" is as simple as finding <code>max(lcp_array)</code>. This provides the interactive, real-time experience the user needs. Trying to run a full sliding window scan for each user query would be far too slow, taking many seconds or minutes per click.</li>
+</ul>
 <div class="codehilite"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">GenomeExplorer</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome_sequence</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Indexing genome of length </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">genome_sequence</span><span class="p">)</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
@@ -1713,7 +1743,7 @@ Query 2: Found 24 repeats of length 8: [&#39;GATCGAGG&#39;, &#39;TCGATTCG&#39;, 
 <p>In <strong>Module 3: Hash-Based Method</strong>, we will explore this middle ground. We'll learn about <strong>rolling hashes</strong>, a technique that allows us to quickly calculate a "fingerprint" for every substring in the text. This will give us a third, distinct approach to solving our problem, offering its own unique set of trade-offs between speed, simplicity, and accuracy.</p>
         </div>
         <div class="footer">
-            Generated on 2025-10-17 18:54:33 | Made with ❤️ by GitHub Pages Generator
+            Generated on 2025-10-17 20:18:55 | Made with ❤️ by GitHub Pages Generator
         </div>
     </div>
     <script>
