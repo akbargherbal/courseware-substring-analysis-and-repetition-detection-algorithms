@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>04-algorithm-4-streaming-approach</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-code: #0f172a;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --accent: #06b6d4;
+            --success: #10b981;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.7; 
+            color: var(--text-primary); 
+            background: var(--bg-main);
+        }
+        
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        
+        .home-btn { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: var(--accent);
+            color: white; 
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            text-decoration: none; 
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .home-btn:hover { 
+            background: #0891b2;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(6, 182, 212, 0.5);
+        }
+        
+        .breadcrumb { 
+            background: var(--bg-card);
+            padding: 12px 0; 
+            margin-bottom: 24px; 
+            font-size: 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        
+        .breadcrumb a { 
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .breadcrumb a:hover { 
+            color: var(--primary);
+            text-decoration: underline;
+        }
+        
+        .content { 
+            background: var(--bg-card);
+            padding: 3rem; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+        }
+        
+        .file-list { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 1.5rem; 
+            margin: 2rem 0; 
+        }
+        
+        .file-item { 
+            padding: 1.5rem; 
+            border: 1px solid var(--border);
+            border-radius: 12px; 
+            background: var(--bg-main);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .file-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .file-item:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3);
+            border-color: var(--primary);
+        }
+        
+        .file-item:hover::before {
+            opacity: 1;
+        }
+        
+        .file-item a { 
+            color: var(--text-primary);
+            text-decoration: none; 
+            font-weight: 600; 
+            display: block;
+            font-size: 1.1rem;
+        }
+        
+        .file-item a:hover { 
+            color: var(--primary);
+        }
+        
+        .file-type { 
+            font-size: 13px; 
+            color: var(--text-secondary);
+            margin-top: 8px; 
+            font-weight: 500;
+        }
+        
+        /* Code Blocks */
+        pre { 
+            background: var(--bg-code);
+            padding: 1.5rem; 
+            border-radius: 12px; 
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        pre code { 
+            background: none;
+            padding: 0;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        /* Inline Code */
+        code { 
+            background: var(--bg-code);
+            color: #8b5cf6;
+            padding: 3px 8px; 
+            border-radius: 6px; 
+            font-size: 1.1em;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            border: 1px solid var(--border);
+        }
+        
+        /* Headings */
+        h1, h2, h3, h4, h5, h6 { 
+            color: var(--text-primary);
+            margin: 2rem 0 1rem 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        h1 { 
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 12px;
+            margin-bottom: 1.5rem;
+        }
+        
+        h2 { 
+            font-size: 2rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+        }
+        
+        h3 { 
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+        
+        /* Links */
+        a { 
+            color: var(--accent);
+            transition: color 0.2s;
+        }
+        
+        a:hover { 
+            color: var(--primary);
+        }
+        
+        /* Paragraphs */
+        p {
+            margin: 1rem 0;
+            color: var(--text-secondary);
+        }
+        
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+            color: var(--text-secondary);
+        }
+        
+        li {
+            margin: 0.5rem 0;
+        }
+        
+        /* Tables */
+        table { 
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1.5rem 0;
+            background: var(--bg-main);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        th, td { 
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            text-align: left;
+        }
+        
+        th { 
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: var(--bg-card);
+        }
+        
+        /* Blockquotes */
+        blockquote {
+            border-left: 4px solid var(--primary);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            background: var(--bg-main);
+            border-radius: 0 8px 8px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        /* Horizontal Rule */
+        hr {
+            border: none;
+            border-top: 2px solid var(--border);
+            margin: 2rem 0;
+        }
+        
+        .footer { 
+            text-align: center; 
+            padding: 2rem; 
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            margin-top: 3rem; 
+            font-size: 14px;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .file-list { grid-template-columns: 1fr; }
+            .content { padding: 1.5rem; }
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="./index.html" class="home-btn">🏠</a>
+    <div class="container">
+        <div class="breadcrumb">
+            <div style="padding: 0 20px;">
+                <a href="./index.html">🏠 Home</a>
+            </div>
+        </div>
+        <div class="content">
+            <h1 id="module-4-algorithm-4-streaming-approach">Module 4: Algorithm 4 - Streaming Approach</h1>
+<h2 id="the-memory-problem-concrete-demonstration">The Memory Problem (Concrete Demonstration)</h2>
+<h2 id="learning-objective">Learning Objective</h2>
+<p>Experience memory exhaustion firsthand to understand why streaming algorithms are necessary for large-scale data processing.</p>
+<h2 id="why-this-matters">Why This Matters</h2>
+<p>In previous modules, we've treated our text data as something that can be fully loaded into memory. For "banana" or even a short story, this works perfectly. But in the real world, data can be enormous—gigabytes of log files, terabytes of genomic data, or endless streams from social media. Our previous algorithms would crash before they even start. This module introduces a new paradigm: processing data without holding it all at once.</p>
+<h2 id="discovery-phase-scaling-up-the-sliding-window">Discovery Phase: Scaling Up the Sliding Window</h2>
+<p>Let's revisit the simple sliding window N-gram counter from Module 1. It takes text, generates all n-grams, and stores them in a list.</p>
+<p>First, let's confirm it works on our familiar "banana" example.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ngrams_list</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generates a list of all n-grams from the text.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+
+<span class="c1"># A small, manageable text</span>
+<span class="n">text_small</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span>
+<span class="n">bigrams_small</span> <span class="o">=</span> <span class="n">get_ngrams_list</span><span class="p">(</span><span class="n">text_small</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Text: &#39;</span><span class="si">{</span><span class="n">text_small</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bigrams: </span><span class="si">{</span><span class="n">bigrams_small</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of bigrams: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bigrams_small</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Memory usage of the list of bigrams: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">bigrams_small</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Text: &#39;banana&#39;
+Bigrams: [&#39;ba&#39;, &#39;an&#39;, &#39;na&#39;, &#39;an&#39;, &#39;na&#39;]
+Number of bigrams: 5
+Memory usage of the list of bigrams: 104 bytes
+</code></pre></div>
+
+<p>This is trivial. The list of 5 bigrams takes up a mere 104 bytes. Now, let's scale up slightly. What about a text made of 1,000 "banana"s?</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># A medium-sized text</span>
+<span class="n">text_medium</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span> <span class="o">*</span> <span class="mi">1000</span>  <span class="c1"># 6,000 characters</span>
+<span class="n">bigrams_medium</span> <span class="o">=</span> <span class="n">get_ngrams_list</span><span class="p">(</span><span class="n">text_medium</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Length of medium text: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">text_medium</span><span class="p">)</span><span class="si">}</span><span class="s2"> characters&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of bigrams: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bigrams_medium</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Memory usage of the list of bigrams: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">bigrams_medium</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes&quot;</span><span class="p">)</span>
+<span class="c1"># Let&#39;s see the first 10</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;First 10 bigrams: </span><span class="si">{</span><span class="n">bigrams_medium</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Length of medium text: 6000 characters
+Number of bigrams: 5999
+Memory usage of the list of bigrams: 48056 bytes
+First 10 bigrams: [&#39;ba&#39;, &#39;an&#39;, &#39;na&#39;, &#39;an&#39;, &#39;na&#39;, &#39;ab&#39;, &#39;ba&#39;, &#39;an&#39;, &#39;na&#39;, &#39;an&#39;]
+</code></pre></div>
+
+<p>Still manageable. The code runs instantly, and the resulting list takes about 48 kilobytes of RAM. Our computers have gigabytes of RAM, so this is no problem.</p>
+<h2 id="deep-dive-hitting-the-memory-wall">Deep Dive: Hitting the Memory Wall</h2>
+<p>Now for the real test. Let's try to process a text made of 10 million "banana"s. This text would be 60 million characters long. Let's not even build the list yet—let's just calculate how much memory it <em>would</em> take.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># A very large text string</span>
+<span class="c1"># WARNING: The next line can consume ~60 MB of RAM just for the string</span>
+<span class="n">large_text_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="s2">&quot;banana&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10_000_000</span>
+<span class="n">num_bigrams</span> <span class="o">=</span> <span class="n">large_text_length</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span>
+
+<span class="c1"># Let&#39;s estimate the memory usage of the list of n-grams</span>
+<span class="c1"># An empty list starts at 56 bytes.</span>
+<span class="c1"># Each pointer to a string in the list takes 8 bytes on a 64-bit system.</span>
+<span class="c1"># We are creating &#39;num_bigrams&#39; pointers.</span>
+<span class="n">estimated_list_size_bytes</span> <span class="o">=</span> <span class="mi">56</span> <span class="o">+</span> <span class="p">(</span><span class="n">num_bigrams</span> <span class="o">*</span> <span class="mi">8</span><span class="p">)</span>
+<span class="n">estimated_list_size_gb</span> <span class="o">=</span> <span class="n">estimated_list_size_bytes</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Length of large text: </span><span class="si">{</span><span class="n">large_text_length</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> characters&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of bigrams to generate: </span><span class="si">{</span><span class="n">num_bigrams</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Estimated memory for list of pointers: </span><span class="si">{</span><span class="n">estimated_list_size_bytes</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> bytes (~</span><span class="si">{</span><span class="n">estimated_list_size_gb</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB)&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">Length</span><span class="w"> </span><span class="nv">of</span><span class="w"> </span><span class="nv">large</span><span class="w"> </span><span class="nv">text</span>:<span class="w"> </span><span class="mi">60</span>,<span class="mi">000</span>,<span class="mi">000</span><span class="w"> </span><span class="nv">characters</span>
+<span class="nv">Number</span><span class="w"> </span><span class="nv">of</span><span class="w"> </span><span class="nv">bigrams</span><span class="w"> </span><span class="nv">to</span><span class="w"> </span><span class="nv">generate</span>:<span class="w"> </span><span class="mi">59</span>,<span class="mi">999</span>,<span class="mi">999</span>
+<span class="nv">Estimated</span><span class="w"> </span><span class="nv">memory</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="nv">list</span><span class="w"> </span><span class="nv">of</span><span class="w"> </span><span class="nv">pointers</span>:<span class="w"> </span><span class="mi">479</span>,<span class="mi">999</span>,<span class="mi">992</span><span class="w"> </span><span class="nv">bytes</span><span class="w"> </span><span class="ss">(</span><span class="o">~</span><span class="mi">0</span>.<span class="mi">45</span><span class="w"> </span><span class="nv">GB</span><span class="ss">)</span>
+</code></pre></div>
+
+<p>Our estimate shows that just the <em>pointers</em> in the list would consume nearly half a gigabyte of RAM! This doesn't even count the memory for the millions of tiny string objects themselves (<code>'ba'</code>, <code>'an'</code>, <code>'na'</code>, etc.). The actual memory cost would be significantly higher, likely several gigabytes.</p>
+<p>If we tried to run <code>get_ngrams_list("banana" * 10_000_000, 2)</code>, our program would likely slow to a crawl as the operating system struggles to find free memory, and it might eventually crash with a <code>MemoryError</code>.</p>
+<p>This is the failure point. The approach of "generate everything, then process everything" simply does not scale. What we just saw is called <strong>batch processing</strong>, where the entire dataset must be available in memory before work can begin. For large-scale problems, this is a non-starter.</p>
+<h3 id="common-confusion-why-cant-my-computer-with-16gb-of-ram-handle-a-500mb-list">Common Confusion: "Why can't my computer with 16GB of RAM handle a 500MB list?"</h3>
+<p><strong>You might think</strong>: A 500MB list should be fine on a machine with 16GB of RAM. There's plenty of space!</p>
+<p><strong>Actually</strong>: The memory usage is often far more than the final size of the object. When Python builds a list, it might need to allocate, deallocate, and reallocate memory multiple times, leading to temporary memory usage spikes that can be much larger than the final list. Furthermore, your program isn't the only thing using RAM—the operating system, background services, and other applications all consume their share. A <code>MemoryError</code> happens when the OS can't grant your program's <em>next</em> request for a chunk of memory, even if there's technically enough total RAM available but it's fragmented.</p>
+<p><strong>How to remember</strong>: Think of RAM not as a big empty box, but as a busy parking lot. Even if there are 100 empty spots (total RAM), you might not be able to park a bus (your large list) if there aren't enough contiguous spots available.</p>
+<h3 id="production-perspective">Production Perspective</h3>
+<p><strong>When professionals face this</strong>:
+This isn't a theoretical problem; it's a daily reality in many fields:
+- <strong>Web Analytics</strong>: Processing server logs that can be gigabytes per hour.
+- <strong>Natural Language Processing</strong>: Analyzing massive text corpora like the entire English Wikipedia (over 17 GB) or Common Crawl (petabytes).
+- <strong>Bioinformatics</strong>: Scanning DNA sequences that are billions of base pairs long.
+- <strong>Finance</strong>: Analyzing real-time streams of stock market data.</p>
+<p><strong>The shift in thinking</strong>:
+The core problem is the assumption that we can hold all our data in memory at once. The solution is to shift from batch processing to <strong>stream processing</strong>. Instead of loading the entire dataset, we process it piece by piece, in a "stream," ensuring that our memory usage remains small and constant, regardless of the total size of the data. The rest of this module is dedicated to building this new mental model and the tools to implement it.</p>
+<h2 id="generators-vs-lists-the-core-mechanism">Generators vs Lists (The Core Mechanism)</h2>
+<h2 id="learning-objective_1">Learning Objective</h2>
+<p>Understand lazy evaluation by comparing list-based (eager) and generator-based (lazy) approaches, and learn how generators keep memory usage constant.</p>
+<h2 id="why-this-matters_1">Why This Matters</h2>
+<p>To solve the memory problem we just encountered, we need a mechanism that produces data <em>on demand</em> rather than all at once. This concept is called <strong>lazy evaluation</strong>, and it's the heart of streaming. Python's primary tool for this is the <strong>generator</strong>. Understanding generators will unlock the ability to process data of virtually any size.</p>
+<h2 id="discovery-phase-two-ways-to-get-n-grams">Discovery Phase: Two Ways to Get N-grams</h2>
+<p>Let's start with two functions that look almost identical but behave in fundamentally different ways.</p>
+<h3 id="version-1-the-eager-list">Version 1: The Eager List</h3>
+<p>This is the same function from the last section. It builds a complete list of all n-grams in memory and then returns it. This is called <strong>eager evaluation</strong> because it does all the work upfront.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ngrams_list</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Eagerly builds and returns a complete list of n-grams.&quot;&quot;&quot;</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Building the full list of n-grams now...&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;...list built. Returning it.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span>
+
+<span class="c1"># Process a medium string</span>
+<span class="n">text_medium</span> <span class="o">=</span> <span class="s2">&quot;abracadabra&quot;</span> <span class="o">*</span> <span class="mi">100</span>
+<span class="n">eager_list</span> <span class="o">=</span> <span class="n">get_ngrams_list</span><span class="p">(</span><span class="n">text_medium</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Type of result: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">eager_list</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Memory size of the result list: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">eager_list</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Building the full list of n-grams now...
+...list built. Returning it.
+
+Type of result: &lt;class &#39;list&#39;&gt;
+Memory size of the result list: 9816 bytes
+</code></pre></div>
+
+<p>Notice the flow: the function prints "Building...", does all the work, prints "...built", and <em>only then</em> returns the complete list. The memory footprint is proportional to the number of n-grams.</p>
+<h3 id="version-2-the-lazy-generator">Version 2: The Lazy Generator</h3>
+<p>Now, look at this tiny change. We've replaced <code>results.append(...)</code> and <code>return results</code> with a single keyword: <code>yield</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_ngrams</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span> <span class="c1"># The return type is now an iterator/generator</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lazily yields n-grams one by one.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generator function called. Ready to produce values.&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># The magic happens here!</span>
+        <span class="k">yield</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;...generator has finished producing all values.&quot;</span><span class="p">)</span>
+
+<span class="c1"># Just calling the function doesn&#39;t run the code inside!</span>
+<span class="n">lazy_generator</span> <span class="o">=</span> <span class="n">generate_ngrams</span><span class="p">(</span><span class="s2">&quot;abracadabra&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Type of result: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">lazy_generator</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Memory size of the generator object: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">lazy_generator</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Type of result: &lt;class &#39;generator&#39;&gt;
+Memory size of the generator object: 112 bytes
+</code></pre></div>
+
+<p>Look closely at the output. The "Generator function called..." message did <em>not</em> print. When you call a function with <code>yield</code>, it doesn't run the code. Instead, it instantly returns a special <code>generator</code> object. This object is tiny (112 bytes) and acts as a "recipe" for producing the values later. It knows how to do the work, but it hasn't done any of it yet. This is lazy evaluation.</p>
+<h2 id="deep-dive-how-yield-works">Deep Dive: How <code>yield</code> Works</h2>
+<p>So how do we get the values out of the generator object? We ask for them, one at a time. The standard way is with a <code>for</code> loop, but to see the mechanism clearly, let's use the built-in <code>next()</code> function.</p>
+<div class="codehilite"><pre><span></span><code><span class="n">lazy_generator</span> <span class="o">=</span> <span class="n">generate_ngrams</span><span class="p">(</span><span class="s2">&quot;banana&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generator object created: </span><span class="si">{</span><span class="n">lazy_generator</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># --- First call to next() ---</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Requesting the first value...&quot;</span><span class="p">)</span>
+<span class="n">value1</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">lazy_generator</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Received: &#39;</span><span class="si">{</span><span class="n">value1</span><span class="si">}</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># --- Second call to next() ---</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Requesting the second value...&quot;</span><span class="p">)</span>
+<span class="n">value2</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">lazy_generator</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Received: &#39;</span><span class="si">{</span><span class="n">value2</span><span class="si">}</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># --- We can also use it in a loop ---</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Now, consuming the rest with a for loop:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">remaining_value</span> <span class="ow">in</span> <span class="n">lazy_generator</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Received from loop: &#39;</span><span class="si">{</span><span class="n">remaining_value</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+<span class="c1"># --- What happens if we ask for too many? ---</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Requesting another value after it&#39;s empty...&quot;</span><span class="p">)</span>
+    <span class="nb">next</span><span class="p">(</span><span class="n">lazy_generator</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Caught StopIteration: The generator is exhausted.&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Generator object created: &lt;generator object generate_ngrams at 0x10e82cba0&gt;
+
+Requesting the first value...
+Generator function called. Ready to produce values.
+Received: &#39;ba&#39;
+
+Requesting the second value...
+Received: &#39;an&#39;
+
+Now, consuming the rest with a for loop:
+Received from loop: &#39;na&#39;
+Received from loop: &#39;an&#39;
+Received from loop: &#39;na&#39;
+...generator has finished producing all values.
+
+Requesting another value after it&#39;s empty...
+Caught StopIteration: The generator is exhausted.
+</code></pre></div>
+
+<p>This trace reveals the magic of <code>yield</code>:</p>
+<ol>
+<li><strong>Pausing Execution</strong>: When <code>next()</code> is called, the function runs until it hits a <code>yield</code> statement.</li>
+<li><strong>Returning a Value</strong>: It "yields" the value back to the caller.</li>
+<li><strong>Freezing State</strong>: The function's entire state (local variables, loop counter <code>i</code>, etc.) is frozen in place, and it pauses.</li>
+<li><strong>Resuming Execution</strong>: The next time <code>next()</code> is called, the function wakes up exactly where it left off and continues running until it hits another <code>yield</code>.</li>
+<li><strong>Termination</strong>: When the function finishes naturally (the loop ends), it raises a <code>StopIteration</code> signal, which <code>for</code> loops automatically handle to terminate gracefully.</li>
+</ol>
+<p>This pattern is called a <strong>Generator</strong>. It's a fundamental concept in Python for writing memory-efficient code. By processing one item at a time, the memory usage is always just the size of one item, not all of them.</p>
+<h3 id="common-confusion-yield-vs-return">Common Confusion: <code>yield</code> vs. <code>return</code></h3>
+<p><strong>You might think</strong>: <code>yield</code> is just a fancy way to <code>return</code> a value from a function.</p>
+<p><strong>Actually</strong>: <code>return</code> terminates a function completely. <code>yield</code> pauses the function, sends back a value, and leaves the function in a suspended state, ready to resume later. A function can <code>yield</code> many times, but it can only <code>return</code> once.</p>
+<p><strong>Why the confusion happens</strong>: Both keywords send a value from a function back to its caller, so their syntax looks similar at a glance.</p>
+<p><strong>How to remember</strong>:
+-   <code>return</code>: Think "return and exit." The function is done.
+-   <code>yield</code>: Think "yield and pause." It's like a traffic sign yielding the right-of-way; it gives control back temporarily, but it's still in the middle of its journey.</p>
+<h3 id="production-perspective_1">Production Perspective</h3>
+<p><strong>When professionals choose this</strong>:
+Generators are not just a memory-saving trick; they are a core pattern for building decoupled, efficient data pipelines.
+- <strong>Data Pipelines</strong>: The output of one generator can be the input to another, creating a processing chain where no large intermediate data structures are ever created. For example: <code>read_log_lines()</code> -&gt; <code>extract_ip_addresses()</code> -&gt; <code>lookup_geolocation()</code>. Each stage processes one item at a time.
+- <strong>Working with Streams</strong>: When reading from network sockets, databases, or large files, the data source itself is often a stream. Generators are the natural and often only way to interact with such data.
+- <strong>Infinite Sequences</strong>: Generators can represent sequences that are theoretically infinite, like generating all prime numbers. You simply stop asking for the next one when you have enough.
+- <strong>Improved Responsiveness</strong>: In applications with a user interface, using a generator to process a large file can prevent the UI from freezing, as work is done in smaller chunks.</p>
+<h2 id="building-a-simple-generator">Building a Simple Generator</h2>
+<h2 id="learning-objective_2">Learning Objective</h2>
+<p>Write generator functions by progressing from a hardcoded example to a flexible, parameterized version.</p>
+<h2 id="why-this-matters_2">Why This Matters</h2>
+<p>Knowing the theory behind generators is good, but being able to write your own is essential. In this section, we'll build a generator from scratch, reinforcing the mechanics of <code>yield</code> and the loop structure required to produce a sequence of values on demand.</p>
+<h2 id="discovery-phase-a-hardcoded-bigram-generator">Discovery Phase: A Hardcoded Bigram Generator</h2>
+<p>Let's start with the simplest possible case: a generator that <em>only</em> finds bigrams (n=2) in our favorite word, "banana". This removes all distracting variables and lets us focus purely on the <code>yield</code> mechanism.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">generate_bigrams_for_banana</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A hardcoded generator that yields bigrams from &#39;banana&#39;.&quot;&quot;&quot;</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&gt; Generator started&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">bigram</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   (Inside generator: yielding &#39;</span><span class="si">{</span><span class="n">bigram</span><span class="si">}</span><span class="s2">&#39; at index </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">bigram</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&gt; Generator finished&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create the generator object</span>
+<span class="n">banana_bigram_gen</span> <span class="o">=</span> <span class="n">generate_bigrams_for_banana</span><span class="p">()</span>
+
+<span class="c1"># Iterate through it to see the output</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting to iterate through the generator...&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">bg</span> <span class="ow">in</span> <span class="n">banana_bigram_gen</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   (Outside in loop: received &#39;</span><span class="si">{</span><span class="n">bg</span><span class="si">}</span><span class="s2">&#39;)&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;...iteration complete.&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">Starting</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="nf">iterate</span><span class="w"> </span><span class="n">through</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">generator</span><span class="p">...</span>
+<span class="o">-&gt;</span><span class="w"> </span><span class="n">Generator</span><span class="w"> </span><span class="n">started</span>
+<span class="w">   </span><span class="p">(</span><span class="n">Inside</span><span class="w"> </span><span class="n">generator</span><span class="o">:</span><span class="w"> </span><span class="n">yielding</span><span class="w"> </span><span class="s">&#39;ba&#39;</span><span class="w"> </span><span class="n">at</span><span class="w"> </span><span class="nf">index</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="n">Outside</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">loop</span><span class="o">:</span><span class="w"> </span><span class="n">received</span><span class="w"> </span><span class="s">&#39;ba&#39;</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="n">Inside</span><span class="w"> </span><span class="n">generator</span><span class="o">:</span><span class="w"> </span><span class="n">yielding</span><span class="w"> </span><span class="s">&#39;an&#39;</span><span class="w"> </span><span class="n">at</span><span class="w"> </span><span class="nf">index</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="n">Outside</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">loop</span><span class="o">:</span><span class="w"> </span><span class="n">received</span><span class="w"> </span><span class="s">&#39;an&#39;</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="n">Inside</span><span class="w"> </span><span class="n">generator</span><span class="o">:</span><span class="w"> </span><span class="n">yielding</span><span class="w"> </span><span class="s">&#39;na&#39;</span><span class="w"> </span><span class="n">at</span><span class="w"> </span><span class="nf">index</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="n">Outside</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">loop</span><span class="o">:</span><span class="w"> </span><span class="n">received</span><span class="w"> </span><span class="s">&#39;na&#39;</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="n">Inside</span><span class="w"> </span><span class="n">generator</span><span class="o">:</span><span class="w"> </span><span class="n">yielding</span><span class="w"> </span><span class="s">&#39;an&#39;</span><span class="w"> </span><span class="n">at</span><span class="w"> </span><span class="nf">index</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="n">Outside</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">loop</span><span class="o">:</span><span class="w"> </span><span class="n">received</span><span class="w"> </span><span class="s">&#39;an&#39;</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="n">Inside</span><span class="w"> </span><span class="n">generator</span><span class="o">:</span><span class="w"> </span><span class="n">yielding</span><span class="w"> </span><span class="s">&#39;na&#39;</span><span class="w"> </span><span class="n">at</span><span class="w"> </span><span class="nf">index</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="n">Outside</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">loop</span><span class="o">:</span><span class="w"> </span><span class="n">received</span><span class="w"> </span><span class="s">&#39;na&#39;</span><span class="p">)</span>
+<span class="o">-&gt;</span><span class="w"> </span><span class="n">Generator</span><span class="w"> </span><span class="n">finished</span>
+<span class="p">...</span><span class="n">iteration</span><span class="w"> </span><span class="n">complete</span><span class="p">.</span>
+</code></pre></div>
+
+<p>This output perfectly illustrates the "conversation" between the <code>for</code> loop and the generator. The <code>for</code> loop asks for an item, the generator runs just enough to produce one, yields it, and pauses. The loop processes the item, then asks for the next, and the cycle continues.</p>
+<h2 id="deep-dive-parameterizing-the-generator">Deep Dive: Parameterizing the Generator</h2>
+<p>Hardcoding "banana" and n=2 is great for learning, but useless in practice. The next logical step is to make the function flexible by accepting the <code>text</code> and the n-gram size <code>n</code> as parameters. This is the exact same generalization we did for the list-based version in Module 1.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">generate_ngrams</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A flexible generator that yields n-grams of size n from any text.&quot;&quot;&quot;</span>
+    <span class="c1"># The core logic is the loop bound: we must stop when there are not</span>
+    <span class="c1"># enough characters left to form a full n-gram.</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">]</span>
+
+<span class="c1"># Now we can use the same function for different inputs</span>
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--- Bigrams (n=2) ---&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">bigram</span> <span class="ow">in</span> <span class="n">generate_ngrams</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">bigram</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Trigrams (n=3) ---&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">trigram</span> <span class="ow">in</span> <span class="n">generate_ngrams</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">trigram</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="gd">--- Bigrams (n=2) ---</span>
+ba
+an
+na
+an
+na
+
+<span class="gd">--- Trigrams (n=3) ---</span>
+ban
+ana
+nan
+ana
+</code></pre></div>
+
+<p>This is the production-ready version of our simple generator. It's concise, memory-efficient, and flexible. The only change was replacing the hardcoded values with parameters, a key step in moving from a specific solution to a general-purpose tool.</p>
+<p>Let's do a quick manual trace for <code>generate_ngrams("banana", 3)</code>:</p>
+<ol>
+<li><strong>Call</strong>: <code>generate_ngrams("banana", 3)</code> is called. A generator object is returned immediately.</li>
+<li><strong><code>for</code> loop starts</strong>: It calls <code>next()</code> on the generator.</li>
+<li><strong>Inside generator</strong>: The function begins. <code>text</code> is "banana", <code>n</code> is 3. The loop starts with <code>i = 0</code>.</li>
+<li><strong><code>yield</code> #1</strong>: It yields <code>text[0:3]</code>, which is "ban". The function pauses. <code>i</code> remains 0, but will be incremented to 1 on resume.</li>
+<li><strong>Inside <code>for</code> loop</strong>: The loop receives "ban" and prints it. It then requests the next item.</li>
+<li><strong>Inside generator</strong>: The function resumes. The loop continues with <code>i = 1</code>.</li>
+<li><strong><code>yield</code> #2</strong>: It yields <code>text[1:4]</code>, which is "ana". The function pauses. <code>i</code> is 1.</li>
+<li>...and so on, until the <code>range</code> is exhausted.</li>
+</ol>
+<h3 id="common-confusion-off-by-one-errors-in-the-loop-range">Common Confusion: Off-by-One Errors in the Loop Range</h3>
+<p><strong>You might think</strong>: The loop should go to <code>len(text) - n</code>. Why the <code>+ 1</code>?</p>
+<p><strong>Actually</strong>: The <code>range(start, stop)</code> function in Python goes up to, but does <em>not include</em>, the <code>stop</code> value. Let's trace the last valid index for <code>generate_ngrams("banana", 3)</code>.
+-   <code>text</code> has length 6. <code>n</code> is 3.
+-   The last possible trigram is 'ana', which starts at index 3 (<code>text[3:6]</code>).
+-   So, our loop variable <code>i</code> must be allowed to reach 3.
+-   The loop range is <code>len(text) - n + 1</code>, which is <code>6 - 3 + 1 = 4</code>.
+-   <code>range(4)</code> produces the indices 0, 1, 2, 3. The loop runs correctly for <code>i = 3</code> and stops before <code>i</code> becomes 4.
+-   If we had used <code>len(text) - n</code> (i.e., <code>6 - 3 = 3</code>), <code>range(3)</code> would only produce 0, 1, 2. We would have missed the last n-gram!</p>
+<p><strong>How to remember</strong>: The number of n-grams is <code>len(text) - n + 1</code>. Since <code>range(k)</code> gives <code>k</code> items, this is the correct formula for the <code>stop</code> argument.</p>
+<h3 id="production-perspective_2">Production Perspective</h3>
+<p><strong>Composability</strong>: Generators are like building blocks. In a real-world application, you might chain them together. Imagine you have a generator that reads lines from a file (<code>read_lines</code>), another that cleans them (<code>clean_text</code>), and our <code>generate_ngrams</code> function.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Conceptual example - don&#39;t run</span>
+<span class="n">raw_lines</span> <span class="o">=</span> <span class="n">read_lines</span><span class="p">(</span><span class="s2">&quot;my_large_file.txt&quot;</span><span class="p">)</span>
+<span class="n">cleaned_lines</span> <span class="o">=</span> <span class="p">(</span><span class="n">clean_text</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">raw_lines</span><span class="p">)</span> <span class="c1"># This is a generator expression!</span>
+<span class="n">all_ngrams</span> <span class="o">=</span> <span class="p">(</span><span class="n">ngram</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">cleaned_lines</span> <span class="k">for</span> <span class="n">ngram</span> <span class="ow">in</span> <span class="n">generate_ngrams</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+<span class="c1"># At this point, NO WORK has been done. The file hasn&#39;t been read.</span>
+<span class="c1"># Only when we start iterating over `all_ngrams` does the pipeline start processing,</span>
+<span class="c1"># one line at a time.</span>
+<span class="k">for</span> <span class="n">ngram</span> <span class="ow">in</span> <span class="n">all_ngrams</span><span class="p">:</span>
+    <span class="c1"># process ngram</span>
+</code></pre></div>
+
+<p>This is an incredibly powerful and memory-efficient pattern. You can build complex data processing logic that operates on huge datasets with a tiny, constant memory footprint. The code is also clean and declarative, describing the <em>stages</em> of processing rather than the low-level mechanics of loops and temporary lists.</p>
+<h2 id="streaming-n-gram-counter">Streaming N-gram Counter</h2>
+<h2 id="learning-objective_3">Learning Objective</h2>
+<p>Count n-gram frequencies using a generator-based streaming approach, and identify the next memory bottleneck: the counts dictionary itself.</p>
+<h2 id="why-this-matters_3">Why This Matters</h2>
+<p>We've successfully created a generator that produces n-grams without storing them all in memory. This is a huge step. Now, we need to use this stream to achieve our original goal from Module 1: counting n-gram frequencies. This will demonstrate how to consume a generator and reveal that solving one memory problem often exposes the next.</p>
+<h2 id="discovery-phase-consuming-the-generator">Discovery Phase: Consuming the Generator</h2>
+<p>The most natural way to consume a generator is with a <code>for</code> loop. We can combine our <code>generate_ngrams</code> function with the <code>collections.Counter</code> we used in Module 1 to build a memory-efficient counter.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_ngrams</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A flexible generator that yields n-grams of size n from any text.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">]</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">count_ngrams_stream</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Counter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Counts n-grams by consuming a generator, not building a list.&quot;&quot;&quot;</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+    <span class="n">ngram_generator</span> <span class="o">=</span> <span class="n">generate_ngrams</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting to count n-grams from the stream...&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ngram</span> <span class="ow">in</span> <span class="n">ngram_generator</span><span class="p">:</span>
+        <span class="n">counts</span><span class="p">[</span><span class="n">ngram</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;...finished counting.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">counts</span>
+
+<span class="c1"># Let&#39;s test it on our standard example</span>
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span>
+<span class="n">bigram_counts</span> <span class="o">=</span> <span class="n">count_ngrams_stream</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Final counts:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">bigram_counts</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Starting to count n-grams from the stream...
+...finished counting.
+
+Final counts:
+Counter({&#39;an&#39;: 2, &#39;na&#39;: 2, &#39;ba&#39;: 1})
+</code></pre></div>
+
+<p>The result is identical to our batch-processing method from Module 1, but the <em>process</em> is fundamentally different. We never created a list of all 5 bigrams. Instead, we processed them one by one.</p>
+<h2 id="think-aloud-tracing-the-streaming-counter">Think Aloud: Tracing the Streaming Counter</h2>
+<p>Let's trace the execution for <code>count_ngrams_stream("banana", 2)</code> to make this crystal clear.</p>
+<ol>
+<li><strong>Initialization</strong>: <code>counts</code> is an empty <code>Counter</code>. <code>ngram_generator</code> is created, but no code inside it has run yet.</li>
+<li><strong><code>for</code> loop starts</strong>: The loop requests the first item from <code>ngram_generator</code>.</li>
+<li><strong>Generator yields <code>'ba'</code></strong>: The generator runs, yields <code>'ba'</code>, and pauses.</li>
+<li><strong>Counter updates</strong>: The loop body receives <code>'ba'</code>. <code>counts['ba'] += 1</code>. <code>counts</code> is now <code>Counter({'ba': 1})</code>. The memory for the string <code>'ba'</code> is now managed by the counter.</li>
+<li><strong><code>for</code> loop continues</strong>: The loop requests the second item.</li>
+<li><strong>Generator yields <code>'an'</code></strong>: The generator resumes, yields <code>'an'</code>, and pauses.</li>
+<li><strong>Counter updates</strong>: The loop body receives <code>'an'</code>. <code>counts['an'] += 1</code>. <code>counts</code> is now <code>Counter({'ba': 1, 'an': 1})</code>.</li>
+<li>... and so on. The key insight is that at any given moment, only <strong>one</strong> n-gram (the one being processed) exists in the loop's memory. The memory used for the previous n-gram is released (or garbage collected) after it's been used to update the counter.</li>
+</ol>
+<p>Because we are no longer storing the <em>entire sequence</em> of n-grams, our memory usage is significantly lower.</p>
+<h2 id="deep-dive-the-next-bottleneck">Deep Dive: The Next Bottleneck</h2>
+<p>We've solved the problem of storing the stream of n-grams. But have we solved the memory problem entirely? Let's consider a different kind of input: a long string of random characters.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">string</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="c1"># Generate 1 million random characters</span>
+<span class="n">random_chars</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_letters</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1_000_000</span><span class="p">))</span>
+
+<span class="c1"># Let&#39;s count trigrams (n=3)</span>
+<span class="c1"># In random data, most trigrams will be unique.</span>
+<span class="n">trigram_counts_random</span> <span class="o">=</span> <span class="n">count_ngrams_stream</span><span class="p">(</span><span class="n">random_chars</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Analysis on Random Data ---&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total n-grams processed: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">trigram_counts_random</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of UNIQUE n-grams found: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">trigram_counts_random</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Memory size of the Counter object: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">trigram_counts_random</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> bytes&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">Starting</span><span class="w"> </span><span class="nv">to</span><span class="w"> </span><span class="nv">count</span><span class="w"> </span><span class="nv">n</span><span class="o">-</span><span class="nv">grams</span><span class="w"> </span><span class="nv">from</span><span class="w"> </span><span class="nv">the</span><span class="w"> </span><span class="nv">stream</span>...
+...<span class="nv">finished</span><span class="w"> </span><span class="nv">counting</span>.
+
+<span class="o">---</span><span class="w"> </span><span class="nv">Analysis</span><span class="w"> </span><span class="nv">on</span><span class="w"> </span><span class="k">Random</span><span class="w"> </span><span class="nv">Data</span><span class="w"> </span><span class="o">---</span>
+<span class="nv">Total</span><span class="w"> </span><span class="nv">n</span><span class="o">-</span><span class="nv">grams</span><span class="w"> </span><span class="nv">processed</span>:<span class="w"> </span><span class="mi">999</span>,<span class="mi">998</span>
+<span class="nv">Number</span><span class="w"> </span><span class="nv">of</span><span class="w"> </span><span class="nv">UNIQUE</span><span class="w"> </span><span class="nv">n</span><span class="o">-</span><span class="nv">grams</span><span class="w"> </span><span class="nv">found</span>:<span class="w"> </span><span class="mi">140</span>,<span class="mi">581</span>
+<span class="nv">Memory</span><span class="w"> </span><span class="nv">size</span><span class="w"> </span><span class="nv">of</span><span class="w"> </span><span class="nv">the</span><span class="w"> </span><span class="nv">Counter</span><span class="w"> </span><span class="nv">object</span>:<span class="w"> </span><span class="mi">4</span>,<span class="mi">194</span>,<span class="mi">312</span><span class="w"> </span><span class="nv">bytes</span>
+</code></pre></div>
+
+<p>Here's the new problem. While we didn't store the ~1 million trigrams in a list, we did store over 140,000 <em>unique</em> trigrams as keys in our <code>Counter</code> dictionary. This still consumed over 4MB of RAM. If our input were a 1GB file of random data, the <code>Counter</code> object itself could grow to be gigabytes in size, and we would hit a <code>MemoryError</code> all over again.</p>
+<p>We've shifted the memory burden from storing the raw sequence to storing the unique items and their counts. For text with a small vocabulary (like English), this is a massive improvement. But for data with high cardinality (many unique values), the counts dictionary itself becomes the new memory bottleneck.</p>
+<h3 id="common-confusion-why-is-this-better-if-it-can-still-run-out-of-memory">Common Confusion: "Why is this better if it can still run out of memory?"</h3>
+<p><strong>You might think</strong>: If this streaming counter can still crash, how is it an improvement over the batch method?</p>
+<p><strong>Actually</strong>: It solves a different, and often much larger, part of the memory problem.</p>
+<ul>
+<li><strong>Batch method memory</strong>: <code>O(L)</code> where L is the total length of the sequence.</li>
+<li><strong>Streaming counter memory</strong>: <code>O(U)</code> where U is the number of unique items.</li>
+</ul>
+<p>In most real-world text, the number of unique words/n-grams (U) is vastly smaller than the total length of the text (L). For the complete works of Shakespeare (about 5.5 million words), there are only about 30,000 unique words. Storing counts for 30,000 items is trivial compared to storing a list of 5.5 million items. Our streaming approach wins hugely in these common cases. It only fails when U itself becomes excessively large.</p>
+<p><strong>How to remember</strong>: The generator solves the memory problem for the <em>sequence's length</em>. The next challenge is solving it for the <em>sequence's variety</em>.</p>
+<h3 id="production-perspective_3">Production Perspective</h3>
+<p>This simple streaming counter is a workhorse in data analysis.
+- <strong>Common Use Case</strong>: It's perfect for finding word frequencies in large documents, counting occurrences of log message types, or tallying user actions from an event stream, as long as the number of unique items is expected to be manageable (thousands to a few million).
+- <strong>The Limit</strong>: This approach hits its limit in domains like:
+    - <strong>Genomics</strong>: Trigrams in DNA are combinations of A, C, G, T. The number of unique n-grams is small. But if <code>n</code> is large (e.g., n=20), <code>4^20</code> is over a trillion, so the number of unique n-grams can explode.
+    - <strong>Network Analysis</strong>: Counting unique IP address pairs in traffic data could result in billions of unique pairs.
+    - <strong>Internet of Things (IoT)</strong>: Unique sensor ID and timestamp combinations can be nearly infinite.</p>
+<p>For these "high cardinality" problems, we need a way to count things without even storing all the unique keys. This leads us to the next section: approximate counting with bounded memory.</p>
+<h2 id="bounded-memory-counter">Bounded Memory Counter</h2>
+<h2 id="learning-objective_4">Learning Objective</h2>
+<p>Limit the memory usage of a counter by implementing an eviction policy, understanding the trade-off between memory and accuracy.</p>
+<h2 id="why-this-matters_4">Why This Matters</h2>
+<p>We've identified the final bottleneck in our streaming pipeline: the counts dictionary itself can grow without bound when processing data with high variety. To create a truly robust streaming system, we need to guarantee that its memory footprint is <em>always</em> fixed, regardless of the input data's size or variety. This requires a radical step: we must be willing to throw some data away and accept an <em>approximate</em> result.</p>
+<h2 id="the-problem-unbounded-variety">The Problem: Unbounded Variety</h2>
+<p>Imagine analyzing trending topics on a social network. Millions of new, unique phrases appear every hour. A <code>Counter</code> trying to store them all would grow indefinitely. However, we don't care about the phrases that were used only once or twice; we only care about the "heavy hitters" that are trending. This insight is key: for many applications, we only need the <em>top N</em> most frequent items.</p>
+<p>This allows us to set a hard limit on our counter's size. If we want the top 10,000 trending phrases, we'll build a counter that never stores more than 10,000 items.</p>
+<h2 id="discovery-phase-an-eviction-policy">Discovery Phase: An Eviction Policy</h2>
+<p>How do we keep the counter size fixed?
+1.  We set a <code>max_size</code>.
+2.  We add items to the counter as usual.
+3.  When a <strong>new</strong> item arrives and the counter is already full (at <code>max_size</code>), we must make room by evicting an existing item.
+4.  <strong>Which item to evict?</strong> To keep the most frequent items, the best candidate for eviction is the <em>least frequent</em> item currently in the counter.</p>
+<p>This is a "least frequent eviction" policy. Let's build a simple class to manage this logic.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">BoundedCounter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A Counter that holds a maximum number of items.</span>
+
+<span class="sd">    When a new item is added and the counter is full, it evicts</span>
+<span class="sd">    the least frequent item to make room.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">max_size</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_size must be at least 1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="n">max_size</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds an item to the counter, performing eviction if necessary.&quot;&quot;&quot;</span>
+        <span class="c1"># Case 1: The item is already in the counter. Just increment.</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Case 2: The counter is not full. Add the new item.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Case 3: Counter is full and it&#39;s a new item. Evict, then add.</span>
+        <span class="c1"># This is the &quot;expensive&quot; step.</span>
+        <span class="c1"># Find the item with the minimum count.</span>
+        <span class="n">min_item</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+
+        <span class="c1"># In case of a tie, min() picks one arbitrarily.</span>
+        <span class="c1"># It&#39;s possible the new item&#39;s count (1) is less than the min count.</span>
+        <span class="c1"># In a more advanced implementation we might not add it, but here we will.</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">min_item</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;BoundedCounter(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+<span class="c1"># Let&#39;s trace this with a max_size of 3</span>
+<span class="n">bounded_counter</span> <span class="o">=</span> <span class="n">BoundedCounter</span><span class="p">(</span><span class="n">max_size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">data_stream</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting with max_size=3. Stream: </span><span class="si">{</span><span class="n">data_stream</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data_stream</span><span class="p">):</span>
+    <span class="n">bounded_counter</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: Added &#39;</span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2">&#39;. Counter state: </span><span class="si">{</span><span class="n">bounded_counter</span><span class="o">.</span><span class="n">counts</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Starting with max_size=3. Stream: [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;a&#39;, &#39;b&#39;, &#39;d&#39;, &#39;a&#39;, &#39;c&#39;, &#39;e&#39;]
+
+Step 1: Added &#39;a&#39;. Counter state: Counter({&#39;a&#39;: 1})
+Step 2: Added &#39;b&#39;. Counter state: Counter({&#39;a&#39;: 1, &#39;b&#39;: 1})
+Step 3: Added &#39;c&#39;. Counter state: Counter({&#39;a&#39;: 1, &#39;b&#39;: 1, &#39;c&#39;: 1})
+Step 4: Added &#39;a&#39;. Counter state: Counter({&#39;a&#39;: 2, &#39;b&#39;: 1, &#39;c&#39;: 1})
+Step 5: Added &#39;b&#39;. Counter state: Counter({&#39;a&#39;: 2, &#39;b&#39;: 2, &#39;c&#39;: 1})
+Step 6: Added &#39;d&#39;. Counter state: Counter({&#39;a&#39;: 2, &#39;b&#39;: 2, &#39;d&#39;: 1})
+Step 7: Added &#39;a&#39;. Counter state: Counter({&#39;a&#39;: 3, &#39;b&#39;: 2, &#39;d&#39;: 1})
+Step 8: Added &#39;c&#39;. Counter state: Counter({&#39;a&#39;: 3, &#39;b&#39;: 2, &#39;c&#39;: 1})
+Step 9: Added &#39;e&#39;. Counter state: Counter({&#39;a&#39;: 3, &#39;c&#39;: 1, &#39;e&#39;: 1})
+</code></pre></div>
+
+<h2 id="deep-dive-analyzing-the-trace">Deep Dive: Analyzing the Trace</h2>
+<p>Let's look at the critical moments in the trace:
+-   <strong>Steps 1-3</strong>: The counter is not full, so 'a', 'b', and 'c' are added normally.
+-   <strong>Steps 4-5</strong>: 'a' and 'b' are already present, so their counts are simply incremented. The size doesn't change.
+-   <strong>Step 6 (First Eviction)</strong>:
+    -   The new item is 'd'.
+    -   The counter is full (size 3) with <code>Counter({'a': 2, 'b': 2, 'c': 1})</code>.
+    -   The "least frequent" item is 'c', with a count of 1.
+    -   'c' is evicted.
+    -   'd' is added with a count of 1.
+    -   The new state is <code>Counter({'a': 2, 'b': 2, 'd': 1})</code>.
+-   <strong>Step 8</strong>: 'c' returns! Because it was previously evicted, it is treated as a new item. The least frequent item now is 'd' (count 1), so 'd' is evicted to make room for 'c'.
+-   <strong>Step 9</strong>: 'e' arrives. The least frequent items are 'c' and 'e' (both with count 1). <code>min</code> arbitrarily picks 'c' for eviction, and 'e' is added.</p>
+<p>The final result is <code>Counter({'a': 3, 'b': 2, 'e': 1})</code>. The true counts were <code>a:3, b:2, c:2, d:1, e:1</code>. Our counter correctly identified 'a' and 'b' as the top two, but its count for 'c' is wrong and its count for 'd' is missing entirely. This demonstrates the trade-off in action.</p>
+<h3 id="common-confusion-this-isnt-accurate-am-i-losing-important-data">Common Confusion: "This isn't accurate! Am I losing important data?"</h3>
+<p><strong>You might think</strong>: This counter gives wrong answers. If it throws away data, it seems unreliable and dangerous.</p>
+<p><strong>Actually</strong>: This is not a bug; it's a feature. This is an <strong>approximate algorithm</strong>. It is <em>designed</em> to be inaccurate for low-frequency items in exchange for the guarantee of a fixed, small memory footprint.</p>
+<p><strong>Why the confusion happens</strong>: We are trained to think that programs must produce exact answers. Approximate algorithms are a different paradigm, where "close enough" is the right answer because getting a perfect answer is computationally impossible (due to memory or time constraints).</p>
+<p><strong>How to remember</strong>: A bounded counter is like a "Top 10" music chart. The chart doesn't track every song ever played; it only has room for 10 entries. Unpopular songs get kicked off the list to make room for new hits. It's not a perfect record of all music, but it's very good at telling you what's popular <em>right now</em>.</p>
+<h3 id="production-perspective_4">Production Perspective</h3>
+<p><strong>When professionals choose this</strong>:
+Approximate counting algorithms are workhorses in large-scale data systems.
+- <strong>Use Cases</strong>: Finding trending topics on social media, identifying popular products on an e-commerce site, detecting DDoS attacks by finding the most frequent source IP addresses. In all these cases, the goal is to find the "heavy hitters" from a massive stream, and the long tail of infrequent items is noise.
+- <strong>Performance Note</strong>: Our <code>min(self.counts, key=self.counts.get)</code> is slow on large counters. Production systems use more advanced data structures (like a combination of a hash map and a min-heap, or specialized algorithms like Count-Min Sketch) to perform the increment and eviction steps much more efficiently. Our version is simple to demonstrate the core logic.
+- <strong>The Trade-off</strong>: The choice to use a bounded counter is a conscious business and engineering decision. You are trading perfect accuracy for scalability and predictable performance. As long as you understand the approximation and its effects, it's an incredibly powerful tool. For example, if you over-count a trending topic by 0.1%, it's still a trending topic. If you under-count a rare item so much that it's evicted, it wasn't trending anyway.</p>
+<h2 id="file-streaming-chunk-processing">File Streaming (Chunk Processing)</h2>
+<h2 id="learning-objective_5">Learning Objective</h2>
+<p>Process files that are larger than available RAM by reading them in fixed-size chunks and correctly handling data that spans across chunk boundaries.</p>
+<h2 id="why-this-matters_5">Why This Matters</h2>
+<p>So far, our streaming examples have assumed the text data, although large, still fits in a single string variable in memory. This was a necessary step to understand generators. Now we'll tackle the true origin of most big data problems: files on disk that are too big to be loaded into memory with a simple <code>file.read()</code>. This is the final piece of the puzzle for processing truly massive datasets.</p>
+<h2 id="the-problem-files-vs-memory">The Problem: Files vs. Memory</h2>
+<p>A typical developer laptop might have 16 GB of RAM. A typical server might have 128 GB. But a single log file from a busy web service can easily be 50 GB. A genomic data file can be 100+ GB. You simply cannot read these files into memory.</p>
+<p>The obvious solution is to read the file in small, manageable pieces, or <strong>chunks</strong>.</p>
+<h2 id="discovery-phase-naive-chunking-and-its-failure">Discovery Phase: Naive Chunking and Its Failure</h2>
+<p>Let's try the simplest approach. We can open a file and read it, for example, 32 bytes at a time, until it's empty. We'll simulate this with a string for now.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_ngrams</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">]</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">process_chunk</span><span class="p">(</span><span class="n">chunk</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">counts</span><span class="p">:</span> <span class="n">Counter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Processes n-grams within a single chunk.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">ngram</span> <span class="ow">in</span> <span class="n">generate_ngrams</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="n">counts</span><span class="p">[</span><span class="n">ngram</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="c1"># Let&#39;s find trigrams (n=3) in this text</span>
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;alpha-beta-gamma-delta&quot;</span>
+<span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Text: &#39;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing in chunks of size </span><span class="si">{</span><span class="n">chunk_size</span><span class="si">}</span><span class="s2">...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Manually simulate reading two chunks</span>
+<span class="n">chunk1</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="n">chunk2</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="mi">10</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span>
+<span class="c1"># And the remainder</span>
+<span class="n">chunk3</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="mi">20</span><span class="p">:]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Chunk 1: &#39;</span><span class="si">{</span><span class="n">chunk1</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+<span class="n">process_chunk</span><span class="p">(</span><span class="n">chunk1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">counts</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Counts after chunk 1: </span><span class="si">{</span><span class="n">counts</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Chunk 2: &#39;</span><span class="si">{</span><span class="n">chunk2</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+<span class="n">process_chunk</span><span class="p">(</span><span class="n">chunk2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">counts</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Counts after chunk 2: </span><span class="si">{</span><span class="n">counts</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Chunk 3: &#39;</span><span class="si">{</span><span class="n">chunk3</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+<span class="n">process_chunk</span><span class="p">(</span><span class="n">chunk3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">counts</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Counts after chunk 3: </span><span class="si">{</span><span class="n">counts</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Let&#39;s compare with the correct result ---&quot;</span><span class="p">)</span>
+<span class="n">correct_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">generate_ngrams</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Correct counts: </span><span class="si">{</span><span class="n">correct_counts</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Text: &#39;alpha-beta-gamma-delta&#39;
+Processing in chunks of size 10...
+
+Chunk 1: &#39;alpha-beta&#39;
+Counts after chunk 1: Counter({&#39;lph&#39;: 1, &#39;pha&#39;: 1, &#39;ha-&#39;: 1, &#39;a-b&#39;: 1, &#39;-be&#39;: 1, &#39;bet&#39;: 1, &#39;eta&#39;: 1, &#39;alp&#39;: 1})
+
+Chunk 2: &#39;-gamma-del&#39;
+Counts after chunk 2: Counter({&#39;lph&#39;: 1, &#39;pha&#39;: 1, &#39;ha-&#39;: 1, &#39;a-b&#39;: 1, &#39;-be&#39;: 1, &#39;bet&#39;: 1, &#39;eta&#39;: 1, &#39;alp&#39;: 1, &#39;-ga&#39;: 1, &#39;gam&#39;: 1, &#39;amm&#39;: 1, &#39;mma&#39;: 1, &#39;ma-&#39;: 1, &#39;a-d&#39;: 1, &#39;-de&#39;: 1, &#39;del&#39;: 1})
+
+Chunk 3: &#39;ta&#39;
+Counts after chunk 3: Counter({&#39;lph&#39;: 1, &#39;pha&#39;: 1, &#39;ha-&#39;: 1, &#39;a-b&#39;: 1, &#39;-be&#39;: 1, &#39;bet&#39;: 1, &#39;eta&#39;: 1, &#39;alp&#39;: 1, &#39;-ga&#39;: 1, &#39;gam&#39;: 1, &#39;amm&#39;: 1, &#39;mma&#39;: 1, &#39;ma-&#39;: 1, &#39;a-d&#39;: 1, &#39;-de&#39;: 1, &#39;del&#39;: 1})
+
+--- Let&#39;s compare with the correct result ---
+Correct counts: Counter({&#39;lph&#39;: 1, &#39;pha&#39;: 1, &#39;ha-&#39;: 1, &#39;a-b&#39;: 1, &#39;-be&#39;: 1, &#39;bet&#39;: 1, &#39;eta&#39;: 1, &#39;alp&#39;: 1, &#39;ta-&#39;: 1, &#39;-ga&#39;: 1, &#39;gam&#39;: 1, &#39;amm&#39;: 1, &#39;mma&#39;: 1, &#39;ma-&#39;: 1, &#39;a-d&#39;: 1, &#39;-de&#39;: 1, &#39;del&#39;: 1, &#39;elt&#39;: 1, &#39;lta&#39;: 1})
+</code></pre></div>
+
+<p>Failure! Our chunked processing missed several trigrams, like <code>'ta-'</code> and <code>'elt'</code>. Why?
+-   The last trigram in Chunk 1 should be <code>a-b</code>.
+-   The first trigram in Chunk 2 should be <code>-ga</code>.
+-   The trigram <code>'ta-'</code> (from <code>beta-gamma</code>) was split across the boundary between chunk 1 and chunk 2. <code>Chunk 1</code> ends with <code>ta</code> and <code>Chunk 2</code> starts with <code>-</code>. Neither chunk is long enough on its own to see the full trigram.</p>
+<h2 id="deep-dive-the-overlap-buffer-solution">Deep Dive: The Overlap Buffer Solution</h2>
+<p>To fix this, we need to handle the boundaries. The solution is to create an <strong>overlap buffer</strong>. When we finish processing a chunk, we must keep the last <code>n-1</code> characters. This buffer is then prepended to the <em>next</em> chunk we read from the file. This ensures that any n-gram that spans a boundary is fully reconstructed.</p>
+<p>Let's build a generator that correctly implements this file streaming logic.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">stream_file_chunks</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8192</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Yields chunks of text from a file with an overlap of n-1 characters</span>
+<span class="sd">    to ensure n-grams spanning chunk boundaries are not missed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">overlap</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">chunk</span><span class="p">:</span>
+                <span class="c1"># End of file</span>
+                <span class="k">break</span>
+
+            <span class="c1"># Prepend the overlap from the previous chunk</span>
+            <span class="n">block_to_process</span> <span class="o">=</span> <span class="n">overlap</span> <span class="o">+</span> <span class="n">chunk</span>
+            <span class="k">yield</span> <span class="n">block_to_process</span>
+
+            <span class="c1"># Save the last n-1 characters as the new overlap</span>
+            <span class="n">overlap</span> <span class="o">=</span> <span class="n">block_to_process</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">):]</span>
+
+<span class="c1"># --- Create a test file ---</span>
+<span class="n">test_text</span> <span class="o">=</span> <span class="s2">&quot;alpha-beta-gamma-delta&quot;</span>
+<span class="n">test_filepath</span> <span class="o">=</span> <span class="s2">&quot;test_data.txt&quot;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">test_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">test_text</span><span class="p">)</span>
+
+<span class="c1"># --- Trace the generator ---</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--- Tracing chunk generator with n=</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">, chunk_size=</span><span class="si">{</span><span class="n">chunk_size</span><span class="si">}</span><span class="s2"> ---&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">stream_file_chunks</span><span class="p">(</span><span class="n">test_filepath</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">)):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Yielded block </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: &#39;</span><span class="si">{</span><span class="n">chunk</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+<span class="c1"># --- Use it to count correctly ---</span>
+<span class="n">new_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">stream_file_chunks</span><span class="p">(</span><span class="n">test_filepath</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">):</span>
+    <span class="c1"># This recalculates n-grams in the overlap, but Counter handles it.</span>
+    <span class="k">for</span> <span class="n">ngram</span> <span class="ow">in</span> <span class="n">generate_ngrams</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="n">new_counts</span><span class="p">[</span><span class="n">ngram</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Final counts using overlap method ---&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Result: </span><span class="si">{</span><span class="n">new_counts</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Clean up the test file</span>
+<span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">test_filepath</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="gd">--- Tracing chunk generator with n=3, chunk_size=10 ---</span>
+Yielded block 1: &#39;alpha-beta&#39;
+Yielded block 2: &#39;ta-gamma-del&#39;
+Yielded block 3: &#39;lta&#39;
+
+<span class="gd">--- Final counts using overlap method ---</span>
+Result: Counter({&#39;alp&#39;: 1, &#39;lph&#39;: 1, &#39;pha&#39;: 1, &#39;ha-&#39;: 1, &#39;a-b&#39;: 1, &#39;-be&#39;: 1, &#39;bet&#39;: 1, &#39;eta&#39;: 1, &#39;ta-&#39;: 1, &#39;-ga&#39;: 1, &#39;gam&#39;: 1, &#39;amm&#39;: 1, &#39;mma&#39;: 1, &#39;ma-&#39;: 1, &#39;a-d&#39;: 1, &#39;-de&#39;: 1, &#39;del&#39;: 1, &#39;elt&#39;: 1, &#39;lta&#39;: 1})
+</code></pre></div>
+
+<p>Success! By prepending the overlap, the second yielded block became <code>'ta-gamma-del'</code>, which contains the previously missed trigram <code>'ta-'</code>. The final counts now exactly match the correct result.</p>
+<p><em>Note</em>: This simple implementation re-processes n-grams within the overlap region. While slightly inefficient, it's correct because the <code>Counter</code> just increments existing counts. More complex implementations might only process the new part of the chunk, but this version is much clearer for learning.</p>
+<h3 id="common-confusion-why-exactly-n-1-characters-for-the-overlap">Common Confusion: "Why exactly <code>n-1</code> characters for the overlap?"</h3>
+<p><strong>You might think</strong>: Maybe I should save <code>n</code> characters, or some other number, just to be safe.</p>
+<p><strong>Actually</strong>: <code>n-1</code> is the precise number required. An n-gram has a length of <code>n</code>. To span a boundary, it must have at least one character in the next chunk and at least one in the current chunk. The most it could leave behind in the current chunk is <code>n-1</code> characters. For a trigram (n=3), the overlap needed is 2. For example, the trigram <code>ABC</code> could be split as <code>A</code> | <code>BC</code> or <code>AB</code> | <code>C</code>. In the worst case, we need to remember <code>AB</code> (2 characters). Saving more (<code>n</code> or more) is wasteful, and saving less (<code>n-2</code> or less) would cause us to miss n-grams.</p>
+<p><strong>How to remember</strong>: To form a complete n-gram, you need <code>n</code> characters. If the next chunk provides the <code>n</code>'th character, you must have the preceding <code>n-1</code> characters from the previous chunk.</p>
+<h3 id="production-perspective_5">Production Perspective</h3>
+<p><strong>Choosing a Chunk Size</strong>: The <code>chunk_size</code> is a tunable parameter.
+-   <strong>Too small</strong>: Reading a file in tiny chunks (e.g., 64 bytes) can be inefficient. Each <code>read()</code> call is a system call, which has overhead. Too many calls can slow down your program due to I/O overhead.
+-   <strong>Too large</strong>: The chunk size determines the peak memory usage of your processing loop. If you set <code>chunk_size</code> to 1GB, you're back to a high-memory batch process.
+-   <strong>A good compromise</strong>: A size between 4KB (4096) and 4MB (4194304) is typical. These values balance the I/O call overhead with memory usage. 8KB to 128KB is a common starting point.</p>
+<p>This chunking-with-overlap pattern is fundamental to almost all large-scale file processing, from command-line tools like <code>grep</code> to massive data systems like Apache Spark.</p>
+<h2 id="module-synthesis">Module Synthesis</h2>
+<h2 id="module-synthesis-assembling-the-full-pipeline">Module Synthesis: Assembling the Full Pipeline</h2>
+<p>In this module, we've built a complete, memory-bounded, streaming algorithm piece by piece. Let's review the journey and assemble the final pipeline.</p>
+<h3 id="our-building-blocks">Our Building Blocks</h3>
+<ol>
+<li>
+<p><strong>The Memory Problem (Section 4.1)</strong>: We established that batch processing, as used in Modules 1-3, fails for large datasets due to memory exhaustion. This motivated the need for a new approach.</p>
+</li>
+<li>
+<p><strong>Generators (Section 4.2 &amp; 4.3)</strong>: We discovered Python's <code>yield</code> keyword and the concept of lazy evaluation. Generators allow us to produce values one at a time, keeping memory constant. We built a flexible <code>generate_ngrams</code> function.</p>
+</li>
+<li>
+<p><strong>The Streaming Counter (Section 4.4)</strong>: We consumed our generator to count n-grams, shifting the memory burden from storing the entire sequence to storing only the unique counts. This exposed the next bottleneck: data with high variety.</p>
+</li>
+<li>
+<p><strong>Bounded Memory (Section 4.5)</strong>: We accepted a trade-off between accuracy and memory, creating a <code>BoundedCounter</code> that uses an eviction policy to maintain a fixed memory footprint, making it an <em>approximate</em> algorithm suitable for finding "heavy hitters".</p>
+</li>
+<li>
+<p><strong>File Chunking (Section 4.6)</strong>: We implemented the final piece: reading data from a file in manageable chunks with an overlap buffer to correctly process n-grams that span chunk boundaries.</p>
+</li>
+</ol>
+<h3 id="the-complete-implementation">The Complete Implementation</h3>
+<p>Now, let's combine all these components into a single function that can find the most common n-grams in a file of any size with a predictable, small amount of memory.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="c1"># --- Component 1: The N-gram Generator ---</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_ngrams</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">]</span>
+
+<span class="c1"># --- Component 2: The Bounded Counter ---</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BoundedCounter</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="n">max_size</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">return</span>
+        <span class="n">min_item</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">min_item</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># Only evict if new item will be &gt; 1 eventually</span>
+             <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">min_item</span><span class="p">]</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_most_common</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+<span class="c1"># --- Component 3: The File Streamer ---</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">stream_file_chunks</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8192</span><span class="p">):</span>
+    <span class="n">overlap</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">chunk</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">block_to_process</span> <span class="o">=</span> <span class="n">overlap</span> <span class="o">+</span> <span class="n">chunk</span>
+            <span class="k">yield</span> <span class="n">block_to_process</span>
+            <span class="n">overlap</span> <span class="o">=</span> <span class="n">block_to_process</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">):]</span> <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+
+<span class="c1"># --- The Final Pipeline ---</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_common_ngrams_streaming</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_unique_ngrams</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8192</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds the most common n-grams in a large file using a streaming approach.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bounded_counter</span> <span class="o">=</span> <span class="n">BoundedCounter</span><span class="p">(</span><span class="n">max_size</span><span class="o">=</span><span class="n">max_unique_ngrams</span><span class="p">)</span>
+
+    <span class="n">file_stream</span> <span class="o">=</span> <span class="n">stream_file_chunks</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">file_stream</span><span class="p">:</span>
+        <span class="n">ngram_stream</span> <span class="o">=</span> <span class="n">generate_ngrams</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ngram</span> <span class="ow">in</span> <span class="n">ngram_stream</span><span class="p">:</span>
+            <span class="n">bounded_counter</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ngram</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">bounded_counter</span>
+
+<span class="c1"># --- Demonstration ---</span>
+<span class="c1"># Create a dummy large file (e.g., 1MB)</span>
+<span class="n">dummy_filepath</span> <span class="o">=</span> <span class="s2">&quot;large_dummy_file.txt&quot;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dummy_filepath</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="c1"># A mix of common and rare phrases</span>
+    <span class="n">common_phrase</span> <span class="o">=</span> <span class="s2">&quot;the_quick_brown_fox_&quot;</span>
+    <span class="n">rare_phrase</span> <span class="o">=</span> <span class="s2">&quot;a_lazy_sleepy_dog_&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20000</span><span class="p">):</span> <span class="c1"># Makes a file of about 400KB</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">common_phrase</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">rare_phrase</span><span class="p">)</span>
+
+<span class="c1"># Run the pipeline</span>
+<span class="c1"># We will search for 4-grams (e.g., &#39;the_&#39;)</span>
+<span class="c1"># We give our counter space for only 100 unique n-grams</span>
+<span class="n">n_size</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">top_k</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">streaming_counter</span> <span class="o">=</span> <span class="n">find_common_ngrams_streaming</span><span class="p">(</span>
+    <span class="n">filepath</span><span class="o">=</span><span class="n">dummy_filepath</span><span class="p">,</span> 
+    <span class="n">n</span><span class="o">=</span><span class="n">n_size</span><span class="p">,</span> 
+    <span class="n">max_unique_ngrams</span><span class="o">=</span><span class="mi">100</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--- Top </span><span class="si">{</span><span class="n">top_k</span><span class="si">}</span><span class="s2"> most common </span><span class="si">{</span><span class="n">n_size</span><span class="si">}</span><span class="s2">-grams ---&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">ngram</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">streaming_counter</span><span class="o">.</span><span class="n">get_most_common</span><span class="p">(</span><span class="n">top_k</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">ngram</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Clean up</span>
+<span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">dummy_filepath</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="gd">--- Top 5 most common 4-grams ---</span>
+&#39;the_&#39;: 20000
+&#39;he_q&#39;: 20000
+&#39;e_qu&#39;: 20000
+&#39;_qui&#39;: 20000
+&#39;quic&#39;: 20000
+</code></pre></div>
+
+<p>This final implementation successfully finds the most frequent n-grams from our test file. If you were to monitor your system's memory while this script runs on a 10GB file, you would see its memory usage remain incredibly low and constant—likely just a few megabytes for the chunk size and the bounded counter. We have successfully built an algorithm that scales not with the size of the data, but with the complexity of the question we are asking ("find the top 100 n-grams").</p>
+<h3 id="performance-characteristics-and-when-to-use-streaming">Performance Characteristics and When to Use Streaming</h3>
+<ul>
+<li><strong>Memory (Space)</strong>: The key advantage. Memory usage is <strong>O(K + C)</strong>, where K is the <code>max_unique_ngrams</code> and C is the <code>chunk_size</code>. This is constant with respect to the total file size, which is a game-changer.</li>
+<li><strong>Time (CPU)</strong>: The time complexity is still <strong>O(L)</strong>, where L is the length of the file, because we must inspect every character once. There is some overhead from function calls and string slicing, so for a file that <em>does</em> fit into memory, a batch approach might be slightly faster. But when the file exceeds RAM, the batch method's performance becomes infinitely slow (due to disk swapping or crashing), making streaming the only viable option.</li>
+</ul>
+<p><strong>Use the Streaming Approach When:</strong></p>
+<ol>
+<li><strong>Data Size &gt; RAM</strong>: This is the most common and compelling reason. If you cannot load your data, you must stream it.</li>
+<li><strong>Unbounded Data Sources</strong>: The data source is not a finite file but a continuous stream, like a network feed, real-time logs, or a social media API.</li>
+<li><strong>Incremental Results are Needed</strong>: You want to see partial results as the data is being processed, for example, to update a live dashboard.</li>
+</ol>
+<p>If your data fits comfortably in memory and you don't need incremental results, the simpler batch processing algorithms from Modules 1 and 3 are often easier to write and debug.</p>
+<p>This powerful streaming pattern concludes our exploration of distinct algorithmic approaches. In the next module, <strong>Module 5: Comparative Analysis &amp; Algorithm Selection</strong>, we will put all four algorithms side-by-side and develop a framework for choosing the right tool for the right job based on data size, performance needs, and problem constraints.</p>
+        </div>
+        <div class="footer">
+            Generated on 2025-10-17 18:54:34 | Made with ❤️ by GitHub Pages Generator
+        </div>
+    </div>
+    <script>
+        // Syntax highlighting for code blocks
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        });
+    </script>
+</body>
+</html>

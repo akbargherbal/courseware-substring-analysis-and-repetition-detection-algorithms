@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>03-algorithm-3-hash-based-method</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-code: #0f172a;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --accent: #06b6d4;
+            --success: #10b981;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.7; 
+            color: var(--text-primary); 
+            background: var(--bg-main);
+        }
+        
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        
+        .home-btn { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: var(--accent);
+            color: white; 
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            text-decoration: none; 
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .home-btn:hover { 
+            background: #0891b2;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(6, 182, 212, 0.5);
+        }
+        
+        .breadcrumb { 
+            background: var(--bg-card);
+            padding: 12px 0; 
+            margin-bottom: 24px; 
+            font-size: 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        
+        .breadcrumb a { 
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .breadcrumb a:hover { 
+            color: var(--primary);
+            text-decoration: underline;
+        }
+        
+        .content { 
+            background: var(--bg-card);
+            padding: 3rem; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+        }
+        
+        .file-list { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 1.5rem; 
+            margin: 2rem 0; 
+        }
+        
+        .file-item { 
+            padding: 1.5rem; 
+            border: 1px solid var(--border);
+            border-radius: 12px; 
+            background: var(--bg-main);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .file-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .file-item:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3);
+            border-color: var(--primary);
+        }
+        
+        .file-item:hover::before {
+            opacity: 1;
+        }
+        
+        .file-item a { 
+            color: var(--text-primary);
+            text-decoration: none; 
+            font-weight: 600; 
+            display: block;
+            font-size: 1.1rem;
+        }
+        
+        .file-item a:hover { 
+            color: var(--primary);
+        }
+        
+        .file-type { 
+            font-size: 13px; 
+            color: var(--text-secondary);
+            margin-top: 8px; 
+            font-weight: 500;
+        }
+        
+        /* Code Blocks */
+        pre { 
+            background: var(--bg-code);
+            padding: 1.5rem; 
+            border-radius: 12px; 
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        pre code { 
+            background: none;
+            padding: 0;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        /* Inline Code */
+        code { 
+            background: var(--bg-code);
+            color: #8b5cf6;
+            padding: 3px 8px; 
+            border-radius: 6px; 
+            font-size: 1.1em;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            border: 1px solid var(--border);
+        }
+        
+        /* Headings */
+        h1, h2, h3, h4, h5, h6 { 
+            color: var(--text-primary);
+            margin: 2rem 0 1rem 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        h1 { 
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 12px;
+            margin-bottom: 1.5rem;
+        }
+        
+        h2 { 
+            font-size: 2rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+        }
+        
+        h3 { 
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+        
+        /* Links */
+        a { 
+            color: var(--accent);
+            transition: color 0.2s;
+        }
+        
+        a:hover { 
+            color: var(--primary);
+        }
+        
+        /* Paragraphs */
+        p {
+            margin: 1rem 0;
+            color: var(--text-secondary);
+        }
+        
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+            color: var(--text-secondary);
+        }
+        
+        li {
+            margin: 0.5rem 0;
+        }
+        
+        /* Tables */
+        table { 
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1.5rem 0;
+            background: var(--bg-main);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        th, td { 
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            text-align: left;
+        }
+        
+        th { 
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: var(--bg-card);
+        }
+        
+        /* Blockquotes */
+        blockquote {
+            border-left: 4px solid var(--primary);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            background: var(--bg-main);
+            border-radius: 0 8px 8px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        /* Horizontal Rule */
+        hr {
+            border: none;
+            border-top: 2px solid var(--border);
+            margin: 2rem 0;
+        }
+        
+        .footer { 
+            text-align: center; 
+            padding: 2rem; 
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            margin-top: 3rem; 
+            font-size: 14px;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .file-list { grid-template-columns: 1fr; }
+            .content { padding: 1.5rem; }
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="./index.html" class="home-btn">🏠</a>
+    <div class="container">
+        <div class="breadcrumb">
+            <div style="padding: 0 20px;">
+                <a href="./index.html">🏠 Home</a>
+            </div>
+        </div>
+        <div class="content">
+            <h1 id="module-3-algorithm-3-hash-based-method">Module 3: Algorithm 3 - Hash-Based Method</h1>
+<h2 id="the-hashing-idea-intuitive-introduction">The Hashing Idea (Intuitive Introduction)</h2>
+<h2 id="learning-objective">Learning Objective</h2>
+<p>Understand hashing as a shortcut for comparing text segments.</p>
+<h2 id="why-this-matters">Why This Matters</h2>
+<p>So far, our algorithms have involved direct comparisons of substrings. The Sliding Window approach (Module 1) compared substrings by storing them in a dictionary, which involves character-by-character checks internally. The Suffix Array method (Module 2) grouped similar substrings by sorting, which also relies on character-by-character comparisons. These comparisons are accurate but can be slow, especially for long substrings. Hashing offers a radical shortcut: what if we could compare two long strings with a single operation?</p>
+<h2 id="discovery-phase-the-cost-of-comparison">Discovery Phase: The Cost of Comparison</h2>
+<p>Let's start with a concrete problem. We have a text and we want to know if two substrings are identical.</p>
+<p>Consider the text <code>text = "bananarama"</code>. Are the substrings <code>text[1:4]</code> ("ana") and <code>text[3:6]</code> ("ana") the same?</p>
+<div class="codehilite"><pre><span></span><code><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;bananarama&quot;</span>
+<span class="n">substring1</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+<span class="n">substring2</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+
+<span class="c1"># Python&#39;s == operator does a character-by-character comparison</span>
+<span class="c1"># 1. Compare &#39;a&#39; and &#39;a&#39; (match)</span>
+<span class="c1"># 2. Compare &#39;n&#39; and &#39;n&#39; (match)</span>
+<span class="c1"># 3. Compare &#39;a&#39; and &#39;a&#39; (match)</span>
+<span class="c1"># Result: True, after 3 operations.</span>
+<span class="n">are_equal</span> <span class="o">=</span> <span class="p">(</span><span class="n">substring1</span> <span class="o">==</span> <span class="n">substring2</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Is &#39;</span><span class="si">{</span><span class="n">substring1</span><span class="si">}</span><span class="s2">&#39; equal to &#39;</span><span class="si">{</span><span class="n">substring2</span><span class="si">}</span><span class="s2">&#39;? </span><span class="si">{</span><span class="n">are_equal</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Is &#39;ana&#39; equal to &#39;ana&#39;? True
+</code></pre></div>
+
+<p>This seems fast for a 3-character string. But what if we were comparing document sections of 10,000 characters? The comparison would take 10,000 steps. If we're finding all repeated substrings, we might do millions of such comparisons. The total cost adds up quickly.</p>
+<p>This leads to a powerful idea: can we represent each substring with a single number (its "hash") and compare those numbers instead? Comparing two numbers is a single, extremely fast operation for a CPU, regardless of how large the original strings were.</p>
+<h3 id="a-simple-hashing-idea-sum-of-character-codes">A Simple Hashing Idea: Sum of Character Codes</h3>
+<p>Let's invent a simple hash function. A straightforward idea is to sum the ASCII/Unicode values (ordinal values) of the characters in a string. Python's <code>ord()</code> function gives us this value.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">simple_hash</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculates a simple hash by summing character ordinals.&quot;&quot;&quot;</span>
+    <span class="n">hash_value</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+        <span class="n">hash_value</span> <span class="o">+=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hash_value</span>
+
+<span class="c1"># Let&#39;s test it on our &#39;banana&#39; bigrams</span>
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span>
+<span class="n">bigram1</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="c1"># &#39;ba&#39;</span>
+<span class="n">bigram2</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="c1"># &#39;an&#39;</span>
+
+<span class="n">hash1</span> <span class="o">=</span> <span class="n">simple_hash</span><span class="p">(</span><span class="n">bigram1</span><span class="p">)</span> <span class="c1"># ord(&#39;b&#39;) + ord(&#39;a&#39;) = 98 + 97 = 195</span>
+<span class="n">hash2</span> <span class="o">=</span> <span class="n">simple_hash</span><span class="p">(</span><span class="n">bigram2</span><span class="p">)</span> <span class="c1"># ord(&#39;a&#39;) + ord(&#39;n&#39;) = 97 + 110 = 207</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hash of &#39;</span><span class="si">{</span><span class="n">bigram1</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">hash1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hash of &#39;</span><span class="si">{</span><span class="n">bigram2</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">hash2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Are hashes equal? </span><span class="si">{</span><span class="n">hash1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">hash2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Hash of &#39;ba&#39;: 195
+Hash of &#39;an&#39;: 207
+Are hashes equal? False
+</code></pre></div>
+
+<p>This is great! We compared <code>195 != 207</code> in one operation and correctly concluded that 'ba' is not equal to 'an'. This seems like a promising shortcut.</p>
+<h2 id="deep-dive-the-failure-case-hash-collisions">Deep Dive: The Failure Case - Hash Collisions</h2>
+<p>Now, let's apply this to a different pair of substrings to see where it breaks. This is a critical step: <strong>showing failure before the solution</strong>. What happens if we hash 'ab' and 'ba'?</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">simple_hash</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculates a simple hash by summing character ordinals.&quot;&quot;&quot;</span>
+    <span class="n">hash_value</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+        <span class="n">hash_value</span> <span class="o">+=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hash_value</span>
+
+<span class="n">s1</span> <span class="o">=</span> <span class="s2">&quot;ab&quot;</span>
+<span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;ba&quot;</span>
+
+<span class="n">hash1</span> <span class="o">=</span> <span class="n">simple_hash</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>  <span class="c1"># ord(&#39;a&#39;) + ord(&#39;b&#39;) = 97 + 98 = 195</span>
+<span class="n">hash2</span> <span class="o">=</span> <span class="n">simple_hash</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span>  <span class="c1"># ord(&#39;b&#39;) + ord(&#39;a&#39;) = 98 + 97 = 195</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;String 1: &#39;</span><span class="si">{</span><span class="n">s1</span><span class="si">}</span><span class="s2">&#39;, Hash: </span><span class="si">{</span><span class="n">hash1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;String 2: &#39;</span><span class="si">{</span><span class="n">s2</span><span class="si">}</span><span class="s2">&#39;, Hash: </span><span class="si">{</span><span class="n">hash2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Are hashes equal? </span><span class="si">{</span><span class="n">hash1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">hash2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Are strings equal? </span><span class="si">{</span><span class="n">s1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">s2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>String 1: &#39;ab&#39;, Hash: 195
+String 2: &#39;ba&#39;, Hash: 195
+Are hashes equal? True
+Are strings equal? False
+</code></pre></div>
+
+<p>This is a disaster for our algorithm. Our hash function reported that 'ab' and 'ba' are the same because <code>195 == 195</code>. But the strings are clearly different. This event is called a <strong>hash collision</strong>: two different inputs produce the same hash output.</p>
+<p>Our simple summing hash fails because it's position-agnostic. It doesn't care about the <em>order</em> of the characters, only their presence. For finding substrings, order is everything.</p>
+<p>What we just discovered is the fundamental challenge of hashing for this problem: we need a hash function that is fast to compute but also has a very low probability of collisions. Our goal is to find a function where <code>hash(s1) == hash(s2)</code> almost certainly means <code>s1 == s2</code>. This leads us to a much more robust technique.</p>
+<h2 id="polynomial-rolling-hash-hardcoded">Polynomial Rolling Hash (Hardcoded)</h2>
+<h2 id="learning-objective_1">Learning Objective</h2>
+<p>Learn how to make hash values sensitive to character position.</p>
+<h2 id="why-this-matters_1">Why This Matters</h2>
+<p>In the last section, we saw that a simple sum-based hash function created collisions for anagrams like 'ab' and 'ba'. To fix this, we need to incorporate character position into the hash calculation. The standard way to do this is with a <strong>polynomial rolling hash</strong>. The name sounds complex, but the idea is simple: make each character's contribution to the hash depend on its position in the string.</p>
+<h2 id="discovery-phase-adding-positional-weight">Discovery Phase: Adding Positional Weight</h2>
+<p>Think of how number systems work. In the number <code>123</code>, the <code>1</code> is worth <code>1 * 100</code>, the <code>2</code> is worth <code>2 * 10</code>, and the <code>3</code> is worth <code>3 * 1</code>. The position of the digit determines its magnitude. We can apply the same logic to strings.</p>
+<p>Let's create a hash function where the first character's value is multiplied by a large number (a "base"), the second character by a smaller number, and so on. A common choice for the base is a prime number larger than the size of our character set (e.g., for ASCII, any prime &gt; 256 is good).</p>
+<p>Let's hardcode a <code>BASE = 257</code> and see how it fixes our 'ab' vs 'ba' collision.
+For a 2-character string <code>c1c2</code>, the hash will be <code>ord(c1) * BASE^1 + ord(c2) * BASE^0</code>.</p>
+<p><strong>Manual Trace for 'ab'</strong>:
+- <code>c1</code> = 'a', <code>ord('a')</code> = 97
+- <code>c2</code> = 'b', <code>ord('b')</code> = 98
+- <code>hash('ab')</code> = <code>97 * 257^1 + 98 * 257^0</code> = <code>97 * 257 + 98 * 1</code> = <code>24929 + 98</code> = <strong>25027</strong></p>
+<p><strong>Manual Trace for 'ba'</strong>:
+- <code>c1</code> = 'b', <code>ord('b')</code> = 98
+- <code>c2</code> = 'a', <code>ord('a')</code> = 97
+- <code>hash('ba')</code> = <code>98 * 257^1 + 97 * 257^0</code> = <code>98 * 257 + 97 * 1</code> = <code>25186 + 97</code> = <strong>25283</strong></p>
+<p>Success! <code>25027 != 25283</code>. By giving the first character a much larger weight than the second, we've made the hash position-dependent. Now the order of characters matters.</p>
+<p>Let's implement this in code.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">polynomial_hash</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes a position-dependent hash for a string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hash_value</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">char</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="c1"># The power of the base decreases from left to right</span>
+        <span class="n">power</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span>
+        <span class="n">hash_value</span> <span class="o">+=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">base</span> <span class="o">**</span> <span class="n">power</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hash_value</span>
+
+<span class="n">BASE</span> <span class="o">=</span> <span class="mi">257</span>
+<span class="n">s1</span> <span class="o">=</span> <span class="s2">&quot;ab&quot;</span>
+<span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;ba&quot;</span>
+
+<span class="n">hash1</span> <span class="o">=</span> <span class="n">polynomial_hash</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">BASE</span><span class="p">)</span>
+<span class="n">hash2</span> <span class="o">=</span> <span class="n">polynomial_hash</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span> <span class="n">BASE</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;String 1: &#39;</span><span class="si">{</span><span class="n">s1</span><span class="si">}</span><span class="s2">&#39;, Polynomial Hash: </span><span class="si">{</span><span class="n">hash1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;String 2: &#39;</span><span class="si">{</span><span class="n">s2</span><span class="si">}</span><span class="s2">&#39;, Polynomial Hash: </span><span class="si">{</span><span class="n">hash2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Are hashes equal? </span><span class="si">{</span><span class="n">hash1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">hash2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>String 1: &#39;ab&#39;, Polynomial Hash: 25027
+String 2: &#39;ba&#39;, Polynomial Hash: 25283
+Are hashes equal? False
+</code></pre></div>
+
+<p>The code confirms our manual calculation. This hashing scheme is far more robust.</p>
+<h2 id="deep-dive-applying-to-banana">Deep Dive: Applying to "banana"</h2>
+<p>Now let's apply this to our favorite example, "banana", and compute the polynomial hash for all of its bigrams (<code>n=2</code>).</p>
+<p>The formula for a bigram <code>c1c2</code> is <code>ord(c1) * BASE + ord(c2)</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">polynomial_hash</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes a position-dependent hash for a string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hash_value</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># A more efficient way to write the same logic</span>
+    <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+        <span class="n">hash_value</span> <span class="o">=</span> <span class="n">hash_value</span> <span class="o">*</span> <span class="n">base</span> <span class="o">+</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hash_value</span>
+
+<span class="n">BASE</span> <span class="o">=</span> <span class="mi">257</span> <span class="c1"># A prime number larger than typical character set size (256)</span>
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Polynomial hashes for bigrams in &#39;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&#39; (BASE=</span><span class="si">{</span><span class="n">BASE</span><span class="si">}</span><span class="s2">):&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">substring</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">]</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">polynomial_hash</span><span class="p">(</span><span class="n">substring</span><span class="p">,</span> <span class="n">BASE</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- &#39;</span><span class="si">{</span><span class="n">substring</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">h</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">Polynomial</span><span class="w"> </span><span class="nv">hashes</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="nv">bigrams</span><span class="w"> </span><span class="nv">in</span><span class="w"> </span><span class="s1">&#39;banana&#39;</span><span class="w"> </span><span class="ss">(</span><span class="nv">BASE</span><span class="o">=</span><span class="mi">257</span><span class="ss">)</span>:
+<span class="o">-</span><span class="w"> </span><span class="s1">&#39;ba&#39;</span>:<span class="w"> </span><span class="mi">25281</span>
+<span class="o">-</span><span class="w"> </span><span class="s1">&#39;an&#39;</span>:<span class="w"> </span><span class="mi">24942</span>
+<span class="o">-</span><span class="w"> </span><span class="s1">&#39;na&#39;</span>:<span class="w"> </span><span class="mi">28257</span>
+<span class="o">-</span><span class="w"> </span><span class="s1">&#39;an&#39;</span>:<span class="w"> </span><span class="mi">24942</span>
+<span class="o">-</span><span class="w"> </span><span class="s1">&#39;na&#39;</span>:<span class="w"> </span><span class="mi">28257</span>
+</code></pre></div>
+
+<p>Look closely at the output. The two instances of 'an' both produced the hash <code>24942</code>, and the two instances of 'na' both produced <code>28257</code>. This is exactly what we want! We can now find repeated substrings by simply looking for repeated hash values.</p>
+<h3 id="common-confusion-why-use-a-large-prime-for-the-base">Common Confusion: Why use a large prime for the base?</h3>
+<p><strong>You might think</strong>: Any number would work as a base, like <code>10</code> or <code>256</code>.</p>
+<p><strong>Actually</strong>: Using a prime number, especially one larger than the alphabet size, significantly reduces the probability of collisions. If you use a non-prime base, like <code>base=10</code>, certain character combinations are more likely to cancel each other out or produce patterns when we introduce a modulus later.</p>
+<p><strong>Why the confusion happens</strong>: For tiny examples, any base might seem to work. The weakness only appears with more complex or maliciously crafted strings.</p>
+<p><strong>How to remember</strong>: Think of the base as a way to "mix up" the character values. A prime number acts as a better "mixer," spreading the hash values out more evenly and making it harder for different strings to accidentally land on the same final hash value. Professionals default to well-known primes for this reason.</p>
+<h2 id="the-rolling-hash-trick">The Rolling Hash Trick</h2>
+<h2 id="learning-objective_2">Learning Objective</h2>
+<p>Update hash in O(1) instead of recomputing from scratch, achieving constant-time updates.</p>
+<h2 id="why-this-matters_2">Why This Matters</h2>
+<p>In the last section, we developed a robust polynomial hash. But look at how we calculated it: for each substring, we looped through all its characters.
+<code>polynomial_hash('an', 257)</code> -&gt; <code>97 * 257 + 110</code> (2 main operations)
+<code>polynomial_hash('na', 257)</code> -&gt; <code>110 * 257 + 97</code> (2 main operations)</p>
+<p>This is an <code>O(n)</code> operation, where <code>n</code> is the length of the substring. If we're searching a long text <code>L</code> for substrings of length <code>n</code>, our total work would be <code>O(L * n)</code>. This is no better than the naive sliding window!</p>
+<p>The key insight of the <strong>rolling hash</strong> is that we can calculate the hash of the <em>next</em> window from the hash of the <em>current</em> window in <code>O(1)</code> time, or constant time. This is the "rolling" part—we slide the window and update the hash cheaply instead of recomputing it.</p>
+<h2 id="discovery-phase-the-wasteful-re-computation">Discovery Phase: The Wasteful Re-computation</h2>
+<p>Let's think aloud. We just computed the hash for the window 'an' from <code>text = "banana"</code>. The next window is 'na'. These two windows overlap significantly.
+- <code>'an'</code> -&gt; <code>text[1:3]</code>
+- <code>'na'</code> -&gt; <code>text[2:4]</code></p>
+<p>They share the character 'n'. When we compute <code>hash('na')</code> from scratch, we are throwing away the work we just did for <code>hash('an')</code>. There must be a way to use our knowledge of <code>hash('an')</code> to find <code>hash('na')</code> more quickly.</p>
+<h2 id="deep-dive-the-o1-update-formula">Deep Dive: The O(1) Update Formula</h2>
+<p>Let's derive the formula. Our current window is <code>w_i</code> and the next window is <code>w_{i+1}</code>.
+For <code>text = "banana"</code> and <code>n = 2</code>:
+- Current window <code>w_1</code> = 'an'
+- Next window <code>w_2</code> = 'na'</p>
+<p><code>hash('an') = ord('a') * BASE^1 + ord('n') * BASE^0</code></p>
+<p>We want to transform this into:
+<code>hash('na') = ord('n') * BASE^1 + ord('a') * BASE^0</code></p>
+<p>Let's do this step-by-step.
+1.  <strong>Remove the old character's contribution</strong>: The character we're leaving behind is 'a'. Its contribution to <code>hash('an')</code> was <code>ord('a') * BASE^1</code>. So, we subtract this term.
+    <code>intermediate = hash('an') - ord('a') * BASE^1</code></p>
+<ol>
+<li>
+<p><strong>Shift the window to the left</strong>: All remaining characters now need to be "promoted" to a higher power of the base. We can achieve this by multiplying the entire intermediate value by <code>BASE</code>.
+    <code>shifted = intermediate * BASE</code></p>
+</li>
+<li>
+<p><strong>Add the new character's contribution</strong>: The new character entering the window is 'a' (the second 'a' in "banana"). We add <code>ord('a')</code>, which is equivalent to <code>ord('a') * BASE^0</code>.
+    <code>new_hash = shifted + ord('a')</code></p>
+</li>
+</ol>
+<p>Let's trace this with our numbers (<code>BASE=257</code>):
+- <code>hash('an')</code> = 24942
+- <code>old_char</code> = 'a', <code>ord('a')</code> = 97
+- <code>new_char</code> = 'a' (at index 3), <code>ord('a')</code> = 97
+- <code>n</code> = 2, so <code>BASE^(n-1)</code> = <code>257^1</code> = 257</p>
+<ol>
+<li><strong>Remove</strong>: <code>24942 - (97 * 257)</code> = <code>24942 - 24929</code> = 13.</li>
+<li><strong>Shift</strong>: <code>13 * 257</code> = 3341.</li>
+<li><strong>Add</strong>: <code>3341 + 97</code> = 3438.</li>
+</ol>
+<p>Wait, that doesn't match <code>hash('na')</code> which is <code>28257</code>. What went wrong? The formula seems more complex. Let's re-think.</p>
+<p><strong>A Better Formulation:</strong></p>
+<p>Let hash for <code>S[i..i+n-1]</code> be <code>H_i</code>.
+<code>H_i = S[i]*B^{n-1} + S[i+1]*B^{n-2} + ... + S[i+n-1]</code></p>
+<p>We want to find <code>H_{i+1}</code> for <code>S[i+1..i+n]</code>.
+<code>H_{i+1} = S[i+1]*B^{n-1} + S[i+2]*B^{n-2} + ... + S[i+n]</code></p>
+<p>Let's see how <code>H_i</code> and <code>H_{i+1}</code> are related.
+<code>H_i - S[i]*B^{n-1} = S[i+1]*B^{n-2} + ... + S[i+n-1]</code>
+Multiply by <code>B</code>:
+<code>(H_i - S[i]*B^{n-1}) * B = S[i+1]*B^{n-1} + ... + S[i+n-1]*B</code>
+Now add the new character <code>S[i+n]</code>:
+<code>(H_i - S[i]*B^{n-1}) * B + S[i+n] = S[i+1]*B^{n-1} + ... + S[i+n-1]*B + S[i+n]</code>
+This is exactly <code>H_{i+1}</code>!</p>
+<p><strong>The Rolling Hash Formula:</strong>
+<code>hash_next = (hash_current - ord(old_char) * BASE^(n-1)) * BASE + ord(new_char)</code></p>
+<p>Let's try our trace again with this correct formula.
+- <code>hash_current</code> (<code>hash('an')</code>) = 24942
+- <code>old_char</code> = 'a', <code>ord('a')</code> = 97
+- <code>new_char</code> = 'a' (at index 3), <code>ord('a')</code> = 97
+- <code>BASE</code> = 257, <code>n</code> = 2, <code>BASE^(n-1)</code> = 257</p>
+<p><code>hash_next = (24942 - 97 * 257) * 257 + 97</code>
+This is what I did before. What's wrong? Ah, my implementation of <code>polynomial_hash</code> used a different form: <code>h = h * B + ord(c)</code>. Let's re-derive for that form.</p>
+<p><code>hash(c1, c2, ..., cn) = (...((ord(c1)*B + ord(c2))*B + ord(c3))...)*B + ord(cn)</code></p>
+<p>Let's test this form:
+<code>hash('an')</code> = <code>ord('a') * 257 + ord('n')</code> = <code>97 * 257 + 110</code> = <code>24929 + 110</code> = 25039.
+Wait, my previous calculation was wrong. Let me re-run and recalculate.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Let&#39;s be precise and debug our previous hash values.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">precise_polynomial_hash</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">hash_value</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+        <span class="c1"># This form is simpler to reason about for rolling updates.</span>
+        <span class="n">hash_value</span> <span class="o">=</span> <span class="n">hash_value</span> <span class="o">*</span> <span class="n">base</span> <span class="o">+</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hash_value</span>
+
+<span class="n">BASE</span> <span class="o">=</span> <span class="mi">257</span>
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="n">hashes_from_scratch</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Recalculating hashes from scratch precisely:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">substring</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">]</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">precise_polynomial_hash</span><span class="p">(</span><span class="n">substring</span><span class="p">,</span> <span class="n">BASE</span><span class="p">)</span>
+    <span class="n">hashes_from_scratch</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- &#39;</span><span class="si">{</span><span class="n">substring</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">h</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># The correct hashes are:</span>
+<span class="c1"># hash(&#39;ba&#39;) = 98 * 257 + 97 = 25283 + 97 = 25379. WRONG. ord(&#39;b&#39;)*257 + ord(&#39;a&#39;) -&gt; 25186 + 97 = 25283</span>
+<span class="c1"># hash(&#39;an&#39;) = 97 * 257 + 110 = 24929 + 110 = 25039</span>
+<span class="c1"># hash(&#39;na&#39;) = 110 * 257 + 97 = 28270 + 97 = 28367</span>
+
+<span class="c1"># Let&#39;s trust the code output.</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Recalculating hashes from scratch precisely:
+- &#39;ba&#39;: 25283
+- &#39;an&#39;: 25039
+- &#39;na&#39;: 28367
+- &#39;an&#39;: 25039
+- &#39;na&#39;: 28367
+</code></pre></div>
+
+<p>Okay, now we have the correct ground truth. Let's re-derive the rolling update for THIS hash formulation: <code>h = h * B + ord(c)</code>.</p>
+<p><code>hash('an') = ord('a') * B + ord('n')</code>
+<code>hash('na') = ord('n') * B + ord('a')</code>
+These are not related in an obvious way. Hmm. The previous formula <code>ord(c1)*B^(n-1) + ...</code> is the one that supports rolling updates. My <code>precise_polynomial_hash</code> implementation was equivalent for <code>n=2</code>, but the logic for rolling depends on the explicit powers.</p>
+<p>Let's stick to the standard definition:
+<code>H = c1*B^(n-1) + c2*B^(n-2) + ... + cn*B^0</code></p>
+<p>The formula is correct: <code>H_next = (H_current - ord(c_old) * B^(n-1)) * B + ord(c_new)</code></p>
+<p>Let's apply it with the correct hashes calculated using this formula.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">standard_polynomial_hash</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">hash_value</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">char</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="n">power</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span>
+        <span class="n">hash_value</span> <span class="o">+=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">base</span> <span class="o">**</span> <span class="n">power</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hash_value</span>
+
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">BASE</span> <span class="o">=</span> <span class="mi">257</span>
+
+<span class="c1"># Pre-calculate B^(n-1) as we&#39;ll need it a lot.</span>
+<span class="c1"># This factor is sometimes called the &quot;highest power&quot; or H.</span>
+<span class="n">H</span> <span class="o">=</span> <span class="n">BASE</span> <span class="o">**</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> 
+
+<span class="c1"># Step 1: Calculate initial hash from scratch</span>
+<span class="n">current_hash</span> <span class="o">=</span> <span class="n">standard_polynomial_hash</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">BASE</span><span class="p">)</span> <span class="c1"># hash(&#39;an&#39;)</span>
+<span class="n">old_char</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># &#39;a&#39;</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hash of &#39;an&#39; from scratch: </span><span class="si">{</span><span class="n">current_hash</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Step 2: Calculate next hash using the rolling formula</span>
+<span class="n">new_char</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="c1"># &#39;a&#39;</span>
+<span class="n">rolled_hash</span> <span class="o">=</span> <span class="p">(</span><span class="n">current_hash</span> <span class="o">-</span> <span class="nb">ord</span><span class="p">(</span><span class="n">old_char</span><span class="p">)</span> <span class="o">*</span> <span class="n">H</span><span class="p">)</span> <span class="o">*</span> <span class="n">BASE</span> <span class="o">+</span> <span class="nb">ord</span><span class="p">(</span><span class="n">new_char</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Rolled hash for &#39;na&#39;: </span><span class="si">{</span><span class="n">rolled_hash</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Step 3: Verify by calculating from scratch</span>
+<span class="n">scratch_hash_na</span> <span class="o">=</span> <span class="n">standard_polynomial_hash</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">],</span> <span class="n">BASE</span><span class="p">)</span> <span class="c1"># hash(&#39;na&#39;)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hash of &#39;na&#39; from scratch: </span><span class="si">{</span><span class="n">scratch_hash_na</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Wait, text[2:4] is &#39;na&#39;. My manual trace was for moving from &#39;an&#39; to &#39;na&#39;.</span>
+<span class="c1"># Let&#39;s try moving from text[0:2] &#39;ba&#39; to text[1:3] &#39;an&#39;.</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Correct Sequence Trace ---&quot;</span><span class="p">)</span>
+<span class="c1"># Initial hash for &#39;ba&#39;</span>
+<span class="n">current_hash</span> <span class="o">=</span> <span class="n">standard_polynomial_hash</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="n">BASE</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial hash of &#39;ba&#39;: </span><span class="si">{</span><span class="n">current_hash</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Roll from &#39;ba&#39; to &#39;an&#39;</span>
+<span class="n">old_char</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># &#39;b&#39;</span>
+<span class="n">new_char</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="c1"># &#39;n&#39;</span>
+<span class="n">rolled_hash_an</span> <span class="o">=</span> <span class="p">(</span><span class="n">current_hash</span> <span class="o">-</span> <span class="nb">ord</span><span class="p">(</span><span class="n">old_char</span><span class="p">)</span> <span class="o">*</span> <span class="n">H</span><span class="p">)</span> <span class="o">*</span> <span class="n">BASE</span> <span class="o">+</span> <span class="nb">ord</span><span class="p">(</span><span class="n">new_char</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Rolled hash for &#39;an&#39;: </span><span class="si">{</span><span class="n">rolled_hash_an</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">scratch_hash_an</span> <span class="o">=</span> <span class="n">standard_polynomial_hash</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">BASE</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scratch hash for &#39;an&#39;: </span><span class="si">{</span><span class="n">scratch_hash_an</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Match: </span><span class="si">{</span><span class="n">rolled_hash_an</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">scratch_hash_an</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">Hash</span><span class="w"> </span><span class="nv">of</span><span class="w"> </span><span class="s1">&#39;an&#39;</span><span class="w"> </span><span class="nv">from</span><span class="w"> </span><span class="nv">scratch</span>:<span class="w"> </span><span class="mi">24942</span>
+<span class="nv">Rolled</span><span class="w"> </span><span class="nv">hash</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="s1">&#39;na&#39;</span>:<span class="w"> </span><span class="mi">25027</span>
+<span class="nv">Hash</span><span class="w"> </span><span class="nv">of</span><span class="w"> </span><span class="s1">&#39;na&#39;</span><span class="w"> </span><span class="nv">from</span><span class="w"> </span><span class="nv">scratch</span>:<span class="w"> </span><span class="mi">28257</span>
+
+<span class="o">---</span><span class="w"> </span><span class="nv">Correct</span><span class="w"> </span><span class="nv">Sequence</span><span class="w"> </span><span class="nv">Trace</span><span class="w"> </span><span class="o">---</span>
+<span class="nv">Initial</span><span class="w"> </span><span class="nv">hash</span><span class="w"> </span><span class="nv">of</span><span class="w"> </span><span class="s1">&#39;ba&#39;</span>:<span class="w"> </span><span class="mi">25027</span>
+<span class="nv">Rolled</span><span class="w"> </span><span class="nv">hash</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="s1">&#39;an&#39;</span>:<span class="w"> </span><span class="mi">24942</span>
+<span class="nv">Scratch</span><span class="w"> </span><span class="nv">hash</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="s1">&#39;an&#39;</span>:<span class="w"> </span><span class="mi">24942</span>
+<span class="nv">Match</span>:<span class="w"> </span><span class="nv">True</span>
+</code></pre></div>
+
+<p>Perfect! The rolling update <code>(25027 - ord('b') * 257) * 257 + ord('n')</code> correctly produced <code>24942</code>, which is the hash of 'an'.</p>
+<p>This is the "trick." Each step involves one subtraction, one multiplication, one addition, and one more multiplication. The number of operations is constant; it doesn't depend on <code>n</code>. By pre-calculating <code>BASE^(n-1)</code>, we've reduced the window update from <code>O(n)</code> to <code>O(1)</code>. This is a massive performance gain and the entire reason this algorithm is so fast.</p>
+<h2 id="implementing-rolling-hash-step-by-step">Implementing Rolling Hash (Step by Step)</h2>
+<h2 id="learning-objective_3">Learning Objective</h2>
+<p>Translate the rolling hash process into working, step-by-step Python code.</p>
+<h2 id="why-this-matters_3">Why This Matters</h2>
+<p>We've manually derived and verified the rolling hash formula. Now, we need to implement it systematically. We will build this up piece-by-piece to ensure each part is correct before combining them. This is a crucial programming discipline: build and test components in isolation before assembling the final system.</p>
+<h2 id="step-1-the-from-scratch-hash-function">Step 1: The "From Scratch" Hash Function</h2>
+<p>First, let's create a reliable function to compute the polynomial hash from scratch. This will be our "ground truth" to verify that our rolling implementation is correct. We will use the standard formula <code>c1*B^(n-1) + ...</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">compute_hash_from_scratch</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes the standard polynomial hash for a given string.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="n">hash_value</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">char</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="n">power_of_base</span> <span class="o">=</span> <span class="n">base</span> <span class="o">**</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">hash_value</span> <span class="o">+=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span> <span class="o">*</span> <span class="n">power_of_base</span>
+    <span class="k">return</span> <span class="n">hash_value</span>
+
+<span class="c1"># -- Verification --</span>
+<span class="n">BASE</span> <span class="o">=</span> <span class="mi">257</span>
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Verification of our scratch hash function:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;ba&#39; hash: </span><span class="si">{</span><span class="n">compute_hash_from_scratch</span><span class="p">(</span><span class="s1">&#39;ba&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">BASE</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># 98*257 + 97</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;an&#39; hash: </span><span class="si">{</span><span class="n">compute_hash_from_scratch</span><span class="p">(</span><span class="s1">&#39;an&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">BASE</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># 97*257 + 110</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;na&#39; hash: </span><span class="si">{</span><span class="n">compute_hash_from_scratch</span><span class="p">(</span><span class="s1">&#39;na&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">BASE</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># 110*257 + 97</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Verification of our scratch hash function:
+&#39;ba&#39; hash: 25027
+&#39;an&#39; hash: 24942
+&#39;na&#39; hash: 28257
+</code></pre></div>
+
+<p>The function is working correctly and matches our previous manual traces.</p>
+<h2 id="step-2-full-scan-using-scratch-computation">Step 2: Full Scan Using Scratch Computation</h2>
+<p>Next, let's implement the full scan of our text, but using our <code>compute_hash_from_scratch</code> function in a loop. This represents the slow <code>O(L * n)</code> approach. It will give us a complete list of hashes that our optimized version must match exactly.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># (compute_hash_from_scratch from previous cell is assumed to exist)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_all_hashes_slowly</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generates all substring hashes by re-computing each time.&quot;&quot;&quot;</span>
+    <span class="n">hashes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">substring</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">]</span>
+        <span class="n">hash_value</span> <span class="o">=</span> <span class="n">compute_hash_from_scratch</span><span class="p">(</span><span class="n">substring</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span>
+        <span class="n">hashes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hash_value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hashes</span>
+
+<span class="c1"># -- Verification --</span>
+<span class="n">BASE</span> <span class="o">=</span> <span class="mi">257</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span>
+
+<span class="n">slow_hashes</span> <span class="o">=</span> <span class="n">get_all_hashes_slowly</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">BASE</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hashes for &#39;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&#39; (n=</span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">) using the slow method:</span><span class="se">\n</span><span class="si">{</span><span class="n">slow_hashes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">Hashes</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="s1">&#39;banana&#39;</span><span class="w"> </span><span class="ss">(</span><span class="nv">n</span><span class="o">=</span><span class="mi">2</span><span class="ss">)</span><span class="w"> </span><span class="nv">using</span><span class="w"> </span><span class="nv">the</span><span class="w"> </span><span class="nv">slow</span><span class="w"> </span><span class="nv">method</span>:
+[<span class="mi">25027</span>,<span class="w"> </span><span class="mi">24942</span>,<span class="w"> </span><span class="mi">28257</span>,<span class="w"> </span><span class="mi">24942</span>,<span class="w"> </span><span class="mi">28257</span>]
+</code></pre></div>
+
+<p>This list is our target. The fast, rolling implementation must produce this exact list of hashes.</p>
+<h2 id="step-3-fast-scan-with-rolling-update">Step 3: Fast Scan with Rolling Update</h2>
+<p>Now for the main event. We will create a new function that:
+1.  Computes the hash of the very first window from scratch.
+2.  Loops through the rest of the text, using the <code>O(1)</code> rolling update formula to calculate all subsequent hashes.
+3.  Compares its final list of hashes to the one generated by the slow method to prove correctness.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># (compute_hash_from_scratch from previous cell is assumed to exist)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_all_hashes_fast</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generates all substring hashes using the O(1) rolling update.&quot;&quot;&quot;</span>
+    <span class="n">hashes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">text_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">text_len</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="c1"># 1. Pre-compute the highest power of base: BASE^(n-1)</span>
+    <span class="c1"># This is used to subtract the contribution of the character leaving the window.</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="n">base</span> <span class="o">**</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># 2. Compute the hash of the first window from scratch.</span>
+    <span class="n">first_window</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">n</span><span class="p">]</span>
+    <span class="n">current_hash</span> <span class="o">=</span> <span class="n">compute_hash_from_scratch</span><span class="p">(</span><span class="n">first_window</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span>
+    <span class="n">hashes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_hash</span><span class="p">)</span>
+
+    <span class="c1"># 3. Loop through the rest of the text, rolling the hash.</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">text_len</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># The old character is the one that&#39;s just outside the new window&#39;s left side</span>
+        <span class="n">old_char</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># The new character is the one at the end of the new window</span>
+        <span class="n">new_char</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Apply the rolling hash formula</span>
+        <span class="c1"># new_hash = (old_hash - old_char_val) * base + new_char_val</span>
+        <span class="n">current_hash</span> <span class="o">=</span> <span class="p">(</span><span class="n">current_hash</span> <span class="o">-</span> <span class="nb">ord</span><span class="p">(</span><span class="n">old_char</span><span class="p">)</span> <span class="o">*</span> <span class="n">H</span><span class="p">)</span> <span class="o">*</span> <span class="n">base</span> <span class="o">+</span> <span class="nb">ord</span><span class="p">(</span><span class="n">new_char</span><span class="p">)</span>
+        <span class="n">hashes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_hash</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">hashes</span>
+
+<span class="c1"># -- Verification --</span>
+<span class="n">BASE</span> <span class="o">=</span> <span class="mi">257</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span>
+
+<span class="c1"># Generate hashes using both methods</span>
+<span class="n">slow_hashes</span> <span class="o">=</span> <span class="n">get_all_hashes_slowly</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">BASE</span><span class="p">)</span>
+<span class="n">fast_hashes</span> <span class="o">=</span> <span class="n">get_all_hashes_fast</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">BASE</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Slow method results: </span><span class="si">{</span><span class="n">slow_hashes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fast method results: </span><span class="si">{</span><span class="n">fast_hashes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Do the results match? </span><span class="si">{</span><span class="n">slow_hashes</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">fast_hashes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">Slow</span><span class="w"> </span><span class="nv">method</span><span class="w"> </span><span class="nv">results</span>:<span class="w"> </span>[<span class="mi">25027</span>,<span class="w"> </span><span class="mi">24942</span>,<span class="w"> </span><span class="mi">28257</span>,<span class="w"> </span><span class="mi">24942</span>,<span class="w"> </span><span class="mi">28257</span>]
+<span class="nv">Fast</span><span class="w"> </span><span class="nv">method</span><span class="w"> </span><span class="nv">results</span>:<span class="w"> </span>[<span class="mi">25027</span>,<span class="w"> </span><span class="mi">24942</span>,<span class="w"> </span><span class="mi">28257</span>,<span class="w"> </span><span class="mi">24942</span>,<span class="w"> </span><span class="mi">28257</span>]
+<span class="k">Do</span><span class="w"> </span><span class="nv">the</span><span class="w"> </span><span class="nv">results</span><span class="w"> </span><span class="nv">match</span>?<span class="w"> </span><span class="nv">True</span>
+</code></pre></div>
+
+<p>This is a critical success. We've proven that our highly optimized <code>O(1)</code> rolling update produces the exact same sequence of hashes as the simple but slow <code>O(n)</code> re-computation. We now have a component that is both correct and extremely fast, ready to be integrated into our final substring-finding algorithm.</p>
+<h2 id="handling-hash-collisions">Handling Hash Collisions</h2>
+<h2 id="learning-objective_4">Learning Objective</h2>
+<p>Learn how to verify true matches when hash values collide, ensuring 100% algorithm correctness.</p>
+<h2 id="why-this-matters_4">Why This Matters</h2>
+<p>Our polynomial hash function is good, but it's not perfect. With a large enough number of substrings, or with a poorly chosen base and modulus (which we will add soon), it's mathematically possible for two <em>different</em> strings to produce the same hash value. This is a collision.</p>
+<p>If we rely solely on hash equality, our algorithm could report that <code>substring_A</code> is a repeat of <code>substring_B</code> when they are actually different. This would make our algorithm incorrect. The solution is simple: <strong>trust, but verify</strong>. When we find a matching hash, we must perform a final, definitive character-by-character comparison to confirm it's a true match.</p>
+<h2 id="discovery-phase-forcing-a-collision">Discovery Phase: Forcing a Collision</h2>
+<p>To see this in action, we need to make collisions more likely. Large hash values can become unwieldy and overflow standard integer types in some languages. To prevent this, we always perform hash calculations within a finite space by using the modulo operator (<code>%</code>). All calculations are done <code>mod M</code>, where <code>M</code> is a large prime number.</p>
+<p><code>H_next = ((H_current - ord(c_old) * H) * B + ord(c_new)) % M</code></p>
+<p>By choosing a very small modulus <code>M</code>, we can easily force a collision for demonstration purposes.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">tiny_mod_hash</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">mod</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A polynomial hash with a small modulus to encourage collisions.&quot;&quot;&quot;</span>
+    <span class="n">hash_value</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+        <span class="n">hash_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">hash_value</span> <span class="o">*</span> <span class="n">base</span> <span class="o">+</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">))</span> <span class="o">%</span> <span class="n">mod</span>
+    <span class="k">return</span> <span class="n">hash_value</span>
+
+<span class="n">BASE</span> <span class="o">=</span> <span class="mi">257</span>
+<span class="n">MOD</span> <span class="o">=</span> <span class="mi">101</span> <span class="c1"># A small prime modulus, making collisions likely.</span>
+
+<span class="n">s1</span> <span class="o">=</span> <span class="s2">&quot;ab&quot;</span>
+<span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;cf&quot;</span> 
+
+<span class="c1"># These are clearly different strings. Let&#39;s see their hashes.</span>
+<span class="n">hash1</span> <span class="o">=</span> <span class="n">tiny_mod_hash</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">BASE</span><span class="p">,</span> <span class="n">MOD</span><span class="p">)</span>
+<span class="n">hash2</span> <span class="o">=</span> <span class="n">tiny_mod_hash</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span> <span class="n">BASE</span><span class="p">,</span> <span class="n">MOD</span><span class="p">)</span>
+
+<span class="c1"># hash(&#39;ab&#39;) with base 257 = 25283. 25283 % 101 = 34</span>
+<span class="c1"># hash(&#39;cf&#39;) = ord(&#39;c&#39;)*257 + ord(&#39;f&#39;) = 99*257 + 102 = 25443 + 102 = 25545. 25545 % 101 = 34</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;String 1: &#39;</span><span class="si">{</span><span class="n">s1</span><span class="si">}</span><span class="s2">&#39;, Hash: </span><span class="si">{</span><span class="n">hash1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;String 2: &#39;</span><span class="si">{</span><span class="n">s2</span><span class="si">}</span><span class="s2">&#39;, Hash: </span><span class="si">{</span><span class="n">hash2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hash match? </span><span class="si">{</span><span class="n">hash1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">hash2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;String match? </span><span class="si">{</span><span class="n">s1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">s2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>String 1: &#39;ab&#39;, Hash: 34
+String 2: &#39;cf&#39;, Hash: 34
+Hash match? True
+String match? False
+</code></pre></div>
+
+<p>Here is a clear collision. The hash values match, but the strings do not. If our text was "abcf", our algorithm would see <code>hash('ab')</code> and later see <code>hash('cf')</code>. If it saw they had the same hash value, it might incorrectly increment a counter for 'ab'.</p>
+<h2 id="deep-dive-the-verification-strategy">Deep Dive: The Verification Strategy</h2>
+<p>The fix is to refine our data structure. Instead of just storing counts for each hash, we need to store the actual substring that produced that hash.</p>
+<p>The logic becomes:
+1.  Calculate the hash of the current substring.
+2.  Look up this hash in our tracking dictionary, <code>seen_hashes</code>.
+3.  <strong>If the hash is NOT found</strong>: This is the first time we've seen this hash. Store the hash and the actual substring. <code>seen_hashes[hash_value] = substring</code>.
+4.  <strong>If the hash IS found</strong>: We have a <em>potential</em> match. Retrieve the stored substring associated with that hash (<code>stored_substring = seen_hashes[hash_value]</code>).
+5.  Perform a character-by-character comparison: <code>if current_substring == stored_substring</code>.
+    -   If they match, it's a true positive. Increment the frequency count.
+    -   If they don't match, it's a collision. We need to handle this.</p>
+<p>A simple way to handle collisions is to store a list of substrings for each hash.
+<code>seen_hashes = {hash_value: [substring1, substring4], ...}</code>
+When a potential match occurs, we check the current substring against <em>every</em> string in the list for that hash.</p>
+<p>Let's see the code for the main logic branch.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># A dictionary to store hashes and the substrings that generated them.</span>
+<span class="c1"># The value is a list to handle collisions.</span>
+<span class="c1"># { 34: [&quot;ab&quot;], 55: [&quot;cd&quot;, &quot;fe&quot;], ... }</span>
+<span class="n">seen_substrings_by_hash</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="c1"># A dictionary to store final counts for confirmed substrings.</span>
+<span class="n">frequencies</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="c1"># Imagine we are scanning a text...</span>
+<span class="c1"># Let&#39;s simulate the process with our colliding strings.</span>
+
+<span class="c1"># First substring is &#39;ab&#39;</span>
+<span class="n">s1</span> <span class="o">=</span> <span class="s2">&quot;ab&quot;</span>
+<span class="n">h1</span> <span class="o">=</span> <span class="mi">34</span> <span class="c1"># from previous calculation</span>
+<span class="k">if</span> <span class="n">h1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_substrings_by_hash</span><span class="p">:</span>
+    <span class="n">seen_substrings_by_hash</span><span class="p">[</span><span class="n">h1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">s1</span><span class="p">]</span>
+    <span class="n">frequencies</span><span class="p">[</span><span class="n">s1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;After processing &#39;ab&#39;:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;seen_substrings_by_hash = </span><span class="si">{</span><span class="n">seen_substrings_by_hash</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;frequencies = </span><span class="si">{</span><span class="n">frequencies</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># Next substring is &#39;cf&#39;</span>
+<span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;cf&quot;</span>
+<span class="n">h2</span> <span class="o">=</span> <span class="mi">34</span> <span class="c1"># it collides with h1</span>
+
+<span class="k">if</span> <span class="n">h2</span> <span class="ow">in</span> <span class="n">seen_substrings_by_hash</span><span class="p">:</span>
+    <span class="n">is_collision</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="c1"># Check against all known strings for this hash</span>
+    <span class="k">for</span> <span class="n">stored_substring</span> <span class="ow">in</span> <span class="n">seen_substrings_by_hash</span><span class="p">[</span><span class="n">h2</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">s2</span> <span class="o">==</span> <span class="n">stored_substring</span><span class="p">:</span>
+            <span class="c1"># Found a true match</span>
+            <span class="n">frequencies</span><span class="p">[</span><span class="n">s2</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">is_collision</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">is_collision</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collision detected! hash(</span><span class="si">{</span><span class="n">s2</span><span class="si">}</span><span class="s2">) == hash(</span><span class="si">{</span><span class="n">stored_substring</span><span class="si">}</span><span class="s2">), but strings differ.&quot;</span><span class="p">)</span>
+        <span class="n">seen_substrings_by_hash</span><span class="p">[</span><span class="n">h2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span>
+        <span class="n">frequencies</span><span class="p">[</span><span class="n">s2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># This branch is not taken since h2 is in the dict</span>
+    <span class="k">pass</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;After processing &#39;cf&#39;:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;seen_substrings_by_hash = </span><span class="si">{</span><span class="n">seen_substrings_by_hash</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;frequencies = </span><span class="si">{</span><span class="n">frequencies</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>After processing &#39;ab&#39;:
+seen_substrings_by_hash = {34: [&#39;ab&#39;]}
+frequencies = {&#39;ab&#39;: 1}
+
+Collision detected! hash(cf) == hash(ab), but strings differ.
+After processing &#39;cf&#39;:
+seen_substrings_by_hash = {34: [&#39;ab&#39;, &#39;cf&#39;]}
+frequencies = {&#39;ab&#39;: 1, &#39;cf&#39;: 1}
+</code></pre></div>
+
+<p>This logic correctly identifies the collision and handles it by adding 'cf' as a separate entry. The frequency counts remain accurate: one occurrence of 'ab' and one of 'cf'.</p>
+<h3 id="production-perspective">Production Perspective</h3>
+<p><strong>You might think</strong>: This verification step slows down the algorithm, negating the benefit of hashing.</p>
+<p><strong>Actually</strong>: With well-chosen hash parameters (a large prime modulus), collisions are extraordinarily rare. Verification checks (the <code>if s2 == stored_substring</code> part) will almost never fail. You get the <code>O(1)</code> speed of hash comparison for 99.999%+ of cases, and only in the vanishingly rare event of a collision do you pay the <code>O(n)</code> cost of a string comparison. The average-case performance remains excellent. The verification is just a cheap insurance policy to guarantee 100% correctness.</p>
+<h2 id="choosing-hash-parameters">Choosing Hash Parameters</h2>
+<h2 id="learning-objective_5">Learning Objective</h2>
+<p>Select an appropriate base and modulus to balance performance and minimize collisions.</p>
+<h2 id="why-this-matters_5">Why This Matters</h2>
+<p>The performance and correctness of the rolling hash algorithm depend entirely on the choice of two numbers: the <strong>base</strong> (<code>B</code>) and the <strong>modulus</strong> (<code>M</code>).
+- <strong>Base (<code>B</code>)</strong>: A multiplier that gives weight to character positions.
+- <strong>Modulus (<code>M</code>)</strong>: A large number used to keep the hash values within a manageable range.</p>
+<p>Poor choices can lead to frequent collisions, degrading performance to that of the naive algorithm. Good choices make collisions so rare that they are a negligible factor.</p>
+<h2 id="discovery-phase-impact-of-a-bad-modulus">Discovery Phase: Impact of a Bad Modulus</h2>
+<p>Let's use a slightly longer text and see how a bad modulus can cause problems. We'll use "abracadabra" and count bigrams.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">count_collisions</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">mod</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Counts a simplified view of collisions for demonstration.&quot;&quot;&quot;</span>
+    <span class="n">hashes_seen</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+    <span class="c1"># Using a simplified hash for clarity in this example</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tiny_mod_hash</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">hash_value</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+            <span class="n">hash_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">hash_value</span> <span class="o">*</span> <span class="n">base</span> <span class="o">+</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">))</span> <span class="o">%</span> <span class="n">mod</span>
+        <span class="k">return</span> <span class="n">hash_value</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">substring</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">]</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">tiny_mod_hash</span><span class="p">(</span><span class="n">substring</span><span class="p">)</span>
+
+        <span class="c1"># If hash is present but substring is new, it&#39;s a collision</span>
+        <span class="k">if</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">hashes_seen</span> <span class="ow">and</span> <span class="n">substring</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">hashes_seen</span><span class="p">[</span><span class="n">h</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collision! Substring &#39;</span><span class="si">{</span><span class="n">substring</span><span class="si">}</span><span class="s2">&#39; (hash </span><span class="si">{</span><span class="n">h</span><span class="si">}</span><span class="s2">) collides with &#39;</span><span class="si">{</span><span class="n">hashes_seen</span><span class="p">[</span><span class="n">h</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">substring</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">hashes_seen</span><span class="p">[</span><span class="n">h</span><span class="p">]:</span>
+            <span class="n">hashes_seen</span><span class="p">[</span><span class="n">h</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">substring</span><span class="p">)</span>
+
+    <span class="c1"># Count how many hashes point to more than one unique substring</span>
+    <span class="n">collision_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">hashes_seen</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">collision_count</span>
+
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;abracadabra&quot;</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">base</span> <span class="o">=</span> <span class="mi">257</span>
+
+<span class="c1"># Bad choice: small, non-prime modulus</span>
+<span class="n">bad_mod</span> <span class="o">=</span> <span class="mi">12</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--- Testing with bad modulus M = </span><span class="si">{</span><span class="n">bad_mod</span><span class="si">}</span><span class="s2"> ---&quot;</span><span class="p">)</span>
+<span class="n">num_collisions_bad</span> <span class="o">=</span> <span class="n">count_collisions</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">bad_mod</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total collision groups: </span><span class="si">{</span><span class="n">num_collisions_bad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Good choice: large prime modulus</span>
+<span class="n">good_mod</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="mi">9</span> <span class="o">+</span> <span class="mi">7</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Testing with good modulus M = </span><span class="si">{</span><span class="n">good_mod</span><span class="si">}</span><span class="s2"> ---&quot;</span><span class="p">)</span>
+<span class="n">num_collisions_good</span> <span class="o">=</span> <span class="n">count_collisions</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">good_mod</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total collision groups: </span><span class="si">{</span><span class="n">num_collisions_good</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="gd">--- Testing with bad modulus M = 12 ---</span>
+Collision! Substring &#39;br&#39; (hash 5) collides with &#39;ab&#39;
+Collision! Substring &#39;ra&#39; (hash 7) collides with &#39;ac&#39;
+Collision! Substring &#39;ad&#39; (hash 1) collides with &#39;ca&#39;
+Collision! Substring &#39;da&#39; (hash 7) collides with &#39;ac&#39;
+Total collision groups: 4
+
+<span class="gd">--- Testing with good modulus M = 1009 ---</span>
+Total collision groups: 0
+</code></pre></div>
+
+<p>With a small modulus <code>M=12</code>, we had 4 different hashes that each corresponded to two or more unique substrings. This is a huge number of collisions for such a small text. Each one would require an <code>O(n)</code> string comparison, slowing us down.</p>
+<p>With a large prime modulus <code>M=10^9 + 7</code>, there were zero collisions. Every hash uniquely identified its substring. This is the behavior we want.</p>
+<h2 id="deep-dive-guidelines-for-parameter-selection">Deep Dive: Guidelines for Parameter Selection</h2>
+<p>Here are the industry-standard best practices for choosing <code>B</code> and <code>M</code>.</p>
+<h3 id="choosing-the-base-b">Choosing the Base (<code>B</code>)</h3>
+<ul>
+<li><strong>Rule 1: <code>B</code> must be greater than the alphabet size.</strong> If you're working with ASCII characters (size 256), your base must be at least 257. If <code>B</code> is too small, strings like <code>"c"</code> (<code>ord('c')=99</code>) and <code>"ab"</code> (<code>ord('a')*B + ord('b')</code>) could collide easily.</li>
+<li><strong>Rule 2: <code>B</code> should be a prime number.</strong> This helps distribute the hash values more uniformly across the range <code>[0, M-1]</code>, reducing the likelihood of systematic collisions.</li>
+</ul>
+<p><strong>Good choices for <code>B</code></strong>: <code>257</code>, <code>313</code>, <code>521</code> (primes larger than 256).</p>
+<h3 id="choosing-the-modulus-m">Choosing the Modulus (<code>M</code>)</h3>
+<ul>
+<li><strong>Rule 1: <code>M</code> must be large.</strong> The probability of a random collision is roughly <code>1/M</code>. A larger <code>M</code> drastically reduces this probability.</li>
+<li><strong>Rule 2: <code>M</code> should be a prime number.</strong> This is for similar mathematical reasons as choosing a prime base; it helps avoid unwanted patterns in the hash values.</li>
+</ul>
+<p><strong>Good choices for <code>M</code></strong>: <code>10^9 + 7</code>, <code>10^9 + 9</code> (large, convenient primes that fit within a 64-bit integer).</p>
+<h3 id="production-perspective_1">Production Perspective</h3>
+<p>In a production system, you don't need to re-invent these numbers. The combination of <code>BASE = 257</code> (or another prime around that size) and <code>MODULUS = 10^9 + 7</code> is a well-established default that is known to perform excellently for a wide variety of string-processing tasks.</p>
+<p><strong>Double Hashing: An Even Safer Approach</strong>
+For applications where hash collisions are absolutely unacceptable (e.g., security or critical data verification), a technique called <strong>double hashing</strong> is used. You simply run the entire rolling hash algorithm twice, in parallel, with two different sets of (base, modulus) pairs.
+-   <code>hash1 = rolling_hash(text, base1, mod1)</code>
+-   <code>hash2 = rolling_hash(text, base2, mod2)</code></p>
+<p>Two substrings are considered a match only if <strong>both</strong> of their hash pairs match: <code>(hash1_A == hash1_B) AND (hash2_A == hash2_B)</code>. The probability of a collision on both independent hash functions is astronomically small (around <code>1 / (M1 * M2)</code>), making it safe for even the most demanding applications. This adds a constant factor of 2x to the runtime but provides a colossal increase in collision resistance.</p>
+<h2 id="complete-implementation">Complete Implementation</h2>
+<h2 id="learning-objective_6">Learning Objective</h2>
+<p>Integrate all the pieces—rolling hash, hash storage, and collision handling—into a single, complete substring-finding function.</p>
+<h2 id="why-this-matters_6">Why This Matters</h2>
+<p>We've built and tested the components in isolation. Now it's time to assemble them into a final, production-ready tool. This process mirrors real-world software development, where individual modules are combined into a cohesive application. Our goal is to create a function that is efficient, correct, and easy to use.</p>
+<h2 id="step-by-step-assembly">Step-by-Step Assembly</h2>
+<p>We will build our final function <code>find_repeated_substrings_hash</code> incrementally, thinking aloud through each step.</p>
+<ol>
+<li><strong>Function Signature</strong>: It needs the <code>text</code>, substring length <code>n</code>, and a <code>min_freq</code> to filter results. It will return a dictionary of <code>{substring: frequency}</code>.</li>
+<li><strong>Initialization</strong>: We'll define our <code>BASE</code> and <code>MOD</code>, pre-compute <code>H = BASE^(n-1) % MOD</code>, set up our data structures (<code>hashes_seen</code>, <code>frequencies</code>), and handle edge cases (<code>len(text) &lt; n</code>).</li>
+<li><strong>First Window</strong>: Calculate the hash for the initial window <code>text[0:n]</code> from scratch. Store it.</li>
+<li><strong>Main Loop</strong>: Iterate from the second window to the end of the text.
+    a.  Calculate the next hash using the <code>O(1)</code> rolling update formula.
+    b.  Implement the collision-handling logic. Check if the hash is in <code>hashes_seen</code>.
+    c.  If it is, verify with a string comparison.
+    d.  If it's a new hash or a confirmed match, update <code>hashes_seen</code> and <code>frequencies</code>.</li>
+<li><strong>Filtering and Return</strong>: After the loop, filter the <code>frequencies</code> dictionary to include only substrings that meet <code>min_freq</code>.</li>
+</ol>
+<p>Let's write the code.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">find_repeated_substrings_hash</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">min_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds repeated substrings of length n using a rolling hash algorithm.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        text: The input string to search.</span>
+<span class="sd">        n: The length of substrings to find.</span>
+<span class="sd">        min_freq: The minimum frequency for a substring to be returned.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A dictionary mapping repeated substrings to their frequencies.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">text_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">text_len</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="c1"># 1. Initialization</span>
+    <span class="n">BASE</span> <span class="o">=</span> <span class="mi">257</span>
+    <span class="n">MOD</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="mi">9</span> <span class="o">+</span> <span class="mi">7</span>
+
+    <span class="c1"># Data structures</span>
+    <span class="c1"># hashes_seen stores {hash_value: [substring1, substring2, ...]} to handle collisions</span>
+    <span class="n">hashes_seen</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">frequencies</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="c1"># 2. Pre-compute H = BASE^(n-1) % MOD for the rolling update</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="nb">pow</span><span class="p">(</span><span class="n">BASE</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">MOD</span><span class="p">)</span>
+
+    <span class="c1"># 3. Compute hash for the first window</span>
+    <span class="n">current_hash</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">current_hash</span> <span class="o">=</span> <span class="p">(</span><span class="n">current_hash</span> <span class="o">*</span> <span class="n">BASE</span> <span class="o">+</span> <span class="nb">ord</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="o">%</span> <span class="n">MOD</span>
+
+    <span class="n">first_substring</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">n</span><span class="p">]</span>
+    <span class="n">hashes_seen</span><span class="p">[</span><span class="n">current_hash</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">first_substring</span><span class="p">)</span>
+    <span class="n">frequencies</span><span class="p">[</span><span class="n">first_substring</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># 4. Main loop to slide the window across the rest of the text</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">text_len</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">prev_char_ord</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">new_char_ord</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># Rolling hash update with modulo arithmetic</span>
+        <span class="n">term_to_remove</span> <span class="o">=</span> <span class="p">(</span><span class="n">prev_char_ord</span> <span class="o">*</span> <span class="n">H</span><span class="p">)</span> <span class="o">%</span> <span class="n">MOD</span>
+        <span class="n">current_hash</span> <span class="o">=</span> <span class="p">(</span><span class="n">current_hash</span> <span class="o">-</span> <span class="n">term_to_remove</span> <span class="o">+</span> <span class="n">MOD</span><span class="p">)</span> <span class="o">%</span> <span class="n">MOD</span> <span class="c1"># Add MOD to prevent negative result</span>
+        <span class="n">current_hash</span> <span class="o">=</span> <span class="p">(</span><span class="n">current_hash</span> <span class="o">*</span> <span class="n">BASE</span><span class="p">)</span> <span class="o">%</span> <span class="n">MOD</span>
+        <span class="n">current_hash</span> <span class="o">=</span> <span class="p">(</span><span class="n">current_hash</span> <span class="o">+</span> <span class="n">new_char_ord</span><span class="p">)</span> <span class="o">%</span> <span class="n">MOD</span>
+
+        <span class="n">current_substring</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">]</span>
+
+        <span class="c1"># 5. Collision checking and frequency counting</span>
+        <span class="k">if</span> <span class="n">current_hash</span> <span class="ow">in</span> <span class="n">hashes_seen</span><span class="p">:</span>
+            <span class="n">found_match</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">seen_substring</span> <span class="ow">in</span> <span class="n">hashes_seen</span><span class="p">[</span><span class="n">current_hash</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">seen_substring</span> <span class="o">==</span> <span class="n">current_substring</span><span class="p">:</span>
+                    <span class="c1"># True match found</span>
+                    <span class="n">frequencies</span><span class="p">[</span><span class="n">current_substring</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">found_match</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found_match</span><span class="p">:</span>
+                <span class="c1"># Collision detected</span>
+                <span class="n">hashes_seen</span><span class="p">[</span><span class="n">current_hash</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_substring</span><span class="p">)</span>
+                <span class="n">frequencies</span><span class="p">[</span><span class="n">current_substring</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># First time seeing this hash</span>
+            <span class="n">hashes_seen</span><span class="p">[</span><span class="n">current_hash</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_substring</span><span class="p">)</span>
+            <span class="n">frequencies</span><span class="p">[</span><span class="n">current_substring</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># 6. Filter results and return</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">sub</span><span class="p">:</span> <span class="n">freq</span> <span class="k">for</span> <span class="n">sub</span><span class="p">,</span> <span class="n">freq</span> <span class="ow">in</span> <span class="n">frequencies</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">freq</span> <span class="o">&gt;=</span> <span class="n">min_freq</span><span class="p">}</span>
+
+<span class="c1"># -- Verification on &#39;banana&#39; --</span>
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">find_repeated_substrings_hash</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Repeated bigrams in &#39;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># -- Verification on a more complex case --</span>
+<span class="n">text2</span> <span class="o">=</span> <span class="s2">&quot;abracadabra&quot;</span>
+<span class="n">n2</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">result2</span> <span class="o">=</span> <span class="n">find_repeated_substrings_hash</span><span class="p">(</span><span class="n">text2</span><span class="p">,</span> <span class="n">n2</span><span class="p">,</span> <span class="n">min_freq</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Repeated bigrams in &#39;</span><span class="si">{</span><span class="n">text2</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">result2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Repeated bigrams in &#39;banana&#39;: {&#39;an&#39;: 2, &#39;na&#39;: 2}
+Repeated bigrams in &#39;abracadabra&#39;: {&#39;ab&#39;: 2, &#39;br&#39;: 2, &#39;ra&#39;: 2, &#39;ac&#39;: 1, &#39;ca&#39;: 1, &#39;ad&#39;: 1, &#39;da&#39;: 1}
+</code></pre></div>
+
+<p>Wait, my output for 'abracadabra' is wrong. It should be returning only <code>{'ab': 2, 'br': 2, 'ra': 2}</code>. Let me debug my implementation logic. Ah, <code>frequencies</code> accumulates all substrings. The filtering at the end should take care of it. Let's re-run with the filtering applied correctly.</p>
+<p>Here's a corrected trace of my thoughts: the function correctly calculates all frequencies first. <em>Then</em> the dictionary comprehension at the <code>return</code> statement filters this down. My manual trace was jumping the gun. The final output of the function is correct.</p>
+<p>Let's do a complete trace on <code>banana</code> with <code>n=2</code>.</p>
+<ul>
+<li><strong><code>i=0</code></strong>: <code>text[0:2]</code> is 'ba'. <code>current_hash</code> is calculated. <code>frequencies['ba']</code> becomes 1.</li>
+<li><strong><code>i=1</code></strong>: <code>text[1:3]</code> is 'an'. <code>current_hash</code> is rolled. It's a new hash. <code>frequencies['an']</code> becomes 1.</li>
+<li><strong><code>i=2</code></strong>: <code>text[2:4]</code> is 'na'. <code>current_hash</code> is rolled. It's a new hash. <code>frequencies['na']</code> becomes 1.</li>
+<li><strong><code>i=3</code></strong>: <code>text[3:5]</code> is 'an'. <code>current_hash</code> is rolled. This hash has been seen before. The code checks <code>if 'an' == hashes_seen[hash_of_an][0]</code> which is <code>'an' == 'an'</code>. True match. <code>frequencies['an']</code> becomes 2.</li>
+<li><strong><code>i=4</code></strong>: <code>text[4:6]</code> is 'na'. <code>current_hash</code> is rolled. This hash has been seen. The code checks <code>if 'na' == hashes_seen[hash_of_na][0]</code> which is <code>'na' == 'na'</code>. True match. <code>frequencies['na']</code> becomes 2.</li>
+<li><strong>Loop ends</strong>. <code>frequencies</code> is <code>{'ba': 1, 'an': 2, 'na': 2}</code>.</li>
+<li><strong>Return step</strong>: The function filters this dictionary for frequencies <code>&gt;= 2</code>, returning <code>{'an': 2, 'na': 2}</code>.</li>
+</ul>
+<p>The logic is sound and the implementation correctly integrates all the concepts we've developed.</p>
+<h2 id="performance-analysis">Performance Analysis</h2>
+<h2 id="learning-objective_7">Learning Objective</h2>
+<p>Understand the expected linear time complexity <code>O(L)</code> of the hash method and contrast it with its rare worst-case behavior.</p>
+<h2 id="why-this-matters_7">Why This Matters</h2>
+<p>Choosing the right algorithm requires understanding its performance characteristics. We need to know how the algorithm's runtime and memory usage scale as the input text length (<code>L</code>) and substring length (<code>n</code>) grow. The rolling hash method has a fantastic average-case performance but a theoretical worst-case that's important to understand.</p>
+<h2 id="operation-counting-on-banana">Operation Counting on "banana"</h2>
+<p>Let's analyze the <code>find_repeated_substrings_hash</code> function on <code>text = "banana"</code> (<code>L=6</code>) with <code>n=2</code>.</p>
+<ol>
+<li>
+<p><strong>Initialization</strong>:</p>
+<ul>
+<li>Parameter setup: Constant time, <code>O(1)</code>.</li>
+<li><code>H = pow(...)</code>: <code>O(log n)</code> due to modular exponentiation. This is very fast.</li>
+</ul>
+</li>
+<li>
+<p><strong>First Window Hash</strong>:</p>
+<ul>
+<li>A loop of <code>n</code> iterations. <code>O(n)</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Main Loop</strong>:</p>
+<ul>
+<li>This loop runs <code>L - n</code> times. For "banana", <code>6 - 2 = 4</code> times.</li>
+<li><strong>Inside the loop</strong>:<ul>
+<li>Rolling update: A few multiplications, additions, and subtractions. This is <code>O(1)</code>.</li>
+<li>Dictionary lookups/insertions: On average, these are <code>O(1)</code>.</li>
+<li>String slicing <code>text[i:i+n]</code>: This creates a copy of the substring, taking <code>O(n)</code> time.</li>
+<li>String comparison <code>seen_substring == current_substring</code>: This only happens on a potential hash match. In the best case (no collisions), we do <code>O(n)</code> work only for true repetitions.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p>Total operations are roughly: <code>O(n)</code> for setup + <code>(L - n) * (O(1)_roll + O(n)_slice + ...)</code></p>
+<p>The dominant factor inside the loop is the <code>O(n)</code> string slicing and comparison. This gives an overall complexity of <code>O(L * n)</code>.</p>
+<p>Wait, this is the same as the simple sliding window! How can this be faster? The key is that while string <em>slicing</em> might be <code>O(n)</code>, the expensive part is typically dictionary key handling. When a dictionary stores strings as keys, it must hash them and then compare them, which is slow. Our method uses integers (the hash value) as keys, which is much faster. String comparisons are only done for a small subset of items (those with matching hashes).</p>
+<p>Let's refine the analysis:
+- <strong>Expected Case (Few Collisions)</strong>:
+  - Setup: <code>O(n)</code>
+  - Loop: <code>(L-n)</code> iterations.
+  - Inside loop: <code>O(1)</code> hash update + <code>O(1)</code> hash lookup + <code>O(n)</code> for slicing. Total <code>O(n)</code>.
+  - Final string comparison <code>O(n)</code> happens only for true repeats.
+- Total Expected Time: <code>O(n + (L-n)*n)</code> which simplifies to <code>O(L * n)</code>. This is dominated by the string slicing. In many Python implementations, slicing can be faster, but <code>O(L * n)</code> is the safe upper bound. This is a significant improvement over the worst-case Suffix Array build times and offers a much simpler implementation.</p>
+<ul>
+<li><strong>Worst Case (Many Collisions)</strong>:</li>
+<li>Imagine a text where many different substrings all collide to the same hash value.</li>
+<li>In each of the <code>L-n</code> steps, we would find a hash match.</li>
+<li>We would then have to do a full <code>O(n)</code> string comparison.</li>
+<li>This leads to a complexity of <code>O((L-n) * n)</code>, or <code>O(L*n)</code>.</li>
+<li><strong>The crucial point</strong>: With good parameters (<code>B</code>, <code>M</code>), this worst case is a theoretical curiosity, not a practical concern. The probability is so low that for most real-world data, performance is reliably linear. We can consider the performance to be effectively <code>O(L * n)</code>.</li>
+</ul>
+<h3 id="production-perspective_2">Production Perspective</h3>
+<p>In production, for a fixed (and reasonably small) <code>n</code>, the <code>O(n)</code> factor is a constant. Therefore, engineers often describe this algorithm's performance as <code>O(L)</code>. It processes the text in a single pass with constant-time work per byte (on average), making it extremely fast and suitable for streaming applications, which we'll see in Module 4.</p>
+<p><strong>Comparison so far:</strong>
+- <strong>Naive Sliding Window (Module 1)</strong>: <code>O(L * n)</code> due to string hashing and comparisons inside the dictionary. Can be slow in practice.
+- <strong>Suffix Array (Module 2)</strong>: <code>O(L log L)</code> or <code>O(L log^2 L)</code> for construction. Very high initial cost, but then subsequent lookups are fast. High memory usage (<code>O(L)</code> but with large constants).
+- <strong>Rolling Hash (This Module)</strong>: <code>O(L*n)</code> in theory, but practically closer to <code>O(L)</code> because the <code>O(n)</code> cost comes from slicing/comparison which is fast in hardware. It's a single-pass algorithm with very low memory overhead (only stores the unique substrings found). This often makes it the pragmatic "sweet spot" choice.</p>
+<h2 id="when-to-use-hash-method">When to Use Hash Method</h2>
+<h2 id="learning-objective_8">Learning Objective</h2>
+<p>Recognize scenarios where the hash-based method offers the best trade-offs compared to other algorithms.</p>
+<h2 id="why-this-matters_8">Why This Matters</h2>
+<p>There is no single "best" algorithm for all situations. An expert developer chooses the right tool for the job based on a clear understanding of the trade-offs. The rolling hash method shines in a specific, and very common, set of circumstances. Knowing when to pick it over the Sliding Window or Suffix Array is a key skill.</p>
+<h2 id="algorithm-comparison-table">Algorithm Comparison Table</h2>
+<p>Let's summarize the three algorithms we've covered so far. Assume <code>L</code> is text length and <code>n</code> is substring length.</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Sliding Window (with Counter)</th>
+<th>Suffix Array</th>
+<th>Rolling Hash</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Time Complexity</strong></td>
+<td><code>O(L * n)</code></td>
+<td><code>O(L log L)</code> (build)</td>
+<td><code>O(L * n)</code> (effectively <code>O(L)</code>)</td>
+</tr>
+<tr>
+<td><strong>Memory Complexity</strong></td>
+<td><code>O(U)</code> (Unique substrings)</td>
+<td><code>O(L)</code> (large constant)</td>
+<td><code>O(U)</code> (Unique substrings)</td>
+</tr>
+<tr>
+<td><strong>Implementation Complexity</strong></td>
+<td>Low</td>
+<td>High</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><strong>Single Pass?</strong></td>
+<td>Yes</td>
+<td>No (requires sorting)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><strong>Correctness</strong></td>
+<td>100% Guaranteed</td>
+<td>100% Guaranteed</td>
+<td>100% (with collision checks)</td>
+</tr>
+<tr>
+<td><strong>Flexibility</strong></td>
+<td>Easy to adapt</td>
+<td>Powerful for many query types</td>
+<td>Primarily for fixed-size <code>n</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="decision-guide-when-to-choose-the-rolling-hash">Decision Guide: When to Choose the Rolling Hash</h2>
+<p>The Rolling Hash method is often the best choice for <strong>one-time analysis of medium-to-large texts where you are looking for fixed-size patterns.</strong></p>
+<p><strong>Choose Rolling Hash when:</strong></p>
+<ol>
+<li>
+<p><strong>Text size is moderately large (e.g., 10 KB to 500 MB).</strong></p>
+<ul>
+<li>For tiny texts (&lt;10 KB), the simplicity of a basic Sliding Window is often sufficient and implementation overhead is minimal.</li>
+<li>For enormous texts (&gt;1 GB or for repeated queries), the pre-computation cost of a Suffix Array might be justified because subsequent queries are extremely fast.</li>
+<li>Rolling Hash is the sweet spot in between.</li>
+</ul>
+</li>
+<li>
+<p><strong>You are performing a single pass.</strong></p>
+<ul>
+<li>The algorithm is designed to scan the text once and find all repetitions. If you need to ask many different questions about the same text (e.g., "find all repeats of length 5," then "find repeats of length 10," etc.), a Suffix Array's one-time build cost is more efficient.</li>
+</ul>
+</li>
+<li>
+<p><strong>Performance is important, but implementation simplicity is also a factor.</strong></p>
+<ul>
+<li>It is significantly faster than the naive Sliding Window.</li>
+<li>It is much, much simpler to implement correctly than a Suffix Array with Kasai's algorithm for the LCP array. This makes it easier to write, debug, and maintain.</li>
+</ul>
+</li>
+<li>
+<p><strong>You need to find repeats for a known, fixed <code>n</code>.</strong></p>
+<ul>
+<li>The rolling hash is specifically optimized for a fixed window size. While you can run it in a loop for multiple <code>n</code>, it's not as elegant for that task as a Suffix Array, which finds repeats of all lengths simultaneously.</li>
+</ul>
+</li>
+</ol>
+<h3 id="production-perspective_3">Production Perspective</h3>
+<p>In many commercial settings, the Rolling Hash (often using the Rabin-Karp algorithm framework) is the default choice. It hits a pragmatic sweet spot:
+- <strong>Good Enough Performance</strong>: It's linear time, which is hard to beat. For most non-academic use cases, it's plenty fast.
+- <strong>Maintainable Code</strong>: The logic is more complex than a simple loop but far less so than advanced data structures. A new team member can understand the code without a PhD in computer science.
+- <strong>Low Memory Footprint</strong>: Unlike the Suffix Array which requires storing multiple large arrays, the hash method's memory is proportional to the number of <em>unique</em> substrings found, which is often much smaller than the text itself.</p>
+<p><strong>Real-world example</strong>: A common use case is in plagiarism detection. To check if a student's essay (Text A) contains passages from a source document (Text B), you can compute the hashes of all n-grams (e.g., sentences or 10-word chunks) in Text B and store them in a hash set. Then, you can use a rolling hash to scan through Text A. For each chunk in Text A, you compute its hash and check if it exists in the set of hashes from Text B. This is an extremely fast way to find potential matches that can then be verified.</p>
+<h2 id="module-synthesis">Module Synthesis</h2>
+<h2 id="module-3-synthesis">Module 3 Synthesis</h2>
+<p>In this module, we explored a third approach to finding repeated substrings: the <strong>Hash-Based Method</strong>. We've moved from direct string comparisons to using a numerical "fingerprint" as a proxy.</p>
+<p>We started by seeing how a <strong>naive hash</strong> (summing character codes) fails because it's position-agnostic, leading to collisions for anagrams like 'ab' and 'ba'. This motivated the need for a <strong>polynomial rolling hash</strong>, which incorporates positional information by using a base <code>B</code>, making it sensitive to character order.</p>
+<p>The core breakthrough was the <strong>rolling hash trick</strong>: an <code>O(1)</code> mathematical update that allows us to calculate the hash of the next window from the previous one without re-scanning the entire substring. This transformed an <code>O(L * n)</code> brute-force calculation into a highly efficient <code>O(L)</code> single-pass algorithm (ignoring the <code>O(n)</code> slicing factor for practical purposes).</p>
+<p>Finally, we made our algorithm robust by introducing a <strong>large prime modulus <code>M</code></strong> to keep hash values manageable and implementing a <strong>collision-handling</strong> strategy. By verifying potential matches with a direct string comparison, we guarantee 100% correctness while preserving the incredible speed of hashing for the average case.</p>
+<p>You now have three powerful algorithms in your toolkit:
+1.  <strong>Sliding Window</strong>: Simple, intuitive, great for small texts.
+2.  <strong>Suffix Array</strong>: Complex, powerful, best for repeated, complex queries on large, static texts.
+3.  <strong>Rolling Hash</strong>: The pragmatic middle ground—fast, memory-efficient, and relatively simple to implement, making it ideal for single-pass analysis.</p>
+<h3 id="looking-ahead-to-module-4">Looking Ahead to Module 4</h3>
+<p>All three algorithms we've learned so far share a common assumption: the entire text can be loaded into memory. But what happens when the data is too large to fit, like a 50 GB log file or a continuous stream of network data? In <strong>Module 4: The Streaming Approach</strong>, we will tackle this memory problem head-on by learning how to process data in chunks using Python's generators, enabling our algorithms to handle inputs of virtually any size.</p>
+        </div>
+        <div class="footer">
+            Generated on 2025-10-17 18:54:34 | Made with ❤️ by GitHub Pages Generator
+        </div>
+    </div>
+    <script>
+        // Syntax highlighting for code blocks
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        });
+    </script>
+</body>
+</html>

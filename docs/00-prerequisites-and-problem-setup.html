@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>00-prerequisites-and-problem-setup</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-code: #0f172a;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --accent: #06b6d4;
+            --success: #10b981;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.7; 
+            color: var(--text-primary); 
+            background: var(--bg-main);
+        }
+        
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        
+        .home-btn { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: var(--accent);
+            color: white; 
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            text-decoration: none; 
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .home-btn:hover { 
+            background: #0891b2;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(6, 182, 212, 0.5);
+        }
+        
+        .breadcrumb { 
+            background: var(--bg-card);
+            padding: 12px 0; 
+            margin-bottom: 24px; 
+            font-size: 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        
+        .breadcrumb a { 
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .breadcrumb a:hover { 
+            color: var(--primary);
+            text-decoration: underline;
+        }
+        
+        .content { 
+            background: var(--bg-card);
+            padding: 3rem; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+        }
+        
+        .file-list { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 1.5rem; 
+            margin: 2rem 0; 
+        }
+        
+        .file-item { 
+            padding: 1.5rem; 
+            border: 1px solid var(--border);
+            border-radius: 12px; 
+            background: var(--bg-main);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .file-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .file-item:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3);
+            border-color: var(--primary);
+        }
+        
+        .file-item:hover::before {
+            opacity: 1;
+        }
+        
+        .file-item a { 
+            color: var(--text-primary);
+            text-decoration: none; 
+            font-weight: 600; 
+            display: block;
+            font-size: 1.1rem;
+        }
+        
+        .file-item a:hover { 
+            color: var(--primary);
+        }
+        
+        .file-type { 
+            font-size: 13px; 
+            color: var(--text-secondary);
+            margin-top: 8px; 
+            font-weight: 500;
+        }
+        
+        /* Code Blocks */
+        pre { 
+            background: var(--bg-code);
+            padding: 1.5rem; 
+            border-radius: 12px; 
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        pre code { 
+            background: none;
+            padding: 0;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        /* Inline Code */
+        code { 
+            background: var(--bg-code);
+            color: #8b5cf6;
+            padding: 3px 8px; 
+            border-radius: 6px; 
+            font-size: 1.1em;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            border: 1px solid var(--border);
+        }
+        
+        /* Headings */
+        h1, h2, h3, h4, h5, h6 { 
+            color: var(--text-primary);
+            margin: 2rem 0 1rem 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        h1 { 
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 12px;
+            margin-bottom: 1.5rem;
+        }
+        
+        h2 { 
+            font-size: 2rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+        }
+        
+        h3 { 
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+        
+        /* Links */
+        a { 
+            color: var(--accent);
+            transition: color 0.2s;
+        }
+        
+        a:hover { 
+            color: var(--primary);
+        }
+        
+        /* Paragraphs */
+        p {
+            margin: 1rem 0;
+            color: var(--text-secondary);
+        }
+        
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+            color: var(--text-secondary);
+        }
+        
+        li {
+            margin: 0.5rem 0;
+        }
+        
+        /* Tables */
+        table { 
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1.5rem 0;
+            background: var(--bg-main);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        th, td { 
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            text-align: left;
+        }
+        
+        th { 
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: var(--bg-card);
+        }
+        
+        /* Blockquotes */
+        blockquote {
+            border-left: 4px solid var(--primary);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            background: var(--bg-main);
+            border-radius: 0 8px 8px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        /* Horizontal Rule */
+        hr {
+            border: none;
+            border-top: 2px solid var(--border);
+            margin: 2rem 0;
+        }
+        
+        .footer { 
+            text-align: center; 
+            padding: 2rem; 
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            margin-top: 3rem; 
+            font-size: 14px;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .file-list { grid-template-columns: 1fr; }
+            .content { padding: 1.5rem; }
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="./index.html" class="home-btn">🏠</a>
+    <div class="container">
+        <div class="breadcrumb">
+            <div style="padding: 0 20px;">
+                <a href="./index.html">🏠 Home</a>
+            </div>
+        </div>
+        <div class="content">
+            <h1 id="module-0-prerequisites-and-problem-setup">Module 0: Prerequisites and Problem Setup</h1>
+<h2 id="the-concrete-problem">The Concrete Problem</h2>
+<h2 id="learning-objective">Learning Objective</h2>
+<p>Understand what we're trying to solve through a real example.</p>
+<h2 id="why-this-matters">Why This Matters</h2>
+<p>At its core, computer science is about finding efficient ways to solve problems. Before we can write a single line of an advanced algorithm, we must deeply understand the problem we're solving. This module grounds our entire course in a simple, tangible task that quickly reveals the need for clever solutions. Understanding this foundation is key to appreciating why different algorithms exist and how to choose the right one.</p>
+<h2 id="discovery-phase-finding-repeats-by-hand">Discovery Phase: Finding Repeats by Hand</h2>
+<p>Let's start with a simple word. No complex theory, just a string of characters:</p>
+<p><code>text = "banana"</code></p>
+<p>Our goal is to find all the parts of this string that are repeated. Let's do this manually, just as you would with a pencil and paper.</p>
+<ol>
+<li>
+<p><strong>Single letters:</strong></p>
+<ul>
+<li><code>b</code>: appears 1 time.</li>
+<li><code>a</code>: appears 3 times. <strong>(Repeated!)</strong></li>
+<li><code>n</code>: appears 2 times. <strong>(Repeated!)</strong></li>
+</ul>
+</li>
+<li>
+<p><strong>Groups of two letters (Bigrams):</strong></p>
+<ul>
+<li><code>ba</code>: appears 1 time.</li>
+<li><code>an</code>: appears at index 1 (<code>b**an**ana</code>) and index 3 (<code>ban**an**a</code>). <strong>(Repeated!)</strong></li>
+<li><code>na</code>: appears at index 2 (<code>ba**na**na</code>) and index 4 (<code>bana**na**</code>). <strong>(Repeated!)</strong></li>
+</ul>
+</li>
+<li>
+<p><strong>Groups of three letters (Trigrams):</strong></p>
+<ul>
+<li><code>ban</code>: 1 time.</li>
+<li><code>ana</code>: appears at index 1 (<code>b**ana**na</code>) and index 3 (<code>ban**ana**</code>). <strong>(Repeated!)</strong></li>
+<li><code>nan</code>: 1 time.</li>
+</ul>
+</li>
+</ol>
+<p>Let's summarize our manual findings in a table:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Substring</th>
+<th style="text-align: center;">Length</th>
+<th style="text-align: center;">Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>a</code></td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>n</code></td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>an</code></td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>na</code></td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ana</code></td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">2</td>
+</tr>
+</tbody>
+</table>
+<p>This manual process gives us the right answer for "banana". But notice how tedious and error-prone it was. Did I miss any? I had to double-check. Imagine doing this for a whole paragraph, or a book, or a gigabyte of log data. It's simply not feasible.</p>
+<p>This is our core problem: <strong>How can we automate the process of finding and counting all repeated substrings in a body of text, and do it efficiently?</strong></p>
+<h2 id="the-naive-approach-why-we-need-algorithms">The Naive Approach: Why We Need Algorithms</h2>
+<p>Let's try to translate our manual "check everything" logic into code. A simple, brute-force approach might be:
+1.  Generate every possible substring.
+2.  For each substring, scan the entire original text to count its occurrences.</p>
+<p>This seems straightforward enough. Let's implement it.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">find_repeated_substrings_naive</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A very inefficient, brute-force method to find repeated substrings.</span>
+<span class="sd">    This is for demonstration of a bad approach ONLY.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">substring_counts</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># 1. Generate every possible substring</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">substring</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># 2. For each substring, scan the text to count it</span>
+            <span class="k">if</span> <span class="n">substring</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">substring_counts</span><span class="p">:</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">k</span><span class="p">:]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">substring</span><span class="p">):</span>
+                        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">substring_counts</span><span class="p">[</span><span class="n">substring</span><span class="p">]</span> <span class="o">=</span> <span class="n">count</span>
+
+    <span class="c1"># Filter for only those that are repeated</span>
+    <span class="n">repeated</span> <span class="o">=</span> <span class="p">{</span><span class="n">sub</span><span class="p">:</span> <span class="n">count</span> <span class="k">for</span> <span class="n">sub</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">substring_counts</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">repeated</span>
+
+<span class="c1"># Let&#39;s test it on our simple example</span>
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Finding repeats in &#39;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&#39;:&quot;</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">find_repeated_substrings_naive</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Finding repeats in &#39;banana&#39;:
+{&#39;a&#39;: 3, &#39;n&#39;: 2, &#39;an&#39;: 2, &#39;na&#39;: 2, &#39;ana&#39;: 2}
+</code></pre></div>
+
+<p>The code works! It produces the exact same results we found by hand. So, what's the problem? The problem is performance. The number of operations our code performs grows incredibly fast as the input text gets longer. This is what we call poor <strong>scalability</strong>.</p>
+<h3 id="showing-failure-before-solution">Showing Failure Before Solution</h3>
+<p>Let's demonstrate this failure with a slightly longer string. We'll use a timer to see how long it takes.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">find_repeated_substrings_naive</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">substring_counts</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">substring</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">substring</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">substring_counts</span><span class="p">:</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">k</span><span class="p">:]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">substring</span><span class="p">):</span>
+                        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">substring_counts</span><span class="p">[</span><span class="n">substring</span><span class="p">]</span> <span class="o">=</span> <span class="n">count</span>
+    <span class="n">repeated</span> <span class="o">=</span> <span class="p">{</span><span class="n">sub</span><span class="p">:</span> <span class="n">count</span> <span class="k">for</span> <span class="n">sub</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">substring_counts</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">repeated</span>
+
+<span class="c1"># A slightly more complex text</span>
+<span class="n">medium_text</span> <span class="o">=</span> <span class="s2">&quot;abracadabra&quot;</span>
+
+<span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">find_repeated_substrings_naive</span><span class="p">(</span><span class="n">medium_text</span><span class="p">)</span>
+<span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time taken for &#39;</span><span class="si">{</span><span class="n">medium_text</span><span class="si">}</span><span class="s2">&#39; (length </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">medium_text</span><span class="p">)</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">end_time</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+<span class="c1"># A text that is just long enough to cause a serious problem</span>
+<span class="n">long_text</span> <span class="o">=</span> <span class="s2">&quot;abracadabracadabra&quot;</span> <span class="c1"># Just 18 characters!</span>
+
+<span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Attempting &#39;</span><span class="si">{</span><span class="n">long_text</span><span class="si">}</span><span class="s2">&#39; (length </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">long_text</span><span class="p">)</span><span class="si">}</span><span class="s2">)... this may take a while.&quot;</span><span class="p">)</span>
+<span class="n">find_repeated_substrings_naive</span><span class="p">(</span><span class="n">long_text</span><span class="p">)</span>
+<span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time taken for &#39;</span><span class="si">{</span><span class="n">long_text</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">end_time</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+<span class="c1"># What about a sentence?</span>
+<span class="n">sentence</span> <span class="o">=</span> <span class="s2">&quot;the quick brown fox jumps over the lazy dog&quot;</span>
+<span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Attempting a sentence (length </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span><span class="si">}</span><span class="s2">)...&quot;</span><span class="p">)</span>
+<span class="n">find_repeated_substrings_naive</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span>
+<span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time taken for sentence: </span><span class="si">{</span><span class="n">end_time</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">Time</span><span class="w"> </span><span class="nv">taken</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="s1">&#39;abracadabra&#39;</span><span class="w"> </span><span class="ss">(</span><span class="nv">length</span><span class="w"> </span><span class="mi">11</span><span class="ss">)</span>:<span class="w"> </span><span class="mi">0</span>.<span class="mi">000213</span><span class="w"> </span><span class="nv">seconds</span>
+
+<span class="nv">Attempting</span><span class="w"> </span><span class="s1">&#39;abracadabracadabra&#39;</span><span class="w"> </span><span class="ss">(</span><span class="nv">length</span><span class="w"> </span><span class="mi">18</span><span class="ss">)</span>...<span class="w"> </span><span class="nv">this</span><span class="w"> </span><span class="nv">may</span><span class="w"> </span><span class="nv">take</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="k">while</span>.
+<span class="nv">Time</span><span class="w"> </span><span class="nv">taken</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="s1">&#39;abracadabracadabra&#39;</span>:<span class="w"> </span><span class="mi">0</span>.<span class="mi">001150</span><span class="w"> </span><span class="nv">seconds</span>
+
+<span class="nv">Attempting</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="nv">sentence</span><span class="w"> </span><span class="ss">(</span><span class="nv">length</span><span class="w"> </span><span class="mi">43</span><span class="ss">)</span>...
+<span class="nv">Time</span><span class="w"> </span><span class="nv">taken</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="nv">sentence</span>:<span class="w"> </span><span class="mi">0</span>.<span class="mi">016335</span><span class="w"> </span><span class="nv">seconds</span>
+</code></pre></div>
+
+<p>Notice the execution time. Increasing the string length from 11 to 18 characters caused a ~5x increase in time. Going to 43 characters caused another ~14x increase! This is non-linear growth. If we gave it a paragraph from "War and Peace" (let alone the whole book), we could be waiting for hours, days, or even longer.</p>
+<p>This catastrophic slowdown happens because our naive algorithm has a time complexity of roughly O(n⁴) due to the nested loops and string searching. This is computationally unacceptable for any real-world text.</p>
+<h3 id="common-confusion-arent-modern-computers-fast-enough-to-just-brute-force-it">Common Confusion: "Aren't modern computers fast enough to just brute-force it?"</h3>
+<p><strong>You might think</strong>: My laptop is incredibly powerful. A few nested loops should be fine for most text I deal with.</p>
+<p><strong>Actually</strong>: Algorithmic complexity is unforgiving and quickly outpaces hardware improvements. An inefficient algorithm's runtime doesn't just grow, it explodes.</p>
+<p><strong>Why the confusion happens</strong>: For tiny inputs like "banana", the brute-force method is nearly instantaneous, giving a false sense of security. The "performance cliff" is steep and comes sooner than most people expect.</p>
+<p><strong>How to remember</strong>: Hardware improvements might make an algorithm 10x or 100x faster. A better algorithm can make it a billion times faster. For a 1 million character text (a small book), the difference is between a few seconds (efficient algorithm) and longer than the age of the universe (naive algorithm). Software efficiency, not hardware speed, is the key to solving large problems.</p>
+<h3 id="production-perspective">Production Perspective</h3>
+<p><strong>When this problem matters</strong>: The task of finding repeated substrings is not just an academic exercise. It's a cornerstone of:
+- <strong>Data Compression</strong>: Algorithms like Lempel-Ziv (used in ZIP and PNG files) work by finding repeated sequences and replacing them with short references.
+- <strong>Bioinformatics</strong>: Finding repeated gene sequences in DNA is critical for understanding genetic diseases and evolutionary patterns. A single human genome is 3 billion characters long—efficiency is non-negotiable.
+- <strong>Plagiarism Detection</strong>: Software like Turnitin checks for copied text by finding long, repeated substrings between a submitted paper and a massive database of existing works.
+- <strong>Data Deduplication</strong>: Cloud storage systems save immense amounts of space by finding identical blocks of data (which are just long substrings) across all users' files and only storing one copy.</p>
+<p><strong>The Trade-off</strong>: The naive approach is easy to write and understand. That's its only advantage. In any production system, its abysmal performance makes it unusable. This course is about learning the clever, efficient algorithms that professionals use to solve this problem at scale. We have now established <em>why</em> we need them.</p>
+<h2 id="core-terminology">Core Terminology</h2>
+<h2 id="learning-objective_1">Learning Objective</h2>
+<p>Define substring, n-gram, and pattern with precision.</p>
+<h2 id="why-this-matters_1">Why This Matters</h2>
+<p>To solve a problem, we must be able to talk about it precisely. In software development, communication is key. Using the right terms avoids ambiguity and ensures that everyone on a team is talking about the same thing. In this section, we'll build our core vocabulary, moving from intuitive ideas to formal definitions.</p>
+<h2 id="discovery-phase-what-is-a-substring">Discovery Phase: What is a "Substring"?</h2>
+<p>In the last section, we informally used the term "substring" to mean "a piece of the text." Let's define this formally.</p>
+<p>Consider the simple string <code>text = "abc"</code>.</p>
+<p>What are all the possible contiguous blocks of characters inside it?
+- Chunks of length 1: <code>'a'</code>, <code>'b'</code>, <code>'c'</code>
+- Chunks of length 2: <code>'ab'</code>, <code>'bc'</code>
+- Chunks of length 3: <code>'abc'</code></p>
+<p>Let's write a small program to generate these systematically to make sure we haven't missed any.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_all_substrings</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generates all substrings of a given text.&quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">substrings</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">substrings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">substrings</span>
+
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;abc&quot;</span>
+<span class="n">all_parts</span> <span class="o">=</span> <span class="n">get_all_substrings</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;All substrings of &#39;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&#39;:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">all_parts</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total count: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_parts</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>All substrings of &#39;abc&#39;:
+[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;ab&#39;, &#39;bc&#39;, &#39;abc&#39;]
+Total count: 6
+</code></pre></div>
+
+<h3 id="naming-the-pattern-substring">Naming the Pattern: Substring</h3>
+<p>What we just generated is the complete set of <strong>substrings</strong> for the text "abc".</p>
+<blockquote>
+<p><strong>Definition: Substring</strong>
+A substring is a contiguous sequence of characters within a string.</p>
+</blockquote>
+<p>For a string of length <code>n</code>, there are <code>n * (n + 1) / 2</code> possible non-empty substrings. For "abc" (n=3), that's <code>3 * 4 / 2 = 6</code>. This formula confirms our code found all of them.</p>
+<h2 id="discovery-phase-what-is-an-n-gram">Discovery Phase: What is an "N-gram"?</h2>
+<p>In our analysis of "banana", we looked for repeats of a specific length (e.g., length 2, then length 3). This is a very common task. There's a special name for this concept.</p>
+<p>Let's find all substrings of length 2 in "banana".
+<code>b**an**ana</code> -&gt; "an"
+<code>ba**na**na</code> -&gt; "na"
+<code>ban**an**a</code> -&gt; "an"
+<code>bana**na**</code> -&gt; "na"</p>
+<p>And for good measure, let's include the first one: <code>**ba**nana</code> -&gt; "ba"</p>
+<p>So the full set is: <code>['ba', 'an', 'na', 'an', 'na']</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">find_ngrams</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generates all substrings of a specific length &#39;n&#39;.&quot;&quot;&quot;</span>
+    <span class="n">ngrams</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">ngrams</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">ngrams</span>
+
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;banana&quot;</span>
+
+<span class="c1"># Find all substrings of length 2</span>
+<span class="n">bigrams</span> <span class="o">=</span> <span class="n">find_ngrams</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Substrings of length 2 in &#39;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">bigrams</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Find all substrings of length 3</span>
+<span class="n">trigrams</span> <span class="o">=</span> <span class="n">find_ngrams</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Substrings of length 3 in &#39;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">trigrams</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Substrings of length 2 in &#39;banana&#39;: [&#39;ba&#39;, &#39;an&#39;, &#39;na&#39;, &#39;an&#39;, &#39;na&#39;]
+Substrings of length 3 in &#39;banana&#39;: [&#39;ban&#39;, &#39;ana&#39;, &#39;nan&#39;, &#39;ana&#39;]
+</code></pre></div>
+
+<p>This code automates our manual slice-and-dice process.</p>
+<h3 id="naming-the-pattern-n-gram">Naming the Pattern: N-gram</h3>
+<p>This idea is so fundamental in text analysis that it has its own terminology.</p>
+<blockquote>
+<p><strong>Definition: N-gram</strong>
+An n-gram is a contiguous sequence of <code>n</code> items from a given sample of text or speech.</p>
+</blockquote>
+<ul>
+<li>An n-gram where n=1 is a <strong>unigram</strong>. (<code>['b', 'a', 'n', 'a', 'n', 'a']</code>)</li>
+<li>An n-gram where n=2 is a <strong>bigram</strong>. (<code>['ba', 'an', 'na', 'an', 'na']</code>)</li>
+<li>An n-gram where n=3 is a <strong>trigram</strong>. (<code>['ban', 'ana', 'nan', 'ana']</code>)</li>
+</ul>
+<p>So, an n-gram is just a specific kind of substring—one with a fixed length. When you hear data scientists talk about "bigram analysis," they are simply counting all the two-character (or two-word) sequences in a text.</p>
+<h3 id="common-confusion-substring-vs-subsequence">Common Confusion: Substring vs. Subsequence</h3>
+<p><strong>You might think</strong>: A "subsequence" and a "substring" are the same thing.</p>
+<p><strong>Actually</strong>: They are very different. A <strong>substring</strong> must be <em>contiguous</em> (unbroken). A <strong>subsequence</strong> can have gaps.</p>
+<p><strong>Why the confusion happens</strong>: The words sound similar, and in casual conversation, they might be used interchangeably. In computer science, the distinction is critical.</p>
+<p><strong>How to remember</strong>:
+- <code>sub**string**</code>: think of a piece of <em>string</em> you cut out with scissors. It's one solid piece.
+- For the text <code>banana</code>:
+  - <code>bna</code> is a <strong>subsequence</strong> (you can get it by deleting 'a' and 'a' and 'a').
+  - <code>bna</code> is <strong>NOT a substring</strong>, because the characters 'b', 'n', 'a' are not next to each other in the original word.
+  - <code>nan</code> <strong>IS a substring</strong>.</p>
+<h2 id="conceptual-expansion-character-level-vs-word-level-n-grams">Conceptual Expansion: Character-level vs. Word-level N-grams</h2>
+<p>So far, our "items" have been characters. But the concept of an n-gram can be applied to any sequence, including words in a sentence. This is extremely powerful in Natural Language Processing (NLP).</p>
+<p>Let's take a sentence:
+<code>The quick brown fox jumps over the lazy dog.</code></p>
+<p>We can treat words as our items instead of characters.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">find_word_ngrams</span><span class="p">(</span><span class="n">sentence</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generates all n-grams of words in a sentence.&quot;&quot;&quot;</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="n">sentence</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="c1"># Split the sentence into a list of words</span>
+    <span class="n">ngrams</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">ngrams</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">ngrams</span>
+
+<span class="n">sentence</span> <span class="o">=</span> <span class="s2">&quot;The quick brown fox jumps over the lazy dog&quot;</span>
+
+<span class="c1"># Find all word-level bigrams (n=2)</span>
+<span class="n">word_bigrams</span> <span class="o">=</span> <span class="n">find_word_ngrams</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Word-level Bigrams (n=2):&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">bigram</span> <span class="ow">in</span> <span class="n">word_bigrams</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bigram</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Find all word-level trigrams (n=3)</span>
+<span class="n">word_trigrams</span> <span class="o">=</span> <span class="n">find_word_ngrams</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Word-level Trigrams (n=3):&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">trigram</span> <span class="ow">in</span> <span class="n">word_trigrams</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">trigram</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Word-level Bigrams (n=2):
+- The quick
+- quick brown
+- brown fox
+- fox jumps
+- jumps over
+- over the
+- the lazy
+- lazy dog
+
+Word-level Trigrams (n=3):
+- The quick brown
+- quick brown fox
+- brown fox jumps
+- fox jumps over
+- jumps over the
+- over the lazy
+- the lazy dog
+</code></pre></div>
+
+<p>This demonstrates that the <em>pattern</em> of "n-grams" is an abstract concept that we can apply to different types of data. The underlying logic is the same: take a sequence and slide a window of size <code>n</code> over it.</p>
+<h3 id="production-perspective_1">Production Perspective</h3>
+<p><strong>Communicating with your team</strong>: Using this vocabulary makes you a more effective developer.
+- "Let's find all duplicate <strong>substrings</strong>" is a general request.
+- "Let's find all duplicate <strong>trigrams</strong>" is a very specific request. It implies you only care about repeated sequences of length 3.
+- "We should build a <strong>word-level bigram</strong> model" is a standard phrase in machine learning, instantly telling another engineer what you are planning.</p>
+<p><strong>Real-world applications</strong>:
+- <strong>Character-level n-grams</strong> are crucial in bioinformatics for analyzing DNA (sequences of A, C, G, T) and in cryptography for breaking simple ciphers.
+- <strong>Word-level n-grams</strong> are the bedrock of modern NLP. They are used in:
+    - <strong>Language Models</strong>: Predicting the next word in a sentence (like your phone's autocomplete) is often based on the preceding n-grams. The probability of "cream" is much higher after the bigram "ice".
+    - <strong>Machine Translation</strong>: Services like Google Translate use n-gram frequencies to produce more natural-sounding translations.
+    - <strong>Sentiment Analysis</strong>: The presence of certain bigrams like "very good" vs. "not good" is a strong indicator of the text's sentiment.</p>
+<p>By mastering these simple, fundamental terms, you're not just learning jargon; you're learning to see and describe the foundational patterns used across many fields of computer science.</p>
+<h2 id="module-synthesis">Module Synthesis</h2>
+<h2 id="module-synthesis-from-problem-to-precision">Module Synthesis: From Problem to Precision</h2>
+<p>In this introductory module, we laid the critical groundwork for our entire journey into algorithmic thinking.</p>
+<p>First, we started with a concrete, hands-on problem: finding repeated parts in the simple word <strong>"banana"</strong>. This manual exercise immediately highlighted how tedious and error-prone such a task can be, establishing a clear motivation for automation.</p>
+<p>Second, we translated our manual intuition into a naive, brute-force algorithm. While it worked for "banana", we quickly saw it fail spectacularly on slightly longer texts. This fulfilled a core teaching principle: <strong>show failure before solution</strong>. We now have a tangible understanding of <em>why</em> we need more sophisticated algorithms—not just for elegance, but for practical feasibility.</p>
+<p>Finally, we built a precise vocabulary to discuss the problem. We formally defined a <strong>substring</strong> as any contiguous block of characters and an <strong>n-gram</strong> as a substring of a fixed length <code>n</code>. We solidified these concepts by applying them to both character-level and word-level data, connecting them to real-world applications in fields like NLP and bioinformatics.</p>
+<h3 id="looking-ahead">Looking Ahead</h3>
+<p>We now have a well-defined problem and the correct terminology to describe it. We are perfectly positioned to tackle our first <em>efficient</em> solution. In <strong>Module 1: The Sliding Window Approach</strong>, we will build an algorithm that is vastly more performant than our naive attempt, starting once again with a hardcoded example and gradually building it into a flexible and powerful tool.</p>
+        </div>
+        <div class="footer">
+            Generated on 2025-10-17 18:54:32 | Made with ❤️ by GitHub Pages Generator
+        </div>
+    </div>
+    <script>
+        // Syntax highlighting for code blocks
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        });
+    </script>
+</body>
+</html>

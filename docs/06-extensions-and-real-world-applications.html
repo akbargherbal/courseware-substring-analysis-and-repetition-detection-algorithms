@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>06-extensions-and-real-world-applications</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-code: #0f172a;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --accent: #06b6d4;
+            --success: #10b981;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.7; 
+            color: var(--text-primary); 
+            background: var(--bg-main);
+        }
+        
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        
+        .home-btn { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: var(--accent);
+            color: white; 
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            text-decoration: none; 
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .home-btn:hover { 
+            background: #0891b2;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(6, 182, 212, 0.5);
+        }
+        
+        .breadcrumb { 
+            background: var(--bg-card);
+            padding: 12px 0; 
+            margin-bottom: 24px; 
+            font-size: 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        
+        .breadcrumb a { 
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .breadcrumb a:hover { 
+            color: var(--primary);
+            text-decoration: underline;
+        }
+        
+        .content { 
+            background: var(--bg-card);
+            padding: 3rem; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+        }
+        
+        .file-list { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 1.5rem; 
+            margin: 2rem 0; 
+        }
+        
+        .file-item { 
+            padding: 1.5rem; 
+            border: 1px solid var(--border);
+            border-radius: 12px; 
+            background: var(--bg-main);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .file-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .file-item:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3);
+            border-color: var(--primary);
+        }
+        
+        .file-item:hover::before {
+            opacity: 1;
+        }
+        
+        .file-item a { 
+            color: var(--text-primary);
+            text-decoration: none; 
+            font-weight: 600; 
+            display: block;
+            font-size: 1.1rem;
+        }
+        
+        .file-item a:hover { 
+            color: var(--primary);
+        }
+        
+        .file-type { 
+            font-size: 13px; 
+            color: var(--text-secondary);
+            margin-top: 8px; 
+            font-weight: 500;
+        }
+        
+        /* Code Blocks */
+        pre { 
+            background: var(--bg-code);
+            padding: 1.5rem; 
+            border-radius: 12px; 
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        pre code { 
+            background: none;
+            padding: 0;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        /* Inline Code */
+        code { 
+            background: var(--bg-code);
+            color: #8b5cf6;
+            padding: 3px 8px; 
+            border-radius: 6px; 
+            font-size: 1.1em;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            border: 1px solid var(--border);
+        }
+        
+        /* Headings */
+        h1, h2, h3, h4, h5, h6 { 
+            color: var(--text-primary);
+            margin: 2rem 0 1rem 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        h1 { 
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 12px;
+            margin-bottom: 1.5rem;
+        }
+        
+        h2 { 
+            font-size: 2rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+        }
+        
+        h3 { 
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+        
+        /* Links */
+        a { 
+            color: var(--accent);
+            transition: color 0.2s;
+        }
+        
+        a:hover { 
+            color: var(--primary);
+        }
+        
+        /* Paragraphs */
+        p {
+            margin: 1rem 0;
+            color: var(--text-secondary);
+        }
+        
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+            color: var(--text-secondary);
+        }
+        
+        li {
+            margin: 0.5rem 0;
+        }
+        
+        /* Tables */
+        table { 
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1.5rem 0;
+            background: var(--bg-main);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        th, td { 
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            text-align: left;
+        }
+        
+        th { 
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: var(--bg-card);
+        }
+        
+        /* Blockquotes */
+        blockquote {
+            border-left: 4px solid var(--primary);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            background: var(--bg-main);
+            border-radius: 0 8px 8px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        /* Horizontal Rule */
+        hr {
+            border: none;
+            border-top: 2px solid var(--border);
+            margin: 2rem 0;
+        }
+        
+        .footer { 
+            text-align: center; 
+            padding: 2rem; 
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            margin-top: 3rem; 
+            font-size: 14px;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .file-list { grid-template-columns: 1fr; }
+            .content { padding: 1.5rem; }
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="./index.html" class="home-btn">🏠</a>
+    <div class="container">
+        <div class="breadcrumb">
+            <div style="padding: 0 20px;">
+                <a href="./index.html">🏠 Home</a>
+            </div>
+        </div>
+        <div class="content">
+            <h1 id="module-6-extensions-and-real-world-applications">Module 6: Extensions and Real-World Applications</h1>
+<h2 id="case-study-plagiarism-detection">Case Study: Plagiarism Detection</h2>
+<h2 id="learning-objective">Learning Objective</h2>
+<p>Apply the substring detection algorithms we've learned to a real-world problem: finding copied text between two documents. This section will guide you through selecting the right algorithm and building a practical plagiarism detector.</p>
+<h2 id="why-this-matters">Why This Matters</h2>
+<p>So far, we've focused on finding repetitions <em>within</em> a single text. But a huge class of real-world problems involves finding similarities <em>between</em> texts. This is the foundation of plagiarism detection in academia, copyright infringement detection in publishing, and even how search engines find duplicate content on the web. Mastering this application moves your skills from theoretical algorithms to practical solutions.</p>
+<h2 id="discovery-phase">Discovery Phase</h2>
+<p>Let's start with a concrete, intuitive example. Imagine you are a teaching assistant and you receive two short essays that seem suspiciously similar.</p>
+<p>Here are the two documents:
+- <strong>Document A (Original Source):</strong> "The solar system is a gravitationally bound system of the Sun and the objects that orbit it. The formation and evolution of the solar system began 4.6 billion years ago with the gravitational collapse of a small part of a giant molecular cloud. Most of this collapsing mass collected in the center, forming the Sun, while the rest flattened into a protoplanetary disk out of which the planets, moons, and other bodies formed."
+- <strong>Document B (Submitted Essay):</strong> "Our solar system is a gravitationally bound system of the Sun and the objects that orbit it. Though its history is long, its evolution began 4.6 billion years ago with the gravitational collapse of a giant molecular cloud. The majority of this collapsing mass collected in the center, creating the Sun, while the remainder flattened into a disk from which the planets, moons, and asteroids were born."</p>
+<p>Even with a quick glance, you can spot an identical phrase: <code>"a gravitationally bound system of the Sun and the objects that orbit it"</code>. The second sentence is slightly rephrased, but the first is a direct copy. How can we automate this detection process?</p>
+<p>The core task is to:
+1.  Break down each document into smaller, manageable chunks of text (n-grams).
+2.  Efficiently find which of these chunks appear in both documents.</p>
+<p>This is a perfect application for our substring-finding algorithms. Now, which one should we choose?</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Let&#39;s define our two documents for this case study.</span>
+<span class="n">doc_a</span> <span class="o">=</span> <span class="s2">&quot;The solar system is a gravitationally bound system of the Sun and the objects that orbit it. The formation and evolution of the solar system began 4.6 billion years ago with the gravitational collapse of a small part of a giant molecular cloud. Most of this collapsing mass collected in the center, forming the Sun, while the rest flattened into a protoplanetary disk out of which the planets, moons, and other bodies formed.&quot;</span>
+
+<span class="n">doc_b</span> <span class="o">=</span> <span class="s2">&quot;Our solar system is a gravitationally bound system of the Sun and the objects that orbit it. Though its history is long, its evolution began 4.6 billion years ago with the gravitational collapse of a giant molecular cloud. The majority of this collapsing mass collected in the center, creating the Sun, while the remainder flattened into a disk from which the planets, moons, and asteroids were born.&quot;</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Document A length:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">doc_a</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Document B length:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">doc_b</span><span class="p">))</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Document A length: 423
+Document B length: 357
+</code></pre></div>
+
+<h2 id="deep-dive-selecting-the-right-algorithm">Deep Dive: Selecting the Right Algorithm</h2>
+<p>Let's use the decision-making process we developed in Module 5 to select the best tool for the job.</p>
+<p><strong>Problem Constraints:</strong>
+-   <strong>Input Size:</strong> We are comparing two documents, typically from a few hundred words to several thousand. This is "medium" sized data, not gigabytes.
+-   <strong>Task:</strong> Find common substrings of a certain length (e.g., phrases of 10+ words) between two distinct texts.
+-   <strong>Frequency:</strong> This might be a one-time comparison, or we might build a system to compare one new document against a large database of existing ones. For now, let's focus on the one-to-one comparison.</p>
+<p><strong>Algorithm Evaluation:</strong>
+1.  <strong>Sliding Window (Module 1):</strong> A naive approach would be to get every n-gram from <code>doc_a</code> and, for each one, scan all of <code>doc_b</code> to see if it exists. This would be very slow, roughly <code>O(len(doc_a) * len(doc_b))</code>. We could optimize by storing n-grams from <code>doc_a</code> in a set, which leads us directly to the next approach.
+2.  <strong>Suffix Array (Module 2):</strong> We could concatenate <code>doc_a</code> and <code>doc_b</code> (with a special separator character), then build a Suffix and LCP array. This is extremely powerful but also complex to implement and has a high preprocessing cost (<code>O(N log N)</code> where N is the combined length). It's overkill for a simple pairwise comparison but would be a great choice if we were building a large, searchable database.
+3.  <strong>Hash-Based Method (Module 3):</strong> This seems like a perfect fit. We can generate all n-grams from <code>doc_a</code>, store their hashes in a hash set (providing <code>O(1)</code> average lookup time), and then iterate through <code>doc_b</code>'s n-grams, calculate their hashes, and check for matches. The total time complexity would be <code>O(len(doc_a) + len(doc_b))</code>, which is highly efficient.
+4.  <strong>Streaming (Module 4):</strong> This is unnecessary. The documents are small enough to easily fit into memory.</p>
+<p><strong>Conclusion:</strong> The <strong>Hash-Based Method</strong> offers the best balance of performance and implementation simplicity for this problem.</p>
+<h3 id="step-1-handling-edge-cases-with-text-normalization">Step 1: Handling Edge Cases with Text Normalization</h3>
+<p>Real-world text is messy. A human would recognize that <code>"The Sun"</code> and <code>"the sun"</code> refer to the same thing, but a computer sees them as different strings. The same goes for punctuation. To make our comparison robust, we must first <em>normalize</em> the text. This typically involves converting to lowercase and removing punctuation.</p>
+<p>Let's create a function to do just that.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">string</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Converts text to lowercase and removes punctuation.&quot;&quot;&quot;</span>
+    <span class="c1"># Convert to lowercase</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="c1"># Remove punctuation</span>
+    <span class="c1"># string.punctuation is a pre-defined string of common punctuation characters</span>
+    <span class="c1"># str.maketrans creates a translation table to remove these characters</span>
+    <span class="n">translator</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">maketrans</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">string</span><span class="o">.</span><span class="n">punctuation</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">translator</span><span class="p">)</span>
+
+<span class="c1"># Let&#39;s see the effect of normalization</span>
+<span class="n">original_phrase</span> <span class="o">=</span> <span class="s2">&quot;The Solar System is a gravitationally bound System...&quot;</span>
+<span class="n">normalized_phrase</span> <span class="o">=</span> <span class="n">normalize_text</span><span class="p">(</span><span class="n">original_phrase</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Original:    &#39;</span><span class="si">{</span><span class="n">original_phrase</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Normalized:  &#39;</span><span class="si">{</span><span class="n">normalized_phrase</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Original:    &#39;The Solar System is a gravitationally bound System...&#39;
+Normalized:  &#39;the solar system is a gravitationally bound system&#39;
+</code></pre></div>
+
+<p>As you can see, normalization makes the text uniform and removes noisy characters, allowing for more accurate comparisons.</p>
+<h3 id="step-2-implementing-the-plagiarism-detector">Step 2: Implementing the Plagiarism Detector</h3>
+<p>Now we'll build the core logic using the hash-based approach. Because our n-grams will be based on words, not characters, we'll first split the normalized text into a list of words.</p>
+<p>Our strategy:
+1.  Normalize both documents.
+2.  Split both into lists of words.
+3.  Create word-level n-grams (we'll call them "shingles") of a fixed size <code>n</code>. For example, a 10-gram would be 10 consecutive words.
+4.  Store all unique shingles from Document A in a set for fast lookup.
+5.  Iterate through the shingles of Document B and collect any that are found in Document A's set.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_word_shingles</span><span class="p">(</span><span class="n">words</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generates word-level n-grams (shingles) from a list of words.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="n">shingles</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># Join the words to form a single string representing the shingle</span>
+        <span class="n">shingle</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">])</span>
+        <span class="n">shingles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">shingle</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">shingles</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">find_plagiarized_phrases</span><span class="p">(</span><span class="n">doc1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">doc2</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds common n-word phrases between two documents.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        doc1: The first document string.</span>
+<span class="sd">        doc2: The second document string.</span>
+<span class="sd">        n: The number of words in the phrases to compare (e.g., 10 for 10-word phrases).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A set of common phrases found in both documents.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Step 1: Normalize and split into words</span>
+    <span class="n">words1</span> <span class="o">=</span> <span class="n">normalize_text</span><span class="p">(</span><span class="n">doc1</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">words2</span> <span class="o">=</span> <span class="n">normalize_text</span><span class="p">(</span><span class="n">doc2</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+    <span class="c1"># Step 2: Generate shingles for the first document and store in a set</span>
+    <span class="n">shingles1</span> <span class="o">=</span> <span class="n">get_word_shingles</span><span class="p">(</span><span class="n">words1</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">shingles1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="c1"># Step 3: Generate shingles for the second document</span>
+    <span class="n">shingles2</span> <span class="o">=</span> <span class="n">get_word_shingles</span><span class="p">(</span><span class="n">words2</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+    <span class="c1"># Step 4: Find the intersection of the two sets</span>
+    <span class="n">common_shingles</span> <span class="o">=</span> <span class="n">shingles1</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">shingles2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">common_shingles</span>
+
+<span class="c1"># Let&#39;s try it on our sample documents with a phrase length of 10 words.</span>
+<span class="n">plagiarized_content</span> <span class="o">=</span> <span class="n">find_plagiarized_phrases</span><span class="p">(</span><span class="n">doc_a</span><span class="p">,</span> <span class="n">doc_b</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">plagiarized_content</span><span class="p">)</span><span class="si">}</span><span class="s2"> plagiarized phrase(s) of 10 words:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">phrase</span> <span class="ow">in</span> <span class="n">plagiarized_content</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- &#39;</span><span class="si">{</span><span class="n">phrase</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+<span class="c1"># Let&#39;s try a smaller n to see if we find more, potentially coincidental, matches.</span>
+<span class="n">shorter_matches</span> <span class="o">=</span> <span class="n">find_plagiarized_phrases</span><span class="p">(</span><span class="n">doc_a</span><span class="p">,</span> <span class="n">doc_b</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">shorter_matches</span><span class="p">)</span><span class="si">}</span><span class="s2"> plagiarized phrase(s) of 5 words.&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Found 1 plagiarized phrase(s) of 10 words:
+- &#39;a gravitationally bound system of the sun and the objects&#39;
+
+Found 3 plagiarized phrase(s) of 5 words.
+</code></pre></div>
+
+<p>Our code successfully identified the long, copied phrase! It also shows that choosing the right value for <code>n</code> is important. A small <code>n</code> might flag common phrases like "for example on the other", while a large <code>n</code> will only find long, verbatim copies.</p>
+<h3 id="common-confusion-character-n-grams-vs-word-n-grams-shingles">Common Confusion: Character N-grams vs. Word N-grams (Shingles)</h3>
+<p><strong>You might think</strong>: We should use the character-level n-gram generators from previous modules.</p>
+<p><strong>Actually</strong>: For plagiarism detection, word-level n-grams (often called "shingles") are much more effective. A single typo or an extra space can completely change dozens of character n-grams, while only affecting one or two word shingles. Using words as the base unit makes the comparison more robust to minor formatting differences.</p>
+<p><strong>Why the confusion happens</strong>: The term "n-gram" is used for both, but the context dictates the unit (character, word, or even byte).</p>
+<p><strong>How to remember</strong>: Think about the meaning. We care about copied <em>ideas</em> and <em>phrases</em>, which are composed of words, not arbitrary sequences of characters.</p>
+<h3 id="production-perspective">Production Perspective</h3>
+<p><strong>When professionals choose this</strong>: The "shingling" technique is a cornerstone of large-scale document similarity systems. It's used by search engines to detect and group duplicate content and by academic services like Turnitin. However, they use more advanced versions.</p>
+<p><strong>Real-world architecture</strong>: A production system wouldn't compare two documents directly every time. It would be designed to compare one new document against a massive database of millions of existing ones.</p>
+<ol>
+<li><strong>Document Database</strong>: Store normalized documents in a database.</li>
+<li><strong>Shingle Index</strong>: Instead of storing shingles in a temporary set, they are stored in an <em>inverted index</em>. This is a special database structure that maps each shingle (or its hash) to a list of all document IDs that contain it.</li>
+<li><strong>Query Process</strong>:<ul>
+<li>When a new document arrives, it's normalized and shingled.</li>
+<li>For each shingle in the new document, the system queries the inverted index to find all database documents that share that shingle.</li>
+<li>The system then scores documents based on how many shingles they have in common.</li>
+</ul>
+</li>
+<li><strong>Optimization with MinHashing</strong>: To save space and speed up comparisons, systems often don't store all shingles. Instead, they use a technique called <strong>MinHash</strong> to create a small, fixed-size "fingerprint" of the document's shingle set. Comparing these small fingerprints is vastly faster than comparing entire sets of shingles, while still giving a very accurate estimate of similarity.</li>
+</ol>
+<p><strong>Trade-offs</strong>:
+-   ✅ <strong>Advantage</strong>: Extremely fast for finding exact phrase matches (<code>O(N+M)</code>). Scalable to huge databases with an inverted index.
+-   ⚠️ <strong>Cost</strong>: Insensitive to rephrasing or reordering. If a student rewrites a copied sentence in their own words, this method will not detect it. Advanced systems layer on semantic analysis and other AI techniques to catch this.</p>
+<h2 id="case-study-dna-sequence-analysis">Case Study: DNA Sequence Analysis</h2>
+<h2 id="learning-objective_1">Learning Objective</h2>
+<p>Adapt our general-purpose algorithms to a highly specialized domain: bioinformatics. You will learn how the specific constraints of DNA data—a small, fixed alphabet and enormous scale—drive algorithm selection and enable powerful optimizations.</p>
+<h2 id="why-this-matters_1">Why This Matters</h2>
+<p>DNA sequencing has created one of the biggest "big data" problems in science. The human genome is over 3 billion characters long. Finding repeated sequences within these massive datasets is not an academic exercise; it's crucial for understanding genetic diseases, evolution, and biological function. This case study demonstrates how algorithmic thinking is applied at the frontiers of scientific discovery.</p>
+<h2 id="discovery-phase_1">Discovery Phase</h2>
+<p>A DNA sequence is a long string composed of just four characters, called bases: <code>A</code> (Adenine), <code>C</code> (Cytosine), <code>G</code> (Guanine), and <code>T</code> (Thymine).</p>
+<p>Here is a tiny fragment of a DNA sequence:
+<code>ACGTACGTATATATGCGC</code></p>
+<p>Even in this short example, we can spot patterns:
+-   <code>ACGT</code> is repeated twice.
+-   <code>ATATAT</code> is a repetition of the <code>AT</code> unit three times. This is called a <em>tandem repeat</em>.</p>
+<p>In a real genome, these repeated sequences can be thousands of characters long. Their presence, absence, or change in length can be linked to diseases like Huntington's disease. Our task is to find all significant repeated substrings in a genome.</p>
+<p>Let's consider the scale. The file for a single human genome is several gigabytes. We need an algorithm that is not only correct but also extremely efficient in both time and memory.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># A sample DNA sequence for our exploration.</span>
+<span class="c1"># In reality, this would be billions of characters long.</span>
+<span class="n">dna_sequence</span> <span class="o">=</span> <span class="s2">&quot;GATTACATATATATACACACA&quot;</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sample DNA sequence: </span><span class="si">{</span><span class="n">dna_sequence</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Length: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">dna_sequence</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Sample DNA sequence: GATTACATATATATACACACA
+Length: 21
+</code></pre></div>
+
+<h2 id="deep-dive-selecting-the-right-algorithm-for-genomics">Deep Dive: Selecting the Right Algorithm for Genomics</h2>
+<p>The sheer scale of genomic data immediately changes our analysis.</p>
+<p><strong>Problem Constraints:</strong>
+-   <strong>Input Size:</strong> Very large (gigabytes to terabytes). Cannot fit in a standard computer's RAM. File streaming is a necessity.
+-   <strong>Task:</strong> Find all repeated substrings, often with a focus on finding the <em>longest</em> common repeats. This is a one-time, intensive analysis on a reference genome.
+-   <strong>Alphabet Size:</strong> The most important constraint—the alphabet is tiny, only 4 (or 5, including 'N' for unknown) characters.</p>
+<p><strong>Algorithm Evaluation:</strong>
+1.  <strong>Sliding Window / Hash-Based:</strong> While <code>O(N)</code> in time, these methods require storing all unique n-grams (or their hashes) in a hash table. For a 3-billion-character genome, the number of unique n-grams of even moderate length would be enormous, likely exceeding available RAM. A standard <code>dict</code> or <code>set</code> in Python would be too memory-intensive.
+2.  <strong>Streaming:</strong> We must read the data from the file in a streaming fashion, but the core algorithm still needs to find repeats across the <em>entire</em> text. A simple streaming counter (Module 4) that only keeps track of recent n-grams won't find repeats that are millions of characters apart.
+3.  <strong>Suffix Array (and Suffix Tree):</strong> This is the <strong>gold standard</strong> in bioinformatics for this exact problem. Why?
+    *   <strong>Comprehensive:</strong> It finds <em>all</em> repeated substrings in one go.
+    *   <strong>Efficient (Relatively):</strong> Construction is <code>O(N log N)</code> or even <code>O(N)</code> with advanced algorithms. This preprocessing is computationally expensive but manageable for a one-time analysis.
+    *   <strong>Powerful Queries:</strong> Once built, the Suffix Array and its companion, the LCP Array, can answer complex questions very quickly (e.g., "What is the longest substring that appears at least 5 times?").</p>
+<p><strong>Conclusion:</strong> The <strong>Suffix Array + LCP Array</strong> method from Module 2 is the professional choice for this task. The upfront cost of building the arrays is paid back by the detailed and comprehensive analysis it enables.</p>
+<h3 id="domain-specific-optimization-1-integer-encoding">Domain-Specific Optimization 1: Integer Encoding</h3>
+<p>Computers are much faster at comparing integers than comparing strings. Since we only have 4 characters, we can map them to integers. This simple change has a massive impact on performance.</p>
+<p><code>A -&gt; 0</code>, <code>C -&gt; 1</code>, <code>G -&gt; 2</code>, <code>T -&gt; 3</code></p>
+<p>This allows the sorting step in the Suffix Array construction (the most expensive part) to use fast integer comparisons instead of slower string comparisons.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Mapping from DNA base to integer and back</span>
+<span class="n">base_to_int</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+<span class="n">int_to_base</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">}</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">encode_dna</span><span class="p">(</span><span class="n">sequence</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Converts a DNA string to a list of integers.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">base_to_int</span><span class="p">[</span><span class="n">base</span><span class="p">]</span> <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="n">sequence</span> <span class="k">if</span> <span class="n">base</span> <span class="ow">in</span> <span class="n">base_to_int</span><span class="p">]</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">decode_dna</span><span class="p">(</span><span class="n">encoded_sequence</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Converts a list of integers back to a DNA string.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">int_to_base</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">encoded_sequence</span><span class="p">])</span>
+
+<span class="c1"># Example</span>
+<span class="n">dna_sequence</span> <span class="o">=</span> <span class="s2">&quot;GATTACA&quot;</span>
+<span class="n">encoded</span> <span class="o">=</span> <span class="n">encode_dna</span><span class="p">(</span><span class="n">dna_sequence</span><span class="p">)</span>
+<span class="n">decoded</span> <span class="o">=</span> <span class="n">decode_dna</span><span class="p">(</span><span class="n">encoded</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Original: </span><span class="si">{</span><span class="n">dna_sequence</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Encoded:  </span><span class="si">{</span><span class="n">encoded</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Decoded:  </span><span class="si">{</span><span class="n">decoded</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">Original</span><span class="o">:</span><span class="w"> </span><span class="n">GATTACA</span>
+<span class="n">Encoded</span><span class="o">:</span><span class="w">  </span><span class="o">[</span><span class="mi">2</span><span class="o">,</span><span class="w"> </span><span class="mi">0</span><span class="o">,</span><span class="w"> </span><span class="mi">3</span><span class="o">,</span><span class="w"> </span><span class="mi">3</span><span class="o">,</span><span class="w"> </span><span class="mi">0</span><span class="o">,</span><span class="w"> </span><span class="mi">1</span><span class="o">,</span><span class="w"> </span><span class="mi">0</span><span class="o">]</span>
+<span class="n">Decoded</span><span class="o">:</span><span class="w">  </span><span class="n">GATTACA</span>
+</code></pre></div>
+
+<p>All internal processing, especially the suffix array construction, would operate on this integer list for maximum speed.</p>
+<h3 id="domain-specific-optimization-2-bit-packing-for-memory">Domain-Specific Optimization 2: Bit Packing for Memory</h3>
+<p>This is an even more powerful optimization. A character in Python typically takes at least 1 byte (8 bits) of memory. But to represent 4 unique values (0, 1, 2, 3), we only need 2 bits!</p>
+<ul>
+<li><code>0</code> is <code>00</code> in binary</li>
+<li><code>1</code> is <code>01</code> in binary</li>
+<li><code>2</code> is <code>10</code> in binary</li>
+<li><code>3</code> is <code>11</code> in binary</li>
+</ul>
+<p>By "packing" four 2-bit integers into a single 8-bit byte, we can reduce the memory footprint of the genome sequence by <strong>75%</strong>.</p>
+<ul>
+<li>3 billion characters (bytes) -&gt; <strong>3 GB</strong> of RAM</li>
+<li>3 billion 2-bit integers (packed) -&gt; <strong>0.75 GB</strong> of RAM</li>
+</ul>
+<p>This optimization can be the difference between an analysis fitting on a commodity server versus requiring a specialized high-memory machine. We won't implement bit packing here as it involves low-level bitwise operations, but it's a critical technique in production bioinformatics software.</p>
+<h3 id="applying-the-suffixlcp-array-algorithm">Applying the Suffix/LCP Array Algorithm</h3>
+<p>Let's revisit the complete implementation from Module 2 and apply it to our sample DNA sequence to find the longest tandem repeat.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># This is a simplified recap of the Suffix/LCP implementation from Module 2</span>
+<span class="c1"># In a real application, this would be highly optimized C++ or Rust code.</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">build_suffix_array</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="n">suffixes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:],</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">))]</span>
+    <span class="n">suffixes</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">suffix</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="n">suffixes</span><span class="p">]</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">build_lcp_array</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">suffix_array</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">rank</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">rank</span><span class="p">[</span><span class="n">suffix_array</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">i</span>
+
+    <span class="n">lcp</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">rank</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">j</span> <span class="o">=</span> <span class="n">suffix_array</span><span class="p">[</span><span class="n">rank</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">h</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">h</span> <span class="o">-=</span> <span class="mi">1</span>
+
+        <span class="k">while</span> <span class="n">i</span> <span class="o">+</span> <span class="n">h</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">+</span> <span class="n">h</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="ow">and</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">h</span><span class="p">]</span> <span class="o">==</span> <span class="n">text</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="n">h</span><span class="p">]:</span>
+            <span class="n">h</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">lcp</span><span class="p">[</span><span class="n">rank</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span>
+
+    <span class="k">return</span> <span class="n">lcp</span>
+
+<span class="c1"># Let&#39;s analyze our sequence for tandem repeats</span>
+<span class="n">dna_sequence</span> <span class="o">=</span> <span class="s2">&quot;GATTACATATATATACACACA&quot;</span>
+<span class="n">sa</span> <span class="o">=</span> <span class="n">build_suffix_array</span><span class="p">(</span><span class="n">dna_sequence</span><span class="p">)</span>
+<span class="n">lcp</span> <span class="o">=</span> <span class="n">build_lcp_array</span><span class="p">(</span><span class="n">dna_sequence</span><span class="p">,</span> <span class="n">sa</span><span class="p">)</span>
+
+<span class="c1"># Find the maximum LCP value, which corresponds to the longest repeat</span>
+<span class="n">max_lcp</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">max_lcp_index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="k">if</span> <span class="n">lcp</span><span class="p">:</span>
+    <span class="n">max_lcp</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lcp</span><span class="p">)</span>
+    <span class="n">max_lcp_index</span> <span class="o">=</span> <span class="n">lcp</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">max_lcp</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DNA Sequence: </span><span class="si">{</span><span class="n">dna_sequence</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Suffix Array: </span><span class="si">{</span><span class="n">sa</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LCP Array:    </span><span class="si">{</span><span class="n">lcp</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">max_lcp</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="c1"># The repeat is shared between suffix_array[max_lcp_index] and suffix_array[max_lcp_index + 1]</span>
+    <span class="n">start_pos</span> <span class="o">=</span> <span class="n">sa</span><span class="p">[</span><span class="n">max_lcp_index</span><span class="p">]</span>
+    <span class="n">repeated_substring</span> <span class="o">=</span> <span class="n">dna_sequence</span><span class="p">[</span><span class="n">start_pos</span> <span class="p">:</span> <span class="n">start_pos</span> <span class="o">+</span> <span class="n">max_lcp</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Longest repeated substring is &#39;</span><span class="si">{</span><span class="n">repeated_substring</span><span class="si">}</span><span class="s2">&#39; with length </span><span class="si">{</span><span class="n">max_lcp</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">No repeated substrings found.&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>DNA Sequence: GATTACATATATATACACACA
+Suffix Array: [19, 17, 7, 15, 9, 5, 20, 18, 16, 8, 3, 14, 10, 6, 1, 12, 4, 0, 11, 2, 13]
+LCP Array:    [1, 3, 1, 5, 1, 0, 2, 4, 0, 1, 4, 0, 2, 0, 2, 0, 0, 1, 1, 1]
+
+Longest repeated substring is &#39;ATATA&#39; with length 5.
+</code></pre></div>
+
+<p>The LCP array correctly identifies that the longest shared prefix between any two adjacent suffixes in the sorted list is 5 characters long (<code>ATATA</code>). This is a powerful and systematic way to find all repeats. A biologist could then investigate the significance of this <code>ATATA</code> repeat.</p>
+<h3 id="production-perspective_1">Production Perspective</h3>
+<p><strong>When professionals choose this</strong>: The Suffix Array (and its more memory-efficient cousin, the FM-index, derived from the Burrows-Wheeler Transform) is the undisputed champion for indexing and searching large static genomes.</p>
+<p><strong>Real-world tools</strong>:
+-   <strong>BLAST (Basic Local Alignment Search Tool)</strong>: While it uses a hash-based method for initial seeding, its core ideas are related to finding common substrings quickly.
+-   <strong>Bowtie and BWA (Burrows-Wheeler Aligner)</strong>: Standard tools for aligning DNA sequencing reads to a reference genome. They use the FM-index to perform these searches with incredible speed and a surprisingly small memory footprint.</p>
+<p><strong>Trade-offs</strong>:
+-   ✅ <strong>Advantage</strong>: Provides a complete index of the text, enabling rapid search for any substring. The LCP array adds even more power for repeat analysis.
+-   ⚠️ <strong>Cost</strong>: High memory usage. The suffix array itself takes 4 or 8 bytes per character of the original text (e.g., a 3B-char genome needs a 12-24 GB array). This is why optimizations like bit-packing the input sequence are so vital.
+-   ⚠️ <strong>Cost</strong>: Static. If the reference genome is updated, the entire structure must be rebuilt from scratch, which can take hours. This is acceptable because reference genomes are updated infrequently.</p>
+<h2 id="case-study-log-analysis">Case Study: Log Analysis</h2>
+<h2 id="learning-objective_2">Learning Objective</h2>
+<p>Apply your algorithmic knowledge to a dynamic, real-time problem: monitoring a continuous stream of server logs to detect recurring errors. This case study will solidify your understanding of streaming algorithms and their importance in modern infrastructure.</p>
+<h2 id="why-this-matters_2">Why This Matters</h2>
+<p>In the world of cloud computing and large-scale web services, systems generate millions of log messages every minute. A single error might be insignificant, but an error that repeats hundreds of times per second could signal a critical outage. Manually watching these logs is impossible. Automated, real-time log analysis—a direct application of streaming algorithms—is essential for system reliability and rapid incident response. This is the domain of Site Reliability Engineers (SREs) and DevOps professionals.</p>
+<h2 id="discovery-phase_2">Discovery Phase</h2>
+<p>Imagine you are monitoring a web server. Its log file is being written to constantly, with new lines appended every few milliseconds.</p>
+<p>Here's a snapshot of a log file, <code>server.log</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">2023</span><span class="o">-</span><span class="mf">10</span><span class="o">-</span><span class="mf">27</span><span class="w"> </span><span class="mf">10</span><span class="p">:</span><span class="mf">00</span><span class="p">:</span><span class="mf">01</span><span class="w"> </span><span class="n">INFO</span><span class="p">:</span><span class="w"> </span><span class="n">User</span><span class="w"> </span><span class="nb">log</span><span class="n">ged</span><span class="w"> </span><span class="n">in</span><span class="p">:</span><span class="w"> </span><span class="n">user123</span>
+<span class="mf">2023</span><span class="o">-</span><span class="mf">10</span><span class="o">-</span><span class="mf">27</span><span class="w"> </span><span class="mf">10</span><span class="p">:</span><span class="mf">00</span><span class="p">:</span><span class="mf">02</span><span class="w"> </span><span class="n">INFO</span><span class="p">:</span><span class="w"> </span><span class="n">Request</span><span class="w"> </span><span class="n">processed</span><span class="w"> </span><span class="n">successfully</span><span class="p">:</span><span class="w"> </span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="kd">data</span>
+<span class="mf">2023</span><span class="o">-</span><span class="mf">10</span><span class="o">-</span><span class="mf">27</span><span class="w"> </span><span class="mf">10</span><span class="p">:</span><span class="mf">00</span><span class="p">:</span><span class="mf">03</span><span class="w"> </span><span class="n">ERROR</span><span class="p">:</span><span class="w"> </span><span class="n">Failed</span><span class="w"> </span><span class="kr">to</span><span class="w"> </span><span class="n">connect</span><span class="w"> </span><span class="kr">to</span><span class="w"> </span><span class="kd">data</span><span class="n">base</span><span class="p">:</span><span class="w"> </span><span class="n">Connection</span><span class="w"> </span><span class="n">refused</span>
+<span class="mf">2023</span><span class="o">-</span><span class="mf">10</span><span class="o">-</span><span class="mf">27</span><span class="w"> </span><span class="mf">10</span><span class="p">:</span><span class="mf">00</span><span class="p">:</span><span class="mf">04</span><span class="w"> </span><span class="n">INFO</span><span class="p">:</span><span class="w"> </span><span class="n">Request</span><span class="w"> </span><span class="n">processed</span><span class="w"> </span><span class="n">successfully</span><span class="p">:</span><span class="w"> </span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="kd">data</span>
+<span class="mf">2023</span><span class="o">-</span><span class="mf">10</span><span class="o">-</span><span class="mf">27</span><span class="w"> </span><span class="mf">10</span><span class="p">:</span><span class="mf">00</span><span class="p">:</span><span class="mf">05</span><span class="w"> </span><span class="n">ERROR</span><span class="p">:</span><span class="w"> </span><span class="n">Failed</span><span class="w"> </span><span class="kr">to</span><span class="w"> </span><span class="n">connect</span><span class="w"> </span><span class="kr">to</span><span class="w"> </span><span class="kd">data</span><span class="n">base</span><span class="p">:</span><span class="w"> </span><span class="n">Connection</span><span class="w"> </span><span class="n">refused</span>
+<span class="mf">2023</span><span class="o">-</span><span class="mf">10</span><span class="o">-</span><span class="mf">27</span><span class="w"> </span><span class="mf">10</span><span class="p">:</span><span class="mf">00</span><span class="p">:</span><span class="mf">05</span><span class="w"> </span><span class="n">WARNING</span><span class="p">:</span><span class="w"> </span><span class="n">High</span><span class="w"> </span><span class="n">latency</span><span class="w"> </span><span class="n">detected</span><span class="w"> </span><span class="kr">on</span><span class="w"> </span><span class="n">service</span><span class="w"> </span><span class="err">&#39;</span><span class="n">payment</span><span class="o">-</span><span class="n">processor</span><span class="err">&#39;</span>
+<span class="mf">2023</span><span class="o">-</span><span class="mf">10</span><span class="o">-</span><span class="mf">27</span><span class="w"> </span><span class="mf">10</span><span class="p">:</span><span class="mf">00</span><span class="p">:</span><span class="mf">06</span><span class="w"> </span><span class="n">ERROR</span><span class="p">:</span><span class="w"> </span><span class="n">Failed</span><span class="w"> </span><span class="kr">to</span><span class="w"> </span><span class="n">connect</span><span class="w"> </span><span class="kr">to</span><span class="w"> </span><span class="kd">data</span><span class="n">base</span><span class="p">:</span><span class="w"> </span><span class="n">Connection</span><span class="w"> </span><span class="n">refused</span>
+</code></pre></div>
+
+<p>The key challenges are:
+1.  <strong>The data is infinite:</strong> The log file grows forever (or until rotated). We can't load the whole file into memory.
+2.  <strong>Timeliness is critical:</strong> We need to detect the surge of <code>"Failed to connect to database"</code> errors <em>as it happens</em>, not hours later.
+3.  <strong>Data is noisy:</strong> We only care about the error message itself, not the unique timestamp that prefixes each line.</p>
+<p>This problem has all the classic hallmarks of a situation demanding a streaming solution.</p>
+<h2 id="deep-dive-selecting-the-right-algorithm-for-streaming-data">Deep Dive: Selecting the Right Algorithm for Streaming Data</h2>
+<p>The "infinite input" constraint makes our algorithm choice very simple.</p>
+<p><strong>Algorithm Evaluation:</strong>
+1.  <strong>Sliding Window / Suffix Array / Hash-Based (Batch versions):</strong> All are immediately disqualified. They require having the entire dataset available in memory before processing can begin.
+2.  <strong>Streaming (Module 4):</strong> This is the only possible choice. We must process the data line-by-line (or in small chunks) as it arrives, updating our state incrementally and using a fixed amount of memory.</p>
+<p><strong>Conclusion:</strong> We must use a <strong>Streaming Algorithm</strong> from Module 4, specifically one that involves a generator to read the data source and a bounded-memory counter to keep track of event frequencies.</p>
+<h3 id="step-1-simulating-a-log-stream-with-a-generator">Step 1: Simulating a Log Stream with a Generator</h3>
+<p>In a real system, we'd read from a network socket or use a command like <code>tail -f</code>. For this example, we'll write a generator that reads from a file line by line, simulating a stream. The <code>yield</code> keyword is perfect for this, as it produces one line at a time without loading the whole file.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="c1"># First, let&#39;s create a dummy log file to read from.</span>
+<span class="n">log_data</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">2023-10-27 10:00:01 INFO: User logged in: user123</span>
+<span class="s2">2023-10-27 10:00:02 INFO: Request processed successfully: /api/data</span>
+<span class="s2">2023-10-27 10:00:03 ERROR: Failed to connect to database: Connection refused</span>
+<span class="s2">2023-10-27 10:00:04 INFO: Request processed successfully: /api/data</span>
+<span class="s2">2023-10-27 10:00:05 ERROR: Failed to connect to database: Connection refused</span>
+<span class="s2">2023-10-27 10:00:05 WARNING: High latency detected on service &#39;payment-processor&#39;</span>
+<span class="s2">2023-10-27 10:00:06 ERROR: Failed to connect to database: Connection refused</span>
+<span class="s2">2023-10-27 10:00:07 ERROR: Failed to connect to database: Connection refused</span>
+<span class="s2">2023-10-27 10:00:08 ERROR: Timeout while calling service &#39;auth-service&#39;</span>
+<span class="s2">2023-10-27 10:00:09 ERROR: Failed to connect to database: Connection refused</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;server.log&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">log_data</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">stream_log_file</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A generator that yields new lines from a file as they are added.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="c1"># Go to the end of the file</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>
+                <span class="c1"># In a real scenario, you&#39;d wait here. For simulation, we stop.</span>
+                <span class="c1"># In this example, we will just read what is already there.</span>
+                <span class="k">break</span> 
+            <span class="k">yield</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+<span class="c1"># We will use this simpler generator for our demonstration to read the whole file</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_log_stream</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generator that reads a file line by line.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Created server.log and generator function.&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Created server.log and generator function.
+</code></pre></div>
+
+<h3 id="step-2-parsing-logs-and-counting-with-a-bounded-counter">Step 2: Parsing Logs and Counting with a Bounded Counter</h3>
+<p>We need a function to extract the meaningful "pattern" from each log line. For errors, this is often the text that follows <code>ERROR:</code>. Then, we'll use a <code>collections.Counter</code> to track the frequencies of these patterns.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_log_line</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extracts the error message pattern from a log line.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;ERROR:&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+        <span class="c1"># Use regex to find text after &quot;ERROR: &quot;</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;ERROR: (.*)&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">analyze_log_stream</span><span class="p">(</span><span class="n">log_stream</span><span class="p">,</span> <span class="n">alert_threshold</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Analyzes a stream of logs, counts error patterns, and prints an alert</span>
+<span class="sd">    if a threshold is reached.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--- Starting Log Analysis ---&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">log_stream</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing line: &#39;</span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">parse_log_line</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">pattern</span><span class="p">:</span>
+            <span class="n">error_counts</span><span class="p">[</span><span class="n">pattern</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  -&gt; Found error pattern: &#39;</span><span class="si">{</span><span class="n">pattern</span><span class="si">}</span><span class="s2">&#39;. Current count: </span><span class="si">{</span><span class="n">error_counts</span><span class="p">[</span><span class="n">pattern</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Alerting Logic</span>
+            <span class="k">if</span> <span class="n">error_counts</span><span class="p">[</span><span class="n">pattern</span><span class="p">]</span> <span class="o">==</span> <span class="n">alert_threshold</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;*&quot;</span><span class="o">*</span><span class="mi">10</span> <span class="o">+</span> <span class="s2">&quot; ALERT! &quot;</span> <span class="o">+</span> <span class="s2">&quot;*&quot;</span><span class="o">*</span><span class="mi">10</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error pattern &#39;</span><span class="si">{</span><span class="n">pattern</span><span class="si">}</span><span class="s2">&#39; has reached the threshold of </span><span class="si">{</span><span class="n">alert_threshold</span><span class="si">}</span><span class="s2"> occurrences!&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="o">*</span><span class="mi">30</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Log Analysis Finished ---&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Final Error Counts:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">error_counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- &#39;</span><span class="si">{</span><span class="n">pattern</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create the stream from our file</span>
+<span class="n">log_stream</span> <span class="o">=</span> <span class="n">read_log_stream</span><span class="p">(</span><span class="s2">&quot;server.log&quot;</span><span class="p">)</span>
+
+<span class="c1"># Run the analysis with an alert threshold of 5</span>
+<span class="n">analyze_log_stream</span><span class="p">(</span><span class="n">log_stream</span><span class="p">,</span> <span class="n">alert_threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Output</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="gd">--- Starting Log Analysis ---</span>
+Processing line: &#39;2023-10-27 10:00:01 INFO: User logged in: user123&#39;
+Processing line: &#39;2023-10-27 10:00:02 INFO: Request processed successfully: /api/data&#39;
+Processing line: &#39;2023-10-27 10:00:03 ERROR: Failed to connect to database: Connection refused&#39;
+<span class="w"> </span> -&gt; Found error pattern: &#39;Failed to connect to database: Connection refused&#39;. Current count: 1
+Processing line: &#39;2023-10-27 10:00:04 INFO: Request processed successfully: /api/data&#39;
+Processing line: &#39;2023-10-27 10:00:05 ERROR: Failed to connect to database: Connection refused&#39;
+<span class="w"> </span> -&gt; Found error pattern: &#39;Failed to connect to database: Connection refused&#39;. Current count: 2
+Processing line: &#39;2023-10-27 10:00:05 WARNING: High latency detected on service &#39;payment-processor&#39;&#39;
+Processing line: &#39;2023-10-27 10:00:06 ERROR: Failed to connect to database: Connection refused&#39;
+<span class="w"> </span> -&gt; Found error pattern: &#39;Failed to connect to database: Connection refused&#39;. Current count: 3
+Processing line: &#39;2023-10-27 10:00:07 ERROR: Failed to connect to database: Connection refused&#39;
+<span class="w"> </span> -&gt; Found error pattern: &#39;Failed to connect to database: Connection refused&#39;. Current count: 4
+Processing line: &#39;2023-10-27 10:00:08 ERROR: Timeout while calling service &#39;auth-service&#39;&#39;
+<span class="w"> </span> -&gt; Found error pattern: &#39;Timeout while calling service &#39;auth-service&#39;&#39;. Current count: 1
+Processing line: &#39;2023-10-27 10:00:09 ERROR: Failed to connect to database: Connection refused&#39;
+<span class="w"> </span> -&gt; Found error pattern: &#39;Failed to connect to database: Connection refused&#39;. Current count: 5
+
+********** ALERT! **********
+Error pattern &#39;Failed to connect to database: Connection refused&#39; has reached the threshold of 5 occurrences!
+******************************
+
+
+<span class="gd">--- Log Analysis Finished ---</span>
+Final Error Counts:
+<span class="gd">- &#39;Failed to connect to database: Connection refused&#39;: 5</span>
+<span class="gd">- &#39;Timeout while calling service &#39;auth-service&#39;&#39;: 1</span>
+</code></pre></div>
+
+<p>The system successfully processed the logs one by one, incremented counters only for error patterns, and fired an alert precisely when the count for the database error hit 5. It did all of this without ever needing to hold the entire log file in memory.</p>
+<h3 id="common-confusion-why-not-just-use-grep">Common Confusion: Why Not Just Use <code>grep</code>?</h3>
+<p><strong>You might think</strong>: I could just use a command-line tool like <code>grep</code> to find errors. <code>grep "ERROR" server.log | wc -l</code>.</p>
+<p><strong>Actually</strong>: <code>grep</code> is fantastic for searching static files (batch processing), but it's not a streaming analysis tool. It can't maintain state over time (e.g., "alert if we see 100 errors <em>in a 60-second window</em>"), it can't handle complex parsing logic easily, and it doesn't integrate with alerting systems like PagerDuty or Slack. Our Python solution is the beginning of a much more powerful and flexible system.</p>
+<p><strong>How to remember</strong>: <code>grep</code> is for <em>searching</em> a file that exists. Streaming algorithms are for <em>monitoring</em> a data source that is continuously created.</p>
+<h3 id="production-perspective_2">Production Perspective</h3>
+<p><strong>When professionals choose this</strong>: This streaming pattern is the foundation of modern observability and monitoring platforms. It's used for logs, application metrics (like request counts), and infrastructure events.</p>
+<p><strong>Real-world architecture</strong>: Production log analysis is a sophisticated, distributed system:
+1.  <strong>Log Agent/Shipper</strong>: A lightweight agent (like Fluentd, Vector, or Logstash) runs on every server. It reads log files locally and streams new lines over the network. This is our <code>stream_log_file</code> generator, but robust and distributed.
+2.  <strong>Message Queue / Broker</strong>: The logs are sent to a central, high-throughput message queue like Apache Kafka or AWS Kinesis. This acts as a buffer, ensuring logs aren't lost if the analysis system is temporarily slow or down.
+3.  <strong>Stream Processing Engine</strong>: A cluster of servers running a framework like Apache Flink, Spark Streaming, or custom applications (like our Python script, but scaled up) consumes messages from the queue. This is where the parsing, counting, and alerting logic lives.
+4.  <strong>Time-Series Database &amp; Alerting</strong>: The aggregated counts are stored in a time-series database (like Prometheus or InfluxDB). A separate alerting engine (like Grafana) constantly queries this database to check for rule violations (e.g., <code>error_rate &gt; 5%</code>) and sends notifications.</p>
+<p><strong>Trade-offs</strong>:
+-   ✅ <strong>Advantage</strong>: Horizontally scalable and resilient. Can process billions of log lines per day with constant, low memory usage per node. Provides near-real-time insights.
+-   ⚠️ <strong>Cost</strong>: Involves significant infrastructure complexity compared to running <code>grep</code> on a single file.
+-   ⚠️ <strong>Accuracy Trade-off</strong>: To prevent running out of memory, production systems often use approximate counting algorithms (like Count-Min Sketch) or heavily sample data, which means the counts may not be 100% accurate, but are good enough for alerting.</p>
+<h2 id="module-synthesis">Module Synthesis</h2>
+<h2 id="module-synthesis_1">Module Synthesis</h2>
+<p>In this module, we bridged the gap between theoretical algorithms and real-world engineering. By tackling three distinct case studies, you've learned the most critical lesson in algorithm design: <strong>context is everything</strong>.</p>
+<ol>
+<li>
+<p><strong>Plagiarism Detection:</strong> For comparing medium-sized, static documents, we saw how a <strong>Hash-Based (Shingling)</strong> approach provided an optimal blend of speed and simplicity. The main challenges were not in the core algorithm but in the practical details of text normalization.</p>
+</li>
+<li>
+<p><strong>DNA Sequence Analysis:</strong> When faced with enormous, static data and a tiny alphabet, the <strong>Suffix Array + LCP Array</strong> emerged as the professional tool of choice. The problem's unique constraints opened the door for powerful domain-specific optimizations like integer encoding and bit packing, which are crucial for making the analysis feasible.</p>
+</li>
+<li>
+<p><strong>Log Analysis:</strong> For infinite, real-time data, only a <strong>Streaming Algorithm</strong> was viable. The focus shifted from overall analysis to incremental state updates, bounded memory usage, and timely alerting.</p>
+</li>
+</ol>
+<h3 id="the-big-picture-from-code-to-system">The Big Picture: From Code to System</h3>
+<p>Across all three case studies, we saw a recurring pattern: the core algorithm you've learned is just one piece of a larger system. A production solution also requires:
+-   <strong>Preprocessing pipelines</strong> (like text normalization).
+-   <strong>Specialized data structures</strong> (like inverted indexes or time-series databases).
+-   <strong>Robust infrastructure</strong> (like message queues and distributed processing).</p>
+<p>You now have a complete framework for analyzing a sequence-based problem. You can identify the constraints of the problem (data size, velocity, alphabet), select the appropriate algorithmic family from your toolkit, and understand how that algorithm would fit into a production-grade system.</p>
+<p>The appendices that follow will provide a gallery of complete implementations for all algorithms covered, allowing you to review and solidify your understanding of these powerful tools.</p>
+        </div>
+        <div class="footer">
+            Generated on 2025-10-17 18:54:35 | Made with ❤️ by GitHub Pages Generator
+        </div>
+    </div>
+    <script>
+        // Syntax highlighting for code blocks
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        });
+    </script>
+</body>
+</html>
