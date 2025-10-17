@@ -156,6 +156,7 @@
             border: 1px solid var(--border);
             margin: 1.5rem 0;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            position: relative;
         }
         
         pre code { 
@@ -164,6 +165,38 @@
             font-family: 'Fira Code', 'Consolas', monospace;
             font-size: 0.9em;
             line-height: 1.6;
+        }
+        
+        /* Copy Button */
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+            opacity: 0.7;
+            z-index: 10;
+        }
+        
+        .copy-btn:hover {
+            opacity: 1;
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        .copy-btn.copied {
+            background: var(--success);
+        }
+        
+        pre:hover .copy-btn {
+            opacity: 1;
         }
         
         /* Inline Code */
@@ -357,14 +390,42 @@
                 </div></div>
         </div>
         <div class="footer">
-            Generated on 2025-10-17 20:18:57 | Made with ❤️ by GitHub Pages Generator
+            Generated on 2025-10-17 21:05:38 | Made with ❤️ by GitHub Pages Generator
         </div>
     </div>
     <script>
         // Syntax highlighting for code blocks
         document.addEventListener('DOMContentLoaded', (event) => {
+            // Highlight code blocks
             document.querySelectorAll('pre code').forEach((block) => {
                 hljs.highlightElement(block);
+            });
+            
+            // Add copy buttons to code blocks
+            document.querySelectorAll('pre').forEach((pre) => {
+                const button = document.createElement('button');
+                button.className = 'copy-btn';
+                button.textContent = 'Copy';
+                
+                button.addEventListener('click', () => {
+                    const code = pre.querySelector('code').textContent;
+                    navigator.clipboard.writeText(code).then(() => {
+                        button.textContent = 'Copied!';
+                        button.classList.add('copied');
+                        setTimeout(() => {
+                            button.textContent = 'Copy';
+                            button.classList.remove('copied');
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Failed to copy:', err);
+                        button.textContent = 'Error';
+                        setTimeout(() => {
+                            button.textContent = 'Copy';
+                        }, 2000);
+                    });
+                });
+                
+                pre.appendChild(button);
             });
         });
     </script>

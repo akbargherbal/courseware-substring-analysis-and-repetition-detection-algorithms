@@ -5,15 +5,17 @@ Generates a working website from your docs in under 20 minutes
 
 import os
 import shutil
+import subprocess
 from pathlib import Path
 import markdown
 from datetime import datetime
 
 
 class FastSiteGenerator:
-    def __init__(self, source_dir=".", output_dir="docs"):
+    def __init__(self, source_dir=".", output_dir="docs", format_markdown=True):
         self.source_dir = Path(source_dir)
         self.output_dir = Path(output_dir)
+        self.format_markdown = format_markdown
         self.markdown_extensions = ["toc", "tables", "fenced_code", "codehilite"]
 
         # Create output directory
@@ -186,6 +188,7 @@ class FastSiteGenerator:
             border: 1px solid var(--border);
             margin: 1.5rem 0;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            position: relative;
         }}
         
         pre code {{ 
@@ -194,6 +197,38 @@ class FastSiteGenerator:
             font-family: 'Fira Code', 'Consolas', monospace;
             font-size: 0.9em;
             line-height: 1.6;
+        }}
+        
+        /* Copy Button */
+        .copy-btn {{
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+            opacity: 0.7;
+            z-index: 10;
+        }}
+        
+        .copy-btn:hover {{
+            opacity: 1;
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }}
+        
+        .copy-btn.copied {{
+            background: var(--success);
+        }}
+        
+        pre:hover .copy-btn {{
+            opacity: 1;
         }}
         
         /* Inline Code */
@@ -365,8 +400,36 @@ class FastSiteGenerator:
     <script>
         // Syntax highlighting for code blocks
         document.addEventListener('DOMContentLoaded', (event) => {{
+            // Highlight code blocks
             document.querySelectorAll('pre code').forEach((block) => {{
                 hljs.highlightElement(block);
+            }});
+            
+            // Add copy buttons to code blocks
+            document.querySelectorAll('pre').forEach((pre) => {{
+                const button = document.createElement('button');
+                button.className = 'copy-btn';
+                button.textContent = 'Copy';
+                
+                button.addEventListener('click', () => {{
+                    const code = pre.querySelector('code').textContent;
+                    navigator.clipboard.writeText(code).then(() => {{
+                        button.textContent = 'Copied!';
+                        button.classList.add('copied');
+                        setTimeout(() => {{
+                            button.textContent = 'Copy';
+                            button.classList.remove('copied');
+                        }}, 2000);
+                    }}).catch(err => {{
+                        console.error('Failed to copy:', err);
+                        button.textContent = 'Error';
+                        setTimeout(() => {{
+                            button.textContent = 'Copy';
+                        }}, 2000);
+                    }});
+                }});
+                
+                pre.appendChild(button);
             }});
         }});
     </script>
@@ -398,8 +461,44 @@ class FastSiteGenerator:
 
         return breadcrumb
 
+    def format_markdown_file(self, md_path):
+        """Format markdown file using Prettier via npx"""
+        if not self.format_markdown:
+            return True
+
+        try:
+            result = subprocess.run(
+                ["npx", "prettier", "--write", str(md_path)],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                shell=True,  # Important for Windows compatibility
+            )
+
+            if result.returncode != 0:
+                print(f"⚠️ Prettier warning for {md_path.name}: {result.stderr.strip()}")
+                return False
+
+            return True
+
+        except subprocess.TimeoutExpired:
+            print(f"⚠️ Prettier timeout for {md_path.name}")
+            return False
+        except FileNotFoundError:
+            if self.format_markdown:  # Only print once
+                print("⚠️ npx not found - skipping Prettier formatting")
+                print("💡 Install Node.js to enable Prettier formatting")
+                self.format_markdown = False  # Disable for remaining files
+            return False
+        except Exception as e:
+            print(f"⚠️ Prettier error for {md_path.name}: {e}")
+            return False
+
     def process_markdown(self, md_path, relative_path):
         """Convert markdown to HTML"""
+        # Format markdown with Prettier first
+        self.format_markdown_file(md_path)
+
         with open(md_path, "r", encoding="utf-8", errors="ignore") as f:
             content = f.read()
 
@@ -592,13 +691,33 @@ def main():
     # Parse arguments
     source_dir = "."
     output_dir = "docs"
+    format_markdown = True
 
     if len(sys.argv) > 1:
         source_dir = sys.argv[1]
     if len(sys.argv) > 2:
         output_dir = sys.argv[2]
+    if len(sys.argv) > 3:
+        format_markdown = sys.argv[3].lower() not in ["false", "0", "no"]
 
-    generator = FastSiteGenerator(source_dir, output_dir)
+    # Check if npx is available
+    if format_markdown:
+        try:
+            result = subprocess.run(
+                ["npx", "--version"],
+                capture_output=True,
+                timeout=5,
+                shell=True,  # Important for Windows
+            )
+            if result.returncode == 0:
+                print("✅ Prettier formatting enabled (npx found)")
+            else:
+                print("⚠️ npx check failed - formatting will be attempted anyway")
+        except (FileNotFoundError, subprocess.TimeoutExpired) as e:
+            print(f"⚠️ npx not found - Prettier formatting will be skipped ({e})")
+            print("💡 To enable formatting, install Node.js from https://nodejs.org")
+
+    generator = FastSiteGenerator(source_dir, output_dir, format_markdown)
     generator.generate_site()
 
     print(
